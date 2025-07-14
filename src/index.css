@@ -66,3 +66,23 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+body {
+  font-family: 'Product Sans', sans-serif;
+}
+
+.sidebar-link, .sidebar-sublink {
+  color: #FFFFFFD9;
+  transition: color 0.2s ease;
+}
+
+.sidebar-link:hover,
+.sidebar-sublink:hover {
+  color: #2EA64F;
+}
+
+.sidebar-link.active,
+.sidebar-sublink.active {
+  color: #2EA64F;
+  font-weight: bold;
+}
