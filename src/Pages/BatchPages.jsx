@@ -1,9 +1,10 @@
+// Pages/BatchPage.jsx
 import React from "react";
 import { Button } from "react-bootstrap";
 
 export default function BatchPage() {
   return (
-    <div className="d-flex flex-column flex-grow-1 overflow-hidden">
+    <div className="d-flex flex-column h-100">
       {/* Page Title */}
       <section className="px-4 py-3 border-bottom bg-white d-flex justify-content-between align-items-center">
         <h5 className="mb-0 fw-bold">
@@ -26,16 +27,16 @@ export default function BatchPage() {
         <div style={{ width: "150px" }}>Action</div>
       </div>
 
-      {/* Center Content */}
+      {/* Empty State Center */}
       <div className="flex-grow-1 d-flex justify-content-center align-items-center bg-light overflow-auto">
-        <div className="text-center text-muted">
+        <div className="text-center">
           <img
             src="/empty-box.png"
             alt="Empty Data"
             style={{ width: "60px" }}
             className="mb-2"
           />
-          <div>No data available</div>
+          <div className="text-muted">Empty Data</div>
         </div>
       </div>
     </div>
