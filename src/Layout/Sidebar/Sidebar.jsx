@@ -1,12 +1,13 @@
 import { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-// Add hover and active styles here
+import { useNavigate } from "react-router-dom";
 
 export default function Sidebar() {
   const [productOpen, setProductOpen] = useState(true);
   const [metadataOpen, setMetadataOpen] = useState(false);
   const [componentsOpen, setComponentsOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("");
+const navigate = useNavigate();
 
   const handleLinkClick = (link) => {
     setActiveLink(link);
@@ -103,7 +104,7 @@ export default function Sidebar() {
           </button>
           {componentsOpen && (
             <div>
-              <a href="#" onClick={() => handleLinkClick("spareparts")} className={subLinkClass("spareparts")}>Spare Parts</a>
+<button onClick={() => navigate("/spare-parts")}>Go to Spare Parts</button>
               <a href="#" onClick={() => handleLinkClick("purchaseSpareparts")} className={subLinkClass("purchaseSpareparts")}>Purchase Spare Parts</a>
               <a href="#" onClick={() => handleLinkClick("return")} className={subLinkClass("return")}>Return</a>
             </div>
