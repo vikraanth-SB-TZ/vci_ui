@@ -45,7 +45,7 @@ export default function Sidebar() {
           src="/logo.png"
           alt="Tamilzorous Logo"
           className="img-fluid"
-          style={{ width: "170px" }}
+          style={{ width: "200px" }}
         />
       </div>
 
@@ -58,10 +58,10 @@ export default function Sidebar() {
         }}
       >
         {/* Home */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+        <div className="mb-1" style={{ color: "#91A59B" }}>
           Home
         </div>
-        <div className="mb-4">
+        <div className="mb-1">
           <a
             href="#"
             onClick={(e) => {
@@ -80,12 +80,12 @@ export default function Sidebar() {
         </div>
 
         {/* Basics */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+        <div className="mb-2" style={{ color: "#91A59B" }}>
           Basics
         </div>
 
         {/* Metadata Dropdown */}
-        <div className="mb-3">
+        <div>
           <button
             onClick={() => setMetadataOpen(!metadataOpen)}
             className="bg-transparent border-0 w-100 text-start p-0"
@@ -112,7 +112,7 @@ export default function Sidebar() {
         </div>
 
         {/* Components Dropdown */}
-        <div className="mb-3">
+        <div className="mb-1">
           <button
             onClick={() => setComponentsOpen(!componentsOpen)}
             className="bg-transparent border-0 w-100 text-start p-0"
@@ -135,7 +135,7 @@ export default function Sidebar() {
         </div>
 
         {/* Product Dropdown */}
-        <div className="mb-3">
+        <div className="mb-1">
           <button
             onClick={() => setProductOpen(!productOpen)}
             className="bg-transparent border-0 w-100 text-start p-0"
@@ -159,8 +159,8 @@ export default function Sidebar() {
         </div>
 
         {/* Purchase */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>Purchase</div>
-        <div className="mb-3">
+        <div className="mb-1" style={{ color: "#91A59B" }}>Purchase</div>
+        <div>
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("vendor"); }} className={linkClass("vendor")}>
             <img src="/Vendor.png" alt="Vendor" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Vendor
@@ -172,8 +172,8 @@ export default function Sidebar() {
         </div>
 
         {/* Sales */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>Sales</div>
-        <div className="mb-3">
+        <div className="mb-1" style={{ color: "#91A59B" }}>Sales</div>
+        <div className="mb-1">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("customer"); }} className={linkClass("customer")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Customer
@@ -182,11 +182,23 @@ export default function Sidebar() {
             <img src="/Sale 1.png" alt="Sales Order" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Sales Order
           </a>
+     <a
+  href="#"
+  onClick={(e) => {
+    e.preventDefault();
+    handleLinkClick('salesReturn');
+  }}
+  className={linkClass('salesReturn')}
+>
+  <img src="/Sale.png" alt="Sales Return" style={{ width: '18px', filter: 'brightness(0) invert(1)' }} />
+  Sales Return
+</a>
+
         </div>
 
         {/* Service */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>Service</div>
-        <div className="mb-3">
+        <div className="mb-2" style={{ color: "#91A59B" }}>Service</div>
+        <div className="mb-1">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("serviceProduct"); }} className={linkClass("serviceProduct")}>
             <img src="/Service VCI.png" alt="Service Product" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Service Product

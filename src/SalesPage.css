@@ -1,0 +1,29 @@
+/* Add this CSS to your index.css or a dedicated CSS file linked to this component */
+.custom-form-control {
+  border: 1px solid #e0e0e0 !important; /* Lighter border color */
+  border-radius: 0.25rem !important; /* Standard border-radius */
+  box-shadow: none !important; /* Remove focus shadow */
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.custom-form-control:focus {
+  border-color: #80bdff !important; /* Standard Bootstrap focus blue */
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important; /* Standard Bootstrap focus shadow */
+}
+
+/* For the specific serial number input to remove its border */
+.custom-form-control-no-border {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* For the nested table's borders */
+.custom-table {
+  border: 1px solid #dee2e6; /* Ensure outer border is visible */
+  border-collapse: collapse; /* Collapse borders for a cleaner look */
+}
+
+.custom-table th,
+.custom-table td {
+  border: 1px solid #dee2e6; /* Apply borders to cells */
+}
