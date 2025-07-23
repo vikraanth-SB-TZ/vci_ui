@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Button, Form, Spinner } from "react-bootstrap";
 import axios from "axios";
+  const [states, setStates] = useState([]);
+  const [districts, setDistricts] = useState([]);
 
 export default function Customer() {
   const [customers, setCustomers] = useState([]);
@@ -8,6 +10,8 @@ export default function Customer() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState(initialForm());
   const [isEditing, setIsEditing] = useState(false);
+  const [states, setStates] = useState([]);
+  const [districts, setDistricts] = useState([]);
 
   function initialForm() {
     return {
@@ -31,6 +35,8 @@ export default function Customer() {
 
   useEffect(() => {
     fetchCustomers();
+        fetchStates();
+    fetchDistricts();
   }, []);
 
   const fetchCustomers = () => {
@@ -47,7 +53,19 @@ export default function Customer() {
         setLoading(false);
       });
   };
+ const fetchStates = () => {
+    axios
+      .get("/api/states")
+      .then((res) => setStates(res.data))
+      .catch((err) => console.error("Error fetching states", err));
+  };
 
+  const fetchDistricts = () => {
+    axios
+      .get("/api/districts")
+      .then((res) => setDistricts(res.data))
+      .catch((err) => console.error("Error fetching districts", err));
+  };
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -354,17 +372,52 @@ export default function Customer() {
       >
         {label || name.charAt(0).toUpperCase() + name.slice(1)}
       </Form.Label>
-      <Form.Control
-        name={name}
-        value={formData[name]}
-        onChange={handleChange}
-        placeholder={`Enter ${label || name}`}
-        size="sm"
-        style={{
-          fontFamily: "Product Sans, sans-serif",
-          fontWeight: 400,
-        }}
-      />
+
+      {name === "state" ? (
+        <Form.Select
+          name="state"
+          value={formData.state}
+          onChange={handleChange}
+          size="sm"
+          style={{ fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}
+        >
+          <option value="">Select State</option>
+          {states.map((state) => (
+            <option key={state.id} value={state.id}>
+              {state.state}
+            </option>
+          ))}
+        </Form.Select>
+      ) : name === "district" ? (
+        <Form.Select
+          name="district"
+          value={formData.district}
+          onChange={handleChange}
+          size="sm"
+          style={{ fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}
+        >
+          <option value="">Select District</option>
+          {districts
+            .filter((d) => d.state_id === parseInt(formData.state)) // Optional filter
+            .map((district) => (
+              <option key={district.id} value={district.id}>
+                {district.district}
+              </option>
+            ))}
+        </Form.Select>
+      ) : (
+        <Form.Control
+          name={name}
+          value={formData[name]}
+          onChange={handleChange}
+          placeholder={`Enter ${label || name}`}
+          size="sm"
+          style={{
+            fontFamily: "Product Sans, sans-serif",
+            fontWeight: 400,
+          }}
+        />
+      )}
     </div>
   ))}
 </div>

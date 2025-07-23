@@ -6,18 +6,15 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isActive = (link) => {
-    const activeGroup = {
-      product: ["batch", "category", "productTest", "sold"],
-      metadata: ["state", "district", "countries"],
-      components: ["spareparts", "purchaseSpareparts", "ReturnSpareParts"],
-    };
-
-    return (
-      location.pathname.includes(link) ||
-      activeGroup[link]?.some((child) => location.pathname.includes(child))
-    );
+  const activeGroup = {
+    product: ["batch", "category", "productTest", "sold"],
+    metadata: ["state", "district", "countries"],
+    components: ["spareparts", "purchaseSpareparts", "return"],
   };
+
+  const isActive = (link) =>
+    location.pathname.includes(link) ||
+    activeGroup[link]?.some((child) => location.pathname.includes(child));
 
   const [productOpen, setProductOpen] = useState(isActive("product"));
   const [metadataOpen, setMetadataOpen] = useState(isActive("metadata"));
@@ -32,14 +29,10 @@ export default function Sidebar() {
   const handleLinkClick = (link) => navigate(`/${link}`);
 
   const linkClass = (link) =>
-    `sidebar-link d-flex align-items-center gap-2 mb-2 text-decoration-none px-3 py-2 rounded ${
-      isActive(link) ? "active-parent" : ""
-    }`;
+    `sidebar-link d-flex align-items-center gap-2 mb-2 text-decoration-none px-3 py-2 rounded ${isActive(link) ? "active-parent" : ""}`;
 
   const subLinkClass = (link) =>
-    `sidebar-sublink d-block mb-1 text-decoration-none ps-4 py-1 rounded ${
-      location.pathname.includes(link) ? "active-sublink" : ""
-    }`;
+    `sidebar-sublink d-block mb-2 text-decoration-none ps-4 ${location.pathname.includes(link) ? "active" : ""}`;
 
   return (
     <aside
@@ -62,17 +55,16 @@ export default function Sidebar() {
         />
       </div>
 
-      {/* Scrollable content area */}
+      {/* Scrollable content */}
       <nav
-        className="sidebar-content small px-4"
+        className="small px-4"
         style={{
           flexGrow: 1,
           overflowY: "auto",
-          paddingRight: "6px", // prevents right scrollbar without overflow-x
         }}
       >
         {/* Home */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+        <div className="mb-1" style={{ color: "#91A59B" }}>
           Home
         </div>
         <div className="mb-1">
@@ -94,7 +86,7 @@ export default function Sidebar() {
         </div>
 
         {/* Basics */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+        <div className="mb-2" style={{ color: "#91A59B" }}>
           Basics
         </div>
 
@@ -111,7 +103,9 @@ export default function Sidebar() {
                 style={{ width: "18px", filter: "brightness(0) invert(1)" }}
               />
               Metadata
-              <span className="ms-auto text-white me-4">{metadataOpen ? "▾" : "▸"}</span>
+              <span className="ms-auto text-white me-4">
+                {metadataOpen ? "▾" : "▸"}
+              </span>
             </div>
           </button>
           {metadataOpen && (
@@ -136,14 +130,16 @@ export default function Sidebar() {
                 style={{ width: "18px", filter: "brightness(0) invert(1)" }}
               />
               Components
-              <span className="ms-auto text-white me-4">{componentsOpen ? "▾" : "▸"}</span>
+              <span className="ms-auto text-white me-4">
+                {componentsOpen ? "▾" : "▸"}
+              </span>
             </div>
           </button>
           {componentsOpen && (
             <div>
               <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("spareparts"); }} className={subLinkClass("spareparts")}>Spare Parts</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("purchaseSpareparts"); }} className={subLinkClass("purchaseSpareparts")}>Purchase Spare Parts</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("ReturnSpareParts"); }} className={subLinkClass("return")}>Return</a>
+              <a href="" onClick={(e) => { e.preventDefault(); handleLinkClick("purchaseOrder"); }} className={subLinkClass("purchaseOrder")}>Purchase Spare Parts</a>
+              <a href="" onClick={(e) => { e.preventDefault(); handleLinkClick("salesReturn"); }} className={subLinkClass("salesReturn")}>Return</a>
             </div>
           )}
         </div>
@@ -161,7 +157,9 @@ export default function Sidebar() {
                 style={{ width: "18px", filter: "brightness(0) invert(1)" }}
               />
               Product
-              <span className="ms-auto text-white me-4">{productOpen ? "▾" : "▸"}</span>
+              <span className="ms-auto text-white me-4">
+                {productOpen ? "▾" : "▸"}
+              </span>
             </div>
           </button>
           {productOpen && (
@@ -174,9 +172,11 @@ export default function Sidebar() {
           )}
         </div>
 
-        {/* Purchase */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>Purchase</div>
-        <div className="mb-3">
+        {/* Purchase Section */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+          Purchase
+        </div>
+        <div className="mb-1">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("vendor"); }} className={linkClass("vendor")}>
             <img src="/Vendor.png" alt="Vendor" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Vendor
@@ -187,9 +187,11 @@ export default function Sidebar() {
           </a>
         </div>
 
-        {/* Sales */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>Sales</div>
-        <div className="mb-3">
+        {/* Sales Section */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+          Sales
+        </div>
+        <div className="mb-1">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("customer"); }} className={linkClass("customer")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Customer
@@ -198,23 +200,17 @@ export default function Sidebar() {
             <img src="/Sale 1.png" alt="Sales Order" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Sales Order
           </a>
-     <a
-  href="#"
-  onClick={(e) => {
-    e.preventDefault();
-    handleLinkClick('salesReturn');
-  }}
-  className={linkClass('salesReturn')}
->
-  <img src="/Sale.png" alt="Sales Return" style={{ width: '18px', filter: 'brightness(0) invert(1)' }} />
-  Sales Return
-</a>
-
+          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("salesReturn"); }} className={linkClass("salesReturn")}>
+            <img src="/Sale.png" alt="Sales Return" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+            Sales Return
+          </a>
         </div>
 
-        {/* Service */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>Service</div>
-        <div className="mb-3">
+        {/* Service Section */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+          Service
+        </div>
+        <div className="mb-1">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("serviceProduct"); }} className={linkClass("serviceProduct")}>
             <img src="/Service VCI.png" alt="Service Product" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Service Product
@@ -222,40 +218,14 @@ export default function Sidebar() {
         </div>
       </nav>
 
-      {/* Custom Styles */}
+      {/* Custom Style for active dropdown */}
       <style>{`
         .active-parent {
           background-color: #278C582E !important;
           border-radius: 4px;
         }
-
-        .active-sublink {
-          color: #2FA64F !important;
-          font-weight: 600;
-        }
-
-        .sidebar-sublink {
-          color: #ffffff;
-          transition: all 0.2s ease;
-        }
-
-        .sidebar-sublink:hover {
-          color: #2FA64F;
-        }
-
-        .sidebar-content::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .sidebar-content::-webkit-scrollbar-thumb {
-          background-color: #888;
-          border-radius: 10px;
-        }
-
-        .sidebar-content::-webkit-scrollbar-track {
-          background: transparent;
-        }
       `}</style>
     </aside>
   );
 }
+
