@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-
+ 
+ 
 import SalesList from './Pages/SalesList';
 import LoginPage from './LoginPage';
 import AppLayout from './Layout/AppLayout';
 import BatchPage from './Pages/BatchPages';
 import StatePage from './Pages/StatePage';
-
+ 
 import CountryPage from './pages/CountryPage';
 import CategoryPage from './pages/CategoryPage';
 import ProductPage from './pages/ProductPage';
@@ -21,26 +21,26 @@ import ViewSalePage from './Pages/ViewSalePage';
 import SaleReturnPage from './Pages/SaleReturnPage';
 import SaleInvoice from './Pages/SaleInvoice';
 import PcbPurchaseList from './Pages/PcbPurchaseList';
-
-
-
+ 
+ 
+ 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
-
+ 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem('authToken'));
   }, []);
-
+ 
   const handleLogin = () => {
     setIsLoggedIn(true);
     toast.success("Login successful!");
   };
-
+ 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     setIsLoggedIn(false);
   };
-
+ 
   return (
     <Router>
       <Routes>
@@ -55,7 +55,7 @@ export default function App() {
             )
           }
         />
-
+ 
         {/* Protected routes inside layout */}
         <Route
           path="/"
@@ -69,36 +69,36 @@ export default function App() {
         >
           <Route path="batch" element={<BatchPage />} />
           <Route path="state" element={<StatePage />} />
-
+ 
           <Route path="district" element={<DistrictPage />} />
           <Route path="countries" element={<CountryPage />} />
           <Route path="category" element={<CategoryPage />} />
           <Route path="productTest" element={<ProductPage />} />
           <Route path="sold" element={<SoldPage />} />
-
-
+ 
+ 
           <Route path="salesOrder" element={<SalesList />} />   // ✅ Add this inside your main route
           <Route path="/sales/add" element={<AddNewSalePage />} />
           <Route path="/sales/edit/:id" element={<EditSalePage />} />
-
-
+ 
+ 
           <Route path="/sales/view/:id" element={<ViewSalePage />} />
           <Route path="salesReturn" element={<SaleReturnPage />} />
           <Route path="pdf" element={<SaleInvoice />} />
-
+ 
           <Route path="purchaseOrder" element={<PcbPurchaseList />} />
-
-
-
+ 
+ 
+ 
           {/* new StatePage route */}
           {/* You can add more routes like <Route path="users" element={<UsersPage />} /> */}
-
+ 
         </Route>
-
+ 
         {/* Fallback route */}
         <Route path="*" element={<Navigate to={isLoggedIn ? "/batch" : "/login"} replace />} />
       </Routes>
-
+ 
       <ToastContainer position="top-right" autoClose={2000} />
     </Router>
   );

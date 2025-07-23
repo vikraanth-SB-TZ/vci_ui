@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar/Sidebar';
-import DashboardLayout from './DashboardLayout';
+// import DashboardLayout from './DashboardLayout';
 
 export default function AppLayout({ onLogout }) {
   const navigate = useNavigate();
