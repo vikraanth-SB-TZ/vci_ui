@@ -10,7 +10,6 @@ import AppLayout from './Layout/AppLayout';
 import BatchPage from './Pages/BatchPages';
 import StatePage from './Pages/StatePage';
 
-import DistrictPage from './Pages/DistrictPage';
 import CountryPage from './pages/CountryPage';
 import CategoryPage from './pages/CategoryPage';
 import ProductPage from './pages/ProductPage';
@@ -76,23 +75,22 @@ export default function App() {
           <Route path="category" element={<CategoryPage />} />
           <Route path="productTest" element={<ProductPage />} />
           <Route path="sold" element={<SoldPage />} />
-            
-          <Route path="district" element={<DistrictPage />} />  
-    
-          <Route path="salesOrder" element={<SalesList/>} />   // ✅ Add this inside your main route
+
+
+          <Route path="salesOrder" element={<SalesList />} />   // ✅ Add this inside your main route
           <Route path="/sales/add" element={<AddNewSalePage />} />
-          <Route path="/sales/edit/:id" element={<EditSalePage />} /> 
-      
+          <Route path="/sales/edit/:id" element={<EditSalePage />} />
+
 
           <Route path="/sales/view/:id" element={<ViewSalePage />} />
           <Route path="salesReturn" element={<SaleReturnPage />} />
           <Route path="pdf" element={<SaleInvoice />} />
 
-             <Route path="purchaseOrder" element={<PcbPurchaseList />} />
+          <Route path="purchaseOrder" element={<PcbPurchaseList />} />
 
- 
-          
-                {/* new StatePage route */}
+
+
+          {/* new StatePage route */}
           {/* You can add more routes like <Route path="users" element={<UsersPage />} /> */}
 
         </Route>

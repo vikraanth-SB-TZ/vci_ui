@@ -1,31 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-// Add hover and active styles here
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-
-  const isActive = (link) => {
-    const activeGroup = {
-      product: ["batch", "category", "productTest", "sold"],
-      metadata: ["state", "district", "countries"],
-      components: ["spareparts", "purchaseSpareparts", "return"],
-    };
-
-  const [productOpen, setProductOpen] = useState(true);
-  const [metadataOpen, setMetadataOpen] = useState(false);
-  const [componentsOpen, setComponentsOpen] = useState(false);
-  const [activeLink, setActiveLink] = useState("");
-
-
-    return (
-      location.pathname.includes(link) ||
-      activeGroup[link]?.some((child) => location.pathname.includes(child))
-    );
+  const activeGroup = {
+    product: ["batch", "category", "productTest", "sold"],
+    metadata: ["state", "district", "countries"],
+    components: ["spareparts", "purchaseSpareparts", "return"],
   };
+
+  const isActive = (link) =>
+    location.pathname.includes(link) ||
+    activeGroup[link]?.some((child) => location.pathname.includes(child));
 
   const [productOpen, setProductOpen] = useState(isActive("product"));
   const [metadataOpen, setMetadataOpen] = useState(isActive("metadata"));
@@ -40,14 +29,10 @@ export default function Sidebar() {
   const handleLinkClick = (link) => navigate(`/${link}`);
 
   const linkClass = (link) =>
-    `sidebar-link d-flex align-items-center gap-2 mb-2 text-decoration-none px-3 py-2 rounded ${
-      isActive(link) ? "active-parent" : ""
-    }`;
+    `sidebar-link d-flex align-items-center gap-2 mb-2 text-decoration-none px-3 py-2 rounded ${isActive(link) ? "active-parent" : ""}`;
 
   const subLinkClass = (link) =>
-    `sidebar-sublink d-block mb-2 text-decoration-none ps-4 ${
-      location.pathname.includes(link) ? "active" : ""
-    }`;
+    `sidebar-sublink d-block mb-2 text-decoration-none ps-4 ${location.pathname.includes(link) ? "active" : ""}`;
 
   return (
     <aside
@@ -70,12 +55,6 @@ export default function Sidebar() {
         />
       </div>
 
-
-      {/* Scrollable Content */}
-      <nav className="small px-4" style={{ flexGrow: 1, overflowY: "auto" }}>
-        {/* Home Section */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
-
       {/* Scrollable content */}
       <nav
         className="small px-4"
@@ -86,7 +65,6 @@ export default function Sidebar() {
       >
         {/* Home */}
         <div className="mb-1" style={{ color: "#91A59B" }}>
-
           Home
         </div>
         <div className="mb-1">
@@ -107,13 +85,8 @@ export default function Sidebar() {
           </a>
         </div>
 
-
-        {/* Basics Section */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
-
         {/* Basics */}
         <div className="mb-2" style={{ color: "#91A59B" }}>
-
           Basics
         </div>
 
@@ -164,9 +137,9 @@ export default function Sidebar() {
           </button>
           {componentsOpen && (
             <div>
-              <a href="#" onClick={() => handleLinkClick("spareparts")} className={subLinkClass("spareparts")}>Spare Parts</a>
-              <a href="#" onClick={() => handleLinkClick("purchaseSpareparts")} className={subLinkClass("purchaseSpareparts")}>Purchase Spare Parts</a>
-              <a href="#" onClick={() => handleLinkClick("return")} className={subLinkClass("return")}>Return</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("spareparts"); }} className={subLinkClass("spareparts")}>Spare Parts</a>
+              <a href="" onClick={(e) => { e.preventDefault(); handleLinkClick("purchaseOrder"); }} className={subLinkClass("purchaseOrder")}>Purchase Spare Parts</a>
+              <a href="" onClick={(e) => { e.preventDefault(); handleLinkClick("salesReturn"); }} className={subLinkClass("salesReturn")}>Return</a>
             </div>
           )}
         </div>
@@ -199,17 +172,11 @@ export default function Sidebar() {
           )}
         </div>
 
-
         {/* Purchase Section */}
         <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
           Purchase
         </div>
-        <div className="mb-3">
-
-        {/* Purchase */}
-        <div className="mb-1" style={{ color: "#91A59B" }}>Purchase</div>
-        <div>
-
+        <div className="mb-1">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("vendor"); }} className={linkClass("vendor")}>
             <img src="/Vendor.png" alt="Vendor" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Vendor
@@ -224,12 +191,7 @@ export default function Sidebar() {
         <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
           Sales
         </div>
-        <div className="mb-3">
-
-        {/* Sales */}
-        <div className="mb-1" style={{ color: "#91A59B" }}>Sales</div>
         <div className="mb-1">
-
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("customer"); }} className={linkClass("customer")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Customer
@@ -238,31 +200,17 @@ export default function Sidebar() {
             <img src="/Sale 1.png" alt="Sales Order" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Sales Order
           </a>
-     <a
-  href="#"
-  onClick={(e) => {
-    e.preventDefault();
-    handleLinkClick('salesReturn');
-  }}
-  className={linkClass('salesReturn')}
->
-  <img src="/Sale.png" alt="Sales Return" style={{ width: '18px', filter: 'brightness(0) invert(1)' }} />
-  Sales Return
-</a>
-
+          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("salesReturn"); }} className={linkClass("salesReturn")}>
+            <img src="/Sale.png" alt="Sales Return" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+            Sales Return
+          </a>
         </div>
-
 
         {/* Service Section */}
         <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
           Service
         </div>
-        <div className="mb-3">
-
-        {/* Service */}
-        <div className="mb-2" style={{ color: "#91A59B" }}>Service</div>
         <div className="mb-1">
-
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("serviceProduct"); }} className={linkClass("serviceProduct")}>
             <img src="/Service VCI.png" alt="Service Product" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Service Product
