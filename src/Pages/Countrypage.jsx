@@ -1,95 +1,78 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Spinner, Form, Modal } from "react-bootstrap";
+import { Button, Spinner, Modal, Form } from "react-bootstrap";
 
-export default function DistrictPage() {
-  const [districts, setDistricts] = useState([]);
-  const [states, setStates] = useState([]);
+export default function CountryPage() {
+  const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [newDistrictName, setNewDistrictName] = useState("");
-  const [selectedStateId, setSelectedStateId] = useState("");
+  const [newCountryName, setNewCountryName] = useState("");
   const [editId, setEditId] = useState(null);
 
   const apiBase = "http://127.0.0.1:8000/api";
 
   useEffect(() => {
-    fetchDistricts();
-    fetchStates();
+    fetchCountries();
   }, []);
 
-  const fetchDistricts = async () => {
+  const fetchCountries = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${apiBase}/districts`);
-      setDistricts(res.data);
+      const res = await axios.get(`${apiBase}/countries`);
+      setCountries(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error fetching districts:", error);
+      console.error("Error fetching countries:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchStates = async () => {
-    try {
-      const res = await axios.get(`${apiBase}/states`);
-      setStates(res.data);
-    } catch (error) {
-      console.error("Error fetching states:", error);
-    }
-  };
-
   const handleAddNewClick = () => {
     setEditId(null);
-    setNewDistrictName("");
-    setSelectedStateId("");
-    setShowModal(true);
-  };
-
-  const handleEdit = (district) => {
-    console.log("Editing district:", district);
-    setEditId(district.id);
-    setNewDistrictName(district.name || "");
-    setSelectedStateId(district.state_id || district.state?.id || "");
+    setNewCountryName("");
     setShowModal(true);
   };
 
   const handleModalClose = () => {
     setShowModal(false);
-    setNewDistrictName("");
-    setSelectedStateId("");
+    setNewCountryName("");
     setEditId(null);
   };
 
   const handleSave = async () => {
-    if (!newDistrictName.trim() || !selectedStateId) return;
+    if (!newCountryName.trim()) return;
 
-    const payload = {
-      name: newDistrictName.trim(),
-      state_id: parseInt(selectedStateId),
-    };
+    const payload = { country: newCountryName.trim() };
 
     try {
       if (editId) {
-        const res = await axios.put(`${apiBase}/districts/${editId}`, payload);
-        setDistricts(districts.map((d) => (d.id === editId ? res.data : d)));
+        const res = await axios.put(`${apiBase}/countries/${editId}`, payload);
+        setCountries(
+          countries.map((c) => (c.id === editId ? res.data : c))
+        );
       } else {
-        const res = await axios.post(`${apiBase}/districts`, payload);
-        setDistricts([...districts, res.data]);
+        const res = await axios.post(`${apiBase}/countries`, payload);
+        setCountries([...countries, res.data]);
       }
       handleModalClose();
     } catch (error) {
-      console.error("Error saving district:", error.response?.data || error);
+      console.error("Error saving country:", error.response?.data || error);
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${apiBase}/districts/${id}`);
-      setDistricts(districts.filter((d) => d.id !== id));
+      await axios.delete(`${apiBase}/countries/${id}`);
+      setCountries(countries.filter((c) => c.id !== id));
     } catch (error) {
-      console.error("Error deleting district:", error);
+      console.error("Error deleting country:", error);
     }
+  };
+
+  const handleEdit = (country) => {
+    setEditId(country.id);
+    setNewCountryName(country.country);
+    setShowModal(true);
   };
 
   return (
@@ -97,13 +80,13 @@ export default function DistrictPage() {
       {/* Header */}
       <section className="px-4 py-3 border-bottom bg-white d-flex justify-content-between align-items-center">
         <h5 className="mb-0 fw-bold">
-          District{" "}
+          Country{" "}
           <span className="text-muted fw-normal">
-            ({String(districts.length).padStart(2, "0")})
+            ({String(countries.length).padStart(2, "0")})
           </span>
         </h5>
         <div>
-          <Button variant="light" className="me-2" onClick={fetchDistricts}>
+          <Button variant="light" className="me-2" onClick={fetchCountries}>
             {loading ? (
               <Spinner animation="border" size="sm" />
             ) : (
@@ -119,14 +102,13 @@ export default function DistrictPage() {
       {/* Table Header */}
       <div className="px-4 py-2 border-bottom d-none d-md-flex text-muted bg-light small fw-semibold">
         <div style={{ width: "80px" }}>S.No</div>
-        <div style={{ width: "200px" }}>State</div>
-        <div style={{ flex: 1 }}>District</div>
+        <div style={{ flex: 1 }}>Country</div>
         <div style={{ width: "150px" }}>Action</div>
       </div>
 
       {/* Table Body */}
       <div className="flex-grow-1 overflow-auto bg-light">
-        {districts.length === 0 ? (
+        {countries.length === 0 ? (
           <div className="d-flex justify-content-center align-items-center h-100">
             <div className="text-center">
               <img
@@ -135,39 +117,33 @@ export default function DistrictPage() {
                 style={{ width: "160px" }}
                 className="mb-2"
               />
-              {/* <div className="text-muted">No districts found.</div> */}
+              {/* <div className="text-muted">No countries found.</div> */}
             </div>
           </div>
         ) : (
           <div className="px-4 py-1">
-            {districts.map((district, index) => (
+            {countries.map((country, index) => (
               <div
-                key={district.id}
+                key={country.id}
                 className="d-flex align-items-center py-3 border-bottom"
               >
                 <div style={{ width: "80px" }}>
                   {String(index + 1).padStart(2, "0")}
                 </div>
-                <div style={{ width: "200px" }}>
-                  {district.state?.state || "—"}
-                </div>
-                <div style={{ flex: 1 }}>{district.name}</div>
+                <div style={{ flex: 1 }}>{country.country}</div>
                 <div style={{ width: "150px" }}>
                   <Button
-                    type="button"
                     variant="outline-primary"
                     size="sm"
                     className="me-2"
-                    onClick={() => handleEdit(district)}
+                    onClick={() => handleEdit(country)}
                   >
                     <i className="bi bi-pencil-square"></i>
                   </Button>
-
                   <Button
-                    type="button"
                     variant="outline-danger"
                     size="sm"
-                    onClick={() => handleDelete(district.id)}
+                    onClick={() => handleDelete(country.id)}
                   >
                     <i className="bi bi-trash"></i>
                   </Button>
@@ -182,9 +158,7 @@ export default function DistrictPage() {
       <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
         <Modal.Body className="p-4">
           <div className="d-flex justify-content-between align-items-start mb-3">
-            <h5 className="fw-bold mb-0">
-              {editId ? "Edit District" : "Add New District"}
-            </h5>
+            <h5 className="fw-bold mb-0">{editId ? "Edit Country" : "Add New Country"}</h5>
             <Button
               variant="light"
               onClick={handleModalClose}
@@ -196,28 +170,12 @@ export default function DistrictPage() {
           </div>
 
           <Form.Group className="mb-4">
-            <Form.Label>State</Form.Label>
-            <Form.Select
-              value={selectedStateId}
-              onChange={(e) => setSelectedStateId(e.target.value)}
-              className="border-0 border-bottom rounded-0 shadow-none"
-            >
-              <option value="">Select State</option>
-              {states.map((state) => (
-                <option key={state.id} value={state.id}>
-                  {state.state}
-                </option>
-              ))}
-            </Form.Select>
-          </Form.Group>
-
-          <Form.Group className="mb-4">
-            <Form.Label>District Name</Form.Label>
+            <Form.Label>Country Name</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter District Name"
-              value={newDistrictName}
-              onChange={(e) => setNewDistrictName(e.target.value)}
+              placeholder="Enter Country Name"
+              value={newCountryName}
+              onChange={(e) => setNewCountryName(e.target.value)}
               className="border-0 border-bottom rounded-0 shadow-none"
             />
           </Form.Group>
@@ -226,10 +184,10 @@ export default function DistrictPage() {
             <Button
               variant="success"
               onClick={handleSave}
+              disabled={!newCountryName.trim()}
               style={{ width: 120 }}
-              disabled={!newDistrictName.trim() || !selectedStateId}
             >
-              {editId ? "Update" : "Save"}
+              Save
             </Button>
           </div>
         </Modal.Body>

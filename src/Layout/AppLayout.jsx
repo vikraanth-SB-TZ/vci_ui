@@ -1,9 +1,15 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar/Sidebar';
 import DashboardLayout from './DashboardLayout';
 
 export default function AppLayout({ onLogout }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    onLogout();
+    navigate('/login');
+  };
   return (
     <div className="d-flex" style={{ height: '100vh', width: '100vw', overflow: 'hidden' }}>
       {/* Sidebar - Fixed width */}
