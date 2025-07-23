@@ -18,6 +18,7 @@ a {
   color: #646cff;
   text-decoration: inherit;
 }
+
 a:hover {
   color: #535bf2;
 }
@@ -46,9 +47,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
   border-color: #646cff;
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -59,9 +62,11 @@ button:focus-visible {
     color: #213547;
     background-color: #ffffff;
   }
+
   a:hover {
-    color: #747bff;
+    color: #2FA64F;
   }
+
   button {
     background-color: #f9f9f9;
   }
@@ -73,12 +78,12 @@ body {
 
 .sidebar-link {
   width: 269px;
-  height: 55px;
+  height: 48px;
   display: flex;
   align-items: center;
   gap: 10px;
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 12px 5px;
   opacity: 1;
   color: #ffffffd9;
   text-decoration: none;
@@ -90,7 +95,7 @@ body {
 }
 
 .sidebar-link.active {
-  background-color: #2EA64F;
+  background-color: #2FA64F;
   color: #fff !important;
   font-weight: bold;
 }
@@ -110,14 +115,28 @@ body {
   color: #2EA64F;
   font-weight: bold;
 }
-html, body, #root {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
+
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+.sidebar-link-titles {
+  color: #91A59B;
+  font-family: Inter, sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: 0%;
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,30 +29,34 @@ export default function Sidebar() {
   const handleLinkClick = (link) => navigate(`/${link}`);
 
   const linkClass = (link) =>
-    `sidebar-link d-flex align-items-center gap-2 mb-2 text-decoration-none px-3 py-2 rounded ${isActive(link) ? "active-parent" : ""}`;
+    `sidebar-link d-flex align-items-center gap-2  text-decoration-none rounded ${isActive(link) ? "active-parent" : ""
+    }`;
 
   const subLinkClass = (link) =>
-    `sidebar-sublink d-block mb-2 text-decoration-none ps-4 ${location.pathname.includes(link) ? "active" : ""}`;
+    `sidebar-sublink d-block  text-decoration-none ps-4 ${location.pathname.includes(link) ? "active" : ""
+    }`;
 
   return (
     <aside
       className="d-flex flex-column sidebar-container"
       style={{
-        width: "317px",
+        width: collapsed ? "80px" : "317px",
         height: "100vh",
-        backgroundColor: "#26314F",
+        backgroundColor: "#2E3A59",
         fontFamily: "Product Sans, sans-serif",
         overflow: "hidden",
+        transition: "width 0.3s"
       }}
     >
       {/* Logo */}
-      <div className="p-3 ps-4 mb-3" style={{ flexShrink: 0 }}>
+      <div className="d-flex justify-content-center pt-3 pb-4 mb-1" style={{ flexShrink: 0 }}>
         <img
-          src="/logo.png"
+          src={collapsed ? "/TZ_Logo.png" : "/logo.png"}
           alt="Tamilzorous Logo"
           className="img-fluid"
-          style={{ width: "200px" }}
+          style={{ width: collapsed ? "40px" : "210px", transition: "width 0.3s" }}
         />
+
       </div>
 
       {/* Scrollable content */}
@@ -61,12 +65,18 @@ export default function Sidebar() {
         style={{
           flexGrow: 1,
           overflowY: "auto",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
         }}
       >
+
         {/* Home */}
-        <div className="mb-1" style={{ color: "#91A59B" }}>
-          Home
+        <div
+          className="mb-1 sidebar-link-titles"
+        >
+          {!collapsed && "Home"}
         </div>
+
         <div className="mb-1">
           <a
             href="#"
@@ -81,14 +91,17 @@ export default function Sidebar() {
               alt="Overview"
               style={{ width: "18px", filter: "brightness(0) invert(1)" }}
             />
-            Overview
+            {!collapsed && "Overview"}
           </a>
         </div>
 
         {/* Basics */}
-        <div className="mb-2" style={{ color: "#91A59B" }}>
-          Basics
+        <div
+          className="sidebar-link-titles"
+        >
+          {!collapsed && "Basics"}
         </div>
+
 
         {/* Metadata Dropdown */}
         <div>
@@ -102,17 +115,19 @@ export default function Sidebar() {
                 alt="Metadata"
                 style={{ width: "18px", filter: "brightness(0) invert(1)" }}
               />
-              Metadata
-              <span className="ms-auto text-white me-4">
-                {metadataOpen ? "▾" : "▸"}
-              </span>
+              {!collapsed && "Metadata"}
+              {!collapsed && (
+                <span className="ms-auto text-white me-4">
+                  {metadataOpen ? "▾" : "▸"}
+                </span>
+              )}
             </div>
           </button>
-          {metadataOpen && (
-            <div>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("state"); }} className={subLinkClass("state")}>State</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("district"); }} className={subLinkClass("district")}>District</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("countries"); }} className={subLinkClass("countries")}>Countries</a>
+          {!collapsed && metadataOpen && (
+            <div className="ms-2">
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("state"); }} className={subLinkClass("state")}>- State</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("district"); }} className={subLinkClass("district")}>- District</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("countries"); }} className={subLinkClass("countries")}>- Countries</a>
             </div>
           )}
         </div>
@@ -129,23 +144,25 @@ export default function Sidebar() {
                 alt="Components"
                 style={{ width: "18px", filter: "brightness(0) invert(1)" }}
               />
-              Components
-              <span className="ms-auto text-white me-4">
-                {componentsOpen ? "▾" : "▸"}
-              </span>
+              {!collapsed && "Components"}
+              {!collapsed && (
+                <span className="ms-auto text-white me-4">
+                  {componentsOpen ? "▾" : "▸"}
+                </span>
+              )}
             </div>
           </button>
-          {componentsOpen && (
-            <div>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("spareparts"); }} className={subLinkClass("spareparts")}>Spare Parts</a>
-              <a href="" onClick={(e) => { e.preventDefault(); handleLinkClick("purchaseOrder"); }} className={subLinkClass("purchaseOrder")}>Purchase Spare Parts</a>
-              <a href="" onClick={(e) => { e.preventDefault(); handleLinkClick("salesReturn"); }} className={subLinkClass("salesReturn")}>Return</a>
+          {!collapsed && componentsOpen && (
+            <div className="ms-2">
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("SparepartsPage"); }} className={subLinkClass("SparepartsPage")}>- Spare Parts</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("PurchaseSparepartsPage"); }} className={subLinkClass("PurchaseSparepartsPage")}>- Purchase Spare Parts</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("ReturnSpareParts"); }} className={subLinkClass("ReturnSpareParts")}>- Return</a>
             </div>
           )}
         </div>
 
         {/* Product Dropdown */}
-        <div className="mb-1">
+        <div className="mb-2">
           <button
             onClick={() => setProductOpen(!productOpen)}
             className="bg-transparent border-0 w-100 text-start p-0"
@@ -156,69 +173,81 @@ export default function Sidebar() {
                 alt="Product"
                 style={{ width: "18px", filter: "brightness(0) invert(1)" }}
               />
-              Product
-              <span className="ms-auto text-white me-4">
-                {productOpen ? "▾" : "▸"}
-              </span>
+              {!collapsed && "Product"}
+              {!collapsed && (
+                <span className="ms-auto text-white me-4">
+                  {productOpen ? "▾" : "▸"}
+                </span>
+              )}
             </div>
           </button>
-          {productOpen && (
-            <div>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("batch"); }} className={subLinkClass("batch")}>Batch</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("category"); }} className={subLinkClass("category")}>Category</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("productTest"); }} className={subLinkClass("productTest")}>Product Test</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("sold"); }} className={subLinkClass("sold")}>Sold</a>
+          {!collapsed && productOpen && (
+            <div className="ms-2">
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("batch"); }} className={subLinkClass("batch")}>- Batch</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("category"); }} className={subLinkClass("category")}>- Category</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("productTest"); }} className={subLinkClass("productTest")}>- Product Test</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("sold"); }} className={subLinkClass("sold")}>- Sold</a>
             </div>
           )}
         </div>
 
-        {/* Purchase Section */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
-          Purchase
+        {/* Purchase */}
+        <div
+          className="sidebar-link-titles"
+        >
+          {!collapsed && "Purchase"}
         </div>
+
         <div className="mb-1">
-          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("vendor"); }} className={linkClass("vendor")}>
-            <img src="/Vendor.png" alt="Vendor" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
-            Vendor
-          </a>
+          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("Vendors"); }} className={linkClass("Vendors")}>
+  <img src="/Vendor.png" alt="Vendor" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+  {!collapsed && "Vendor"}
+</a>
+
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("purchaseOrder"); }} className={linkClass("purchaseOrder")}>
             <img src="/Purchase Order 1.png" alt="Purchase Order" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
-            Purchase Order
+            {!collapsed && "Purchase Order"}
           </a>
         </div>
 
-        {/* Sales Section */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
-          Sales
+        {/* Sales */}
+        <div
+          className="sidebar-link-titles"
+        >
+          {!collapsed && "Sales"}
         </div>
+
         <div className="mb-1">
-          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("customer"); }} className={linkClass("customer")}>
+          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("Customers"); }} className={linkClass("Customers")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
-            Customer
+            {!collapsed && "Customer"}
           </a>
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("salesOrder"); }} className={linkClass("salesOrder")}>
             <img src="/Sale 1.png" alt="Sales Order" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
-            Sales Order
+            {!collapsed && "Sales Order"}
           </a>
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("salesReturn"); }} className={linkClass("salesReturn")}>
             <img src="/Sale.png" alt="Sales Return" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
-            Sales Return
+            {!collapsed && "Sales Return"}
           </a>
         </div>
 
-        {/* Service Section */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
-          Service
+        {/* Service */}
+        <div
+          className="sidebar-link-titles"
+        >
+          {!collapsed && "Service"}
         </div>
+
         <div className="mb-1">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("serviceProduct"); }} className={linkClass("serviceProduct")}>
             <img src="/Service VCI.png" alt="Service Product" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
-            Service Product
+            {!collapsed && "Service Product"}
           </a>
         </div>
       </nav>
 
-      {/* Custom Style for active dropdown */}
+      {/* Active style */}
       <style>{`
         .active-parent {
           background-color: #278C582E !important;
@@ -228,4 +257,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-
