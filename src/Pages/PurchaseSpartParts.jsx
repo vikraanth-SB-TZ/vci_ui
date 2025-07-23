@@ -12,7 +12,6 @@ export default function SparepartsPage() {
   const [invoiceDate, setInvoiceDate] = useState(null);
   const datePickerRef = useRef();
 
-  // Fetch purchases on mount
   useEffect(() => {
     if (datePickerRef.current) {
       flatpickr(datePickerRef.current, {
