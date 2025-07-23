@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 // Add hover and active styles here
@@ -7,25 +7,46 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
+
+  const isActive = (link) => {
+    const activeGroup = {
+      product: ["batch", "category", "productTest", "sold"],
+      metadata: ["state", "district", "countries"],
+      components: ["spareparts", "purchaseSpareparts", "return"],
+    };
+
   const [productOpen, setProductOpen] = useState(true);
   const [metadataOpen, setMetadataOpen] = useState(false);
   const [componentsOpen, setComponentsOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("");
 
-  const handleLinkClick = (link) => {
-    navigate(`/${link}`);
+
+    return (
+      location.pathname.includes(link) ||
+      activeGroup[link]?.some((child) => location.pathname.includes(child))
+    );
   };
 
-  const isActive = (link) => location.pathname.includes(link);
+  const [productOpen, setProductOpen] = useState(isActive("product"));
+  const [metadataOpen, setMetadataOpen] = useState(isActive("metadata"));
+  const [componentsOpen, setComponentsOpen] = useState(isActive("components"));
+
+  useEffect(() => {
+    setProductOpen(isActive("product"));
+    setMetadataOpen(isActive("metadata"));
+    setComponentsOpen(isActive("components"));
+  }, [location.pathname]);
+
+  const handleLinkClick = (link) => navigate(`/${link}`);
 
   const linkClass = (link) =>
-    `sidebar-link d-flex align-items-center gap-2 mb-2 text-decoration-none ${
-      isActive(link) ? "active" : ""
+    `sidebar-link d-flex align-items-center gap-2 mb-2 text-decoration-none px-3 py-2 rounded ${
+      isActive(link) ? "active-parent" : ""
     }`;
 
   const subLinkClass = (link) =>
     `sidebar-sublink d-block mb-2 text-decoration-none ps-4 ${
-      isActive(link) ? "active" : ""
+      location.pathname.includes(link) ? "active" : ""
     }`;
 
   return (
@@ -49,6 +70,12 @@ export default function Sidebar() {
         />
       </div>
 
+
+      {/* Scrollable Content */}
+      <nav className="small px-4" style={{ flexGrow: 1, overflowY: "auto" }}>
+        {/* Home Section */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+
       {/* Scrollable content */}
       <nav
         className="small px-4"
@@ -59,6 +86,7 @@ export default function Sidebar() {
       >
         {/* Home */}
         <div className="mb-1" style={{ color: "#91A59B" }}>
+
           Home
         </div>
         <div className="mb-1">
@@ -79,8 +107,13 @@ export default function Sidebar() {
           </a>
         </div>
 
+
+        {/* Basics Section */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+
         {/* Basics */}
         <div className="mb-2" style={{ color: "#91A59B" }}>
+
           Basics
         </div>
 
@@ -118,7 +151,11 @@ export default function Sidebar() {
             className="bg-transparent border-0 w-100 text-start p-0"
           >
             <div className={linkClass("components")}>
-              <img src="/Componets.png" alt="Components" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+              <img
+                src="/Componets.png"
+                alt="Components"
+                style={{ width: "18px", filter: "brightness(0) invert(1)" }}
+              />
               Components
               <span className="ms-auto text-white me-4">
                 {componentsOpen ? "▾" : "▸"}
@@ -141,7 +178,11 @@ export default function Sidebar() {
             className="bg-transparent border-0 w-100 text-start p-0"
           >
             <div className={linkClass("product")}>
-              <img src="/Product.png" alt="Product" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+              <img
+                src="/Product.png"
+                alt="Product"
+                style={{ width: "18px", filter: "brightness(0) invert(1)" }}
+              />
               Product
               <span className="ms-auto text-white me-4">
                 {productOpen ? "▾" : "▸"}
@@ -158,9 +199,17 @@ export default function Sidebar() {
           )}
         </div>
 
+
+        {/* Purchase Section */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+          Purchase
+        </div>
+        <div className="mb-3">
+
         {/* Purchase */}
         <div className="mb-1" style={{ color: "#91A59B" }}>Purchase</div>
         <div>
+
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("vendor"); }} className={linkClass("vendor")}>
             <img src="/Vendor.png" alt="Vendor" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Vendor
@@ -171,9 +220,16 @@ export default function Sidebar() {
           </a>
         </div>
 
+        {/* Sales Section */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+          Sales
+        </div>
+        <div className="mb-3">
+
         {/* Sales */}
         <div className="mb-1" style={{ color: "#91A59B" }}>Sales</div>
         <div className="mb-1">
+
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("customer"); }} className={linkClass("customer")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Customer
@@ -196,15 +252,31 @@ export default function Sidebar() {
 
         </div>
 
+
+        {/* Service Section */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+          Service
+        </div>
+        <div className="mb-3">
+
         {/* Service */}
         <div className="mb-2" style={{ color: "#91A59B" }}>Service</div>
         <div className="mb-1">
+
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("serviceProduct"); }} className={linkClass("serviceProduct")}>
             <img src="/Service VCI.png" alt="Service Product" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             Service Product
           </a>
         </div>
       </nav>
+
+      {/* Custom Style for active dropdown */}
+      <style>{`
+        .active-parent {
+          background-color: #278C582E !important;
+          border-radius: 4px;
+        }
+      `}</style>
     </aside>
   );
 }
