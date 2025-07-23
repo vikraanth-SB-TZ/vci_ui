@@ -6,16 +6,10 @@ export default function DashboardLayout({ onLogout }) {
   const [showLogout, setShowLogout] = useState(false);
 
   return (
-    <div className="d-flex h-105px vw-100 overflow-hidden">
-      <Sidebar />
-
-      <div className="d-flex flex-column flex-grow-1 overflow-hidden">
-
-        {/* Header */}
-        <header className="d-flex justify-content-between align-items-center bg-white p-3 border-bottom">
-          <InputGroup style={{ maxWidth: '300px' }}>
-            <Form.Control placeholder="Search" />
-          </InputGroup>
+    <header className="d-flex justify-content-between align-items-center bg-white p-3 border-bottom">
+      <InputGroup style={{ maxWidth: '300px' }}>
+        <Form.Control placeholder="Search" />
+      </InputGroup>
 
       <div className="d-flex align-items-center gap-3 position-relative">
         <div className="text-end">
@@ -24,8 +18,15 @@ export default function DashboardLayout({ onLogout }) {
         </div>
 
         <div
-          className="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center"
-          style={{ width: '40px', height: '40px', cursor: 'pointer' }}
+          className="rounded-circle d-flex justify-content-center align-items-center"
+          style={{
+            backgroundColor: '#112849',
+            color: 'green', // This sets the "M" to green
+            width: '40px',
+            height: '40px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
           onClick={() => setShowLogout(!showLogout)}
         >
           M

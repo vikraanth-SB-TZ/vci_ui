@@ -1,31 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-// Add hover and active styles here
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [productOpen, setProductOpen] = useState(true);
-  const [metadataOpen, setMetadataOpen] = useState(false);
-  const [componentsOpen, setComponentsOpen] = useState(false);
-  const [activeLink, setActiveLink] = useState("");
+  const isActive = (link) => {
+    const activeGroup = {
+      product: ["batch", "category", "productTest", "sold"],
+      metadata: ["state", "district", "countries"],
+      components: ["spareparts", "purchaseSpareparts", "ReturnSpareParts"],
+    };
 
-  const handleLinkClick = (link) => {
-    navigate(`/${link}`);
+    return (
+      location.pathname.includes(link) ||
+      activeGroup[link]?.some((child) => location.pathname.includes(child))
+    );
   };
 
-  const isActive = (link) => location.pathname.includes(link);
+  const [productOpen, setProductOpen] = useState(isActive("product"));
+  const [metadataOpen, setMetadataOpen] = useState(isActive("metadata"));
+  const [componentsOpen, setComponentsOpen] = useState(isActive("components"));
+
+  useEffect(() => {
+    setProductOpen(isActive("product"));
+    setMetadataOpen(isActive("metadata"));
+    setComponentsOpen(isActive("components"));
+  }, [location.pathname]);
+
+  const handleLinkClick = (link) => navigate(`/${link}`);
 
   const linkClass = (link) =>
-    `sidebar-link d-flex align-items-center gap-2 mb-2 text-decoration-none ${
-      isActive(link) ? "active" : ""
+    `sidebar-link d-flex align-items-center gap-2 mb-2 text-decoration-none px-3 py-2 rounded ${
+      isActive(link) ? "active-parent" : ""
     }`;
 
   const subLinkClass = (link) =>
-    `sidebar-sublink d-block mb-2 text-decoration-none ps-4 ${
-      isActive(link) ? "active" : ""
+    `sidebar-sublink d-block mb-1 text-decoration-none ps-4 py-1 rounded ${
+      location.pathname.includes(link) ? "active-sublink" : ""
     }`;
 
   return (
@@ -49,15 +62,16 @@ export default function Sidebar() {
         />
       </div>
 
-      {/* Scrollable content */}
+      {/* Scrollable content area */}
       <nav
-        className="small px-4"
+        className="sidebar-content small px-4"
         style={{
           flexGrow: 1,
           overflowY: "auto",
+          paddingRight: "6px", // prevents right scrollbar without overflow-x
         }}
       >
-        {/* Home */}
+        {/* HOME */}
         <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
           Home
         </div>
@@ -79,7 +93,7 @@ export default function Sidebar() {
           </a>
         </div>
 
-        {/* Basics */}
+        {/* BASICS */}
         <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
           Basics
         </div>
@@ -97,9 +111,7 @@ export default function Sidebar() {
                 style={{ width: "18px", filter: "brightness(0) invert(1)" }}
               />
               Metadata
-              <span className="ms-auto text-white me-4">
-                {metadataOpen ? "▾" : "▸"}
-              </span>
+              <span className="ms-auto text-white me-4">{metadataOpen ? "▾" : "▸"}</span>
             </div>
           </button>
           {metadataOpen && (
@@ -118,18 +130,20 @@ export default function Sidebar() {
             className="bg-transparent border-0 w-100 text-start p-0"
           >
             <div className={linkClass("components")}>
-              <img src="/Componets.png" alt="Components" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+              <img
+                src="/Componets.png"
+                alt="Components"
+                style={{ width: "18px", filter: "brightness(0) invert(1)" }}
+              />
               Components
-              <span className="ms-auto text-white me-4">
-                {componentsOpen ? "▾" : "▸"}
-              </span>
+              <span className="ms-auto text-white me-4">{componentsOpen ? "▾" : "▸"}</span>
             </div>
           </button>
           {componentsOpen && (
             <div>
-              <a href="#" onClick={() => handleLinkClick("spareparts")} className={subLinkClass("spareparts")}>Spare Parts</a>
-              <a href="#" onClick={() => handleLinkClick("purchaseSpareparts")} className={subLinkClass("purchaseSpareparts")}>Purchase Spare Parts</a>
-              <a href="#" onClick={() => handleLinkClick("return")} className={subLinkClass("return")}>Return</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("spareparts"); }} className={subLinkClass("spareparts")}>Spare Parts</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("purchaseSpareparts"); }} className={subLinkClass("purchaseSpareparts")}>Purchase Spare Parts</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("ReturnSpareParts"); }} className={subLinkClass("return")}>Return</a>
             </div>
           )}
         </div>
@@ -141,11 +155,13 @@ export default function Sidebar() {
             className="bg-transparent border-0 w-100 text-start p-0"
           >
             <div className={linkClass("product")}>
-              <img src="/Product.png" alt="Product" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+              <img
+                src="/Product.png"
+                alt="Product"
+                style={{ width: "18px", filter: "brightness(0) invert(1)" }}
+              />
               Product
-              <span className="ms-auto text-white me-4">
-                {productOpen ? "▾" : "▸"}
-              </span>
+              <span className="ms-auto text-white me-4">{productOpen ? "▾" : "▸"}</span>
             </div>
           </button>
           {productOpen && (
@@ -158,8 +174,10 @@ export default function Sidebar() {
           )}
         </div>
 
-        {/* Purchase */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>Purchase</div>
+        {/* PURCHASE */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+          Purchase
+        </div>
         <div className="mb-3">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("vendor"); }} className={linkClass("vendor")}>
             <img src="/Vendor.png" alt="Vendor" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
@@ -171,8 +189,10 @@ export default function Sidebar() {
           </a>
         </div>
 
-        {/* Sales */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>Sales</div>
+        {/* SALES */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+          Sales
+        </div>
         <div className="mb-3">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("customer"); }} className={linkClass("customer")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
@@ -184,8 +204,10 @@ export default function Sidebar() {
           </a>
         </div>
 
-        {/* Service */}
-        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>Service</div>
+        {/* SERVICE */}
+        <div className="text-uppercase mb-2 fw-bold" style={{ color: "#91A59B" }}>
+          Service
+        </div>
         <div className="mb-3">
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("serviceProduct"); }} className={linkClass("serviceProduct")}>
             <img src="/Service VCI.png" alt="Service Product" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
@@ -193,6 +215,41 @@ export default function Sidebar() {
           </a>
         </div>
       </nav>
+
+      {/* Custom Styles */}
+      <style>{`
+        .active-parent {
+          background-color: #278C582E !important;
+          border-radius: 4px;
+        }
+
+        .active-sublink {
+          color: #2FA64F !important;
+          font-weight: 600;
+        }
+
+        .sidebar-sublink {
+          color: #ffffff;
+          transition: all 0.2s ease;
+        }
+
+        .sidebar-sublink:hover {
+          color: #2FA64F;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+          background-color: #888;
+          border-radius: 10px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+          background: transparent;
+        }
+      `}</style>
     </aside>
   );
 }
