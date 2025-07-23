@@ -24,10 +24,11 @@ export default function DashboardLayout({ onLogout }) {
   };
 
   return (
-    <header className="d-flex justify-content-between align-items-center bg-white p-3 border-bottom">
-      <InputGroup style={{ maxWidth: '300px' }}>
+    <header className="d-flex justify-content-between bg-white align-items-center p-2 border-bottom"   >
+      <InputGroup style={{ maxWidth: '300px', backgroundColor: '#F8F9FA' }}>
         <Form.Control placeholder="Search" />
       </InputGroup>
+
 
       <div className="d-flex align-items-center gap-3 position-relative">
         {/* Email display */}
@@ -38,6 +39,7 @@ export default function DashboardLayout({ onLogout }) {
 
         {/* Avatar circle */}
         <div
+
           className="rounded-circle d-flex justify-content-center align-items-center"
           style={{
             backgroundColor: '#112849',
@@ -47,6 +49,9 @@ export default function DashboardLayout({ onLogout }) {
             cursor: 'pointer',
             fontWeight: 'bold',
           }}
+          className=" rounded-circle d-flex justify-content-center align-items-center"
+          style={{ width: '40px', height: '40px', cursor: 'pointer', backgroundColor: '#2E3A59', 
+            color: '#4ade80' }}
           onClick={() => setShowLogout(!showLogout)}
         >
           {getInitial()}
