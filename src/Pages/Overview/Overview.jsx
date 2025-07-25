@@ -1,10 +1,10 @@
 import React from "react";
 import OverviewPage from "./OverviewPage";
-import TotalProductPage from "./Overview_TotalProductPage";
+import TotalProductPage from "./OverviewTotalProductPage";
 import "../../index.css";
-import ComponentStock from "./Overview_ComponentStock";
-import LastSalesList from "./Overview_LastSalesList";
-import LastPurchaseList from "./Overview_LastPurchaseList";
+import ComponentStock from "./OverviewComponentStock";
+import LastSalesList from "./OverviewLastSalesList";
+import LastPurchaseList from "./OverviewLastPurchaseList";
 
 const Overview = () => {
   return (
