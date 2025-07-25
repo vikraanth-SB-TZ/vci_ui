@@ -154,8 +154,8 @@ export default function Sidebar({ collapsed }) {
           </button>
           {!collapsed && componentsOpen && (
             <div className="ms-2">
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("SparepartsPage"); }} className={subLinkClass("SparepartsPage")}>- Spare Parts</a>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("PurchaseSparepartsPage"); }} className={subLinkClass("PurchaseSparepartsPage")}>- Purchase Spare Parts</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("Spareparts"); }} className={subLinkClass("Spareparts")}>- Spare Parts</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("PurchaseSpareparts"); }} className={subLinkClass("PurchaseSpareparts")}>- Purchase Spare Parts</a>
               <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("ReturnSpareParts"); }} className={subLinkClass("ReturnSpareParts")}>- Return</a>
               
             </div>
@@ -200,7 +200,7 @@ export default function Sidebar({ collapsed }) {
         </div>
 
         <div className="mb-1">
-          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("Vendors"); }} className={linkClass("Vendors")}>
+          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("Vendor"); }} className={linkClass("Vendor")}>
   <img src="/Vendor.png" alt="Vendor" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
   {!collapsed && "Vendor"}
 </a>
