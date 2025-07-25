@@ -4,10 +4,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
  
  
-import SalesList from './Pages/SalesList';
+// import SalesList from './Pages/SalesList';
 import LoginPage from './LoginPage';
 import AppLayout from './Layout/AppLayout';
-import BatchPage from './Pages/BatchPages';
+// import BatchPage from './Pages/BatchPages';
 import StatePage from './Pages/StatePage';
  
 import CountryPage from './pages/CountryPage';
@@ -25,7 +25,7 @@ import Overview from './Pages/Overview/Overview';
  import SalesList from './Pages/SalesList';
 import SparepartsPage from "./Pages/SpareParts";
 import PurchaseSparepartsPage from './Pages/PurchaseSpareParts'; // ✅ Ensure correct casing
-import Vendor from './Pages/Vendor';
+import Vendor from './Pages/vendor';
 import Customer from './Pages/Customer';
 import ReturnSparePartsPage from './Pages/ReturnSpareParts';
  
