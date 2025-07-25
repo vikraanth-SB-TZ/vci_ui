@@ -1,6 +1,25 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Spinner, Form, Offcanvas, Table } from "react-bootstrap";
+import { Button, Spinner, Offcanvas, Form } from "react-bootstrap";
+import "bootstrap-icons/font/bootstrap-icons.css";
+
+const CustomArrow = ({ direction = "down", size = 12, color = "#5a5a5a" }) => {
+  let rotate = 0;
+  if (direction === "left") rotate = 90;
+  if (direction === "right") rotate = -90;
+  if (direction === "up") rotate = 180;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      style={{ transform: `rotate(${rotate}deg)` }}
+      fill={color}
+    >
+      <path d="M12 16L6 8h12l-6 8z" />
+    </svg>
+  );
+};
 
 export default function ProductPage() {
   const [products, setProducts] = useState([]);
@@ -9,7 +28,6 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-
   const [productData, setProductData] = useState({
     id: null,
     category_id: "",
@@ -19,8 +37,12 @@ export default function ProductPage() {
     firmware_version: "",
     hsn_code: "",
     sale_status: "Available",
-    test: "Ok"
+    test: "Ok",
   });
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const apiBase = "http://localhost:8000/api";
 
@@ -36,7 +58,7 @@ export default function ProductPage() {
       const res = await axios.get(`${apiBase}/products`);
       setProducts(res.data);
     } catch (error) {
-      console.error("Error fetching products:", error);
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -47,7 +69,7 @@ export default function ProductPage() {
       const res = await axios.get(`${apiBase}/categories`);
       setCategories(res.data);
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      console.error(error);
     }
   };
 
@@ -56,7 +78,7 @@ export default function ProductPage() {
       const res = await axios.get(`${apiBase}/batches`);
       setBatches(res.data);
     } catch (error) {
-      console.error("Error fetching batches:", error);
+      console.error(error);
     }
   };
 
@@ -71,7 +93,7 @@ export default function ProductPage() {
       firmware_version: "",
       hsn_code: "",
       sale_status: "Available",
-      test: "Ok"
+      test: "Ok",
     });
     setShowModal(true);
   };
@@ -87,12 +109,20 @@ export default function ProductPage() {
       firmware_version: product.firmware_version,
       hsn_code: product.hsn_code,
       sale_status: product.sale_status,
-      test: product.test
+      test: product.test,
     });
     setShowModal(true);
   };
 
-  const handleModalClose = () => {
+  const handleDelete = async (id) => {
+    await axios.delete(`${apiBase}/products/${id}`);
+    setProducts(products.filter((p) => p.id !== id));
+  };
+
+  const handleSave = async () => {
+    if (isEditing) await axios.put(`${apiBase}/products/${productData.id}`, productData);
+    else await axios.post(`${apiBase}/products`, productData);
+    fetchProducts();
     setShowModal(false);
   };
 
@@ -100,107 +130,165 @@ export default function ProductPage() {
     setProductData({ ...productData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = async () => {
-    try {
-      if (isEditing) {
-        await axios.put(`${apiBase}/products/${productData.id}`, productData);
-      } else {
-        await axios.post(`${apiBase}/products`, productData);
-      }
-      fetchProducts();
-      handleModalClose();
-    } catch (error) {
-      console.error("Error saving product:", error);
-    }
+  // Handle items per page change
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${apiBase}/products/${id}`);
-      setProducts(products.filter((p) => p.id !== id));
-    } catch (error) {
-      console.error("Error deleting product:", error);
-    }
-  };
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedProducts = products.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
 
   return (
-    <div className="w-100 py-4 bg-white" style={{ minHeight: '100vh', fontFamily: 'Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif', fontSize: '14px', fontWeight: '500' }}>
-      <div className="d-flex justify-content-between align-items-center mb-3 px-4">
-        <h4 className="fw-semibold text-dark mb-0 fs-4">
-          Product List <span className="text-dark fw-semibold">({products.length})</span>
-        </h4>
-        <div className="d-flex gap-2">
-          <Button variant="outline-secondary p-0" style={{ width: '38px', height: '38px' }} onClick={fetchProducts}>
-            {loading ? (
-              <Spinner animation="border" size="sm" />
-            ) : (
-              <i className="bi bi-arrow-clockwise fs-5 text-secondary"></i>
-            )}
+    <div className="vh-100 d-flex flex-column bg-light">
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white sticky-top">
+        <h5 className="mb-0 fw-bold">Product List ({products.length})</h5>
+        <div>
+          <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchProducts}>
+            <i className="bi bi-arrow-clockwise"></i>
           </Button>
-          <Button
-            size="sm"
-            variant="success d-flex align-items-center px-3"
-            style={{ minWidth: '100px', fontSize: '0.9rem', fontWeight: '500' }}
-            onClick={handleAddNewClick}
-          >
-            <i className="bi bi-plus me-1"></i> Add New
+          <Button variant="success" size="sm" onClick={handleAddNewClick}>
+            + Add New
           </Button>
         </div>
       </div>
 
-      {products.length === 0 ? (
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-          <div className="text-center">
-            <img src="/empty-box.png" alt="Empty" style={{ width: "160px", opacity: 0.6 }} className="mb-3" />
-            <div className="text-muted fs-6">No product data available</div>
-          </div>
+      {/* Table */}
+      <div style={{ flex: 1, overflowY: "auto", minWidth: "1000px" }}>
+        {/* Header Row */}
+        <div
+          className="d-flex align-items-center px-4 border-bottom small fw-semibold"
+          style={{ backgroundColor: "#E9ECEF", height: "60px" }}
+        >
+          <div style={{ width: "60px" }}>S.No</div>
+          <div style={{ flex: 2 }}>Batch</div>
+          <div style={{ flex: 2 }}>Category</div>
+          <div style={{ flex: 2 }}>Serial No.</div>
+          <div style={{ flex: 2 }}>Manufacture No.</div>
+          <div style={{ flex: 2 }}>Firmware</div>
+          <div style={{ flex: 2 }}>HSN Code</div>
+          <div style={{ flex: 2 }}>Sale Status</div>
+          <div style={{ flex: 2 }}>Test</div>
+          <div style={{ width: "160px" }}>Action</div>
         </div>
-      ) : (
-        <div className="shadow-sm overflow-auto mx-4" style={{ borderRadius: '0.5rem' }}>
-          <Table hover responsive size="sm" className="table-border mb-0">
-            <thead>
-              <tr className="border-bottom border-secondary-subtle">
-                <th className="py-3 ps-4" style={{ backgroundColor: '#f3f7faff' }}>S.No</th>
-                <th className="py-3" style={{ backgroundColor: '#f6f7f8ff' }}>Batch</th>
-                <th className="py-3" style={{ backgroundColor: '#f6f7f8ff' }}>Category</th>
-                <th className="py-3" style={{ backgroundColor: '#f6f7f8ff' }}>Serial No.</th>
-                <th className="py-3" style={{ backgroundColor: '#f6f7f8ff' }}>Manufacture No.</th>
-                <th className="py-3" style={{ backgroundColor: '#f6f7f8ff' }}>Firmware Version</th>
-                <th className="py-3" style={{ backgroundColor: '#f6f7f8ff' }}>HSN Code</th>
-                <th className="py-3" style={{ backgroundColor: '#f6f7f8ff' }}>Sale Status</th>
-                <th className="py-3" style={{ backgroundColor: '#f6f7f8ff' }}>Test</th>
-                <th className="py-3 pe-4" style={{ backgroundColor: '#f6f7f8ff' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product, index) => (
-                <tr key={product.id} style={{ backgroundColor: index % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
-                  <td className="py-2 ps-4 text-dark">{String(index + 1).padStart(2, '0')}</td>
-                  <td className="py-2 text-dark">{product.batch?.batch || '—'}</td>
-                  <td className="py-2 text-dark">{product.category?.category || '—'}</td>
-                  <td className="py-2 text-dark">{product.serial_no || '—'}</td>
-                  <td className="py-2 text-dark">{product.manufacture_no || '—'}</td>
-                  <td className="py-2 text-dark">{product.firmware_version || '—'}</td>
-                  <td className="py-2 text-dark">{product.hsn_code || '—'}</td>
-                  <td className="py-2 text-dark">{product.sale_status || '—'}</td>
-                  <td className="py-2 text-dark">{product.test || '—'}</td>
-                  <td className="py-2 pe-4 d-flex gap-2">
-                    <Button variant="outline-primary" size="sm" title="Edit" onClick={() => handleEdit(product)}>
-                      <i className="bi bi-pencil-square"></i>
-                    </Button>
-                    <Button variant="outline-danger" size="sm" title="Delete" onClick={() => handleDelete(product.id)}>
-                      <i className="bi bi-trash"></i>
-                    </Button>
-                  </td>
-                </tr>
+
+        {loading ? (
+          <div className="text-center mt-4">
+            <Spinner animation="border" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: "60vh" }}>
+            <img src="/empty-box.png" alt="Empty" style={{ width: "160px", opacity: 0.6 }} />
+            <p className="mt-3 text-muted">No product data available</p>
+          </div>
+        ) : (
+          paginatedProducts.map((p, i) => (
+            <div key={p.id} className="px-4 py-2 border-bottom d-flex bg-white align-items-center small">
+              <div style={{ width: "60px" }}>{indexOfFirstItem + i + 1}</div>
+              <div style={{ flex: 2 }}>{p.batch?.batch || "—"}</div>
+              <div style={{ flex: 2 }}>{p.category?.category || "—"}</div>
+              <div style={{ flex: 2 }}>{p.serial_no || "—"}</div>
+              <div style={{ flex: 2 }}>{p.manufacture_no || "—"}</div>
+              <div style={{ flex: 2 }}>{p.firmware_version || "—"}</div>
+              <div style={{ flex: 2 }}>{p.hsn_code || "—"}</div>
+              <div style={{ flex: 2 }}>{p.sale_status || "—"}</div>
+              <div style={{ flex: 2 }}>{p.test || "—"}</div>
+              <div style={{ width: "160px" }}>
+                <Button variant="outline-primary" size="sm" className="me-1" onClick={() => handleEdit(p)}>
+                  <i className="bi bi-pencil-square"></i>
+                </Button>
+                <Button variant="outline-danger" size="sm" onClick={() => handleDelete(p.id)}>
+                  <i className="bi bi-trash"></i>
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Pagination Footer */}
+      {products.length > 0 && (
+        <div
+          className="d-flex justify-content-between align-items-center py-2 px-4 border-top bg-white"
+          style={{ position: "sticky", bottom: 0 }}
+        >
+          <div
+            className="position-relative px-2 py-1 rounded"
+            style={{ backgroundColor: "#f1f3f5", width: "140px" }}
+          >
+            <select
+              className="form-select form-select-sm border-0 bg-transparent pe-4"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              style={{
+                boxShadow: "none",
+                background: "transparent",
+                appearance: "none",
+                WebkitAppearance: "none",
+                MozAppearance: "none",
+                cursor: "pointer",
+              }}
+            >
+              {[5, 10, 20, 50].map((size) => (
+                <option key={size} value={size}>
+                  {size} per page
+                </option>
               ))}
-            </tbody>
-          </Table>
+            </select>
+            <span
+              className="position-absolute"
+              style={{
+                right: "8px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "none",
+              }}
+            >
+              <CustomArrow direction="down" size={12} />
+            </span>
+          </div>
+
+          <div
+            className="d-flex align-items-center justify-content-between px-3 py-1 rounded"
+            style={{
+              backgroundColor: "#fff",
+              border: "1px solid #dee2e6",
+              minWidth: "100px",
+            }}
+          >
+            <Button
+              variant="link"
+              size="sm"
+              className="p-0 me-2"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            >
+              <CustomArrow direction="left" />
+            </Button>
+            <span className="small">
+              {products.length === 0
+                ? "0-0"
+                : `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, products.length)}`}
+            </span>
+            <Button
+              variant="link"
+              size="sm"
+              className="p-0 ms-2"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            >
+              <CustomArrow direction="right" />
+            </Button>
+          </div>
         </div>
       )}
 
       {/* Offcanvas Modal */}
-      <Offcanvas show={showModal} onHide={handleModalClose} placement="end">
+      <Offcanvas show={showModal} onHide={() => setShowModal(false)} placement="end" backdrop="static">
         <Offcanvas.Header closeButton>
           <Offcanvas.Title>{isEditing ? "Edit Product" : "Add Product"}</Offcanvas.Title>
         </Offcanvas.Header>
@@ -211,41 +299,59 @@ export default function ProductPage() {
               <Form.Select name="batch_id" value={productData.batch_id} onChange={handleChange}>
                 <option value="">Select Batch</option>
                 {batches.map((b) => (
-                  <option key={b.id} value={b.id}>{b.batch}</option>
+                  <option key={b.id} value={b.id}>
+                    {b.batch}
+                  </option>
                 ))}
               </Form.Select>
             </Form.Group>
-
             <Form.Group className="col-md-6">
               <Form.Label>Category</Form.Label>
               <Form.Select name="category_id" value={productData.category_id} onChange={handleChange}>
                 <option value="">Select Category</option>
                 {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.category}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.category}
+                  </option>
                 ))}
               </Form.Select>
             </Form.Group>
-
             <Form.Group className="col-md-6">
               <Form.Label>Serial No.</Form.Label>
-              <Form.Control name="serial_no" value={productData.serial_no} onChange={handleChange} placeholder="Enter Serial No." />
+              <Form.Control
+                name="serial_no"
+                value={productData.serial_no}
+                onChange={handleChange}
+                placeholder="Enter Serial No."
+              />
             </Form.Group>
-
             <Form.Group className="col-md-6">
               <Form.Label>Manufacture No.</Form.Label>
-              <Form.Control name="manufacture_no" value={productData.manufacture_no} onChange={handleChange} placeholder="Enter Manufacture No." />
+              <Form.Control
+                name="manufacture_no"
+                value={productData.manufacture_no}
+                onChange={handleChange}
+                placeholder="Enter Manufacture No."
+              />
             </Form.Group>
-
             <Form.Group className="col-md-6">
               <Form.Label>Firmware Version</Form.Label>
-              <Form.Control name="firmware_version" value={productData.firmware_version} onChange={handleChange} placeholder="Enter Firmware Version" />
+              <Form.Control
+                name="firmware_version"
+                value={productData.firmware_version}
+                onChange={handleChange}
+                placeholder="Enter Firmware Version"
+              />
             </Form.Group>
-
             <Form.Group className="col-md-6">
               <Form.Label>HSN Code</Form.Label>
-              <Form.Control name="hsn_code" value={productData.hsn_code} onChange={handleChange} placeholder="Enter HSN Code" />
+              <Form.Control
+                name="hsn_code"
+                value={productData.hsn_code}
+                onChange={handleChange}
+                placeholder="Enter HSN Code"
+              />
             </Form.Group>
-
             <Form.Group className="col-md-6">
               <Form.Label>Sale Status</Form.Label>
               <Form.Select name="sale_status" value={productData.sale_status} onChange={handleChange}>
@@ -254,7 +360,6 @@ export default function ProductPage() {
                 <option value="Reserved">Reserved</option>
               </Form.Select>
             </Form.Group>
-
             <Form.Group className="col-md-6">
               <Form.Label>Test Status</Form.Label>
               <Form.Select name="test" value={productData.test} onChange={handleChange}>
@@ -262,9 +367,10 @@ export default function ProductPage() {
                 <option value="Issue">Issue</option>
               </Form.Select>
             </Form.Group>
-
             <div className="d-flex justify-content-end mt-3">
-              <Button variant="success" onClick={handleSave}>Save</Button>
+              <Button variant="success" onClick={handleSave}>
+                Save
+              </Button>
             </div>
           </Form>
         </Offcanvas.Body>
