@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // import SalesList from './Pages/SalesList';
 import LoginPage from './LoginPage';
 import AppLayout from './Layout/AppLayout';
-// import BatchPage from './Pages/BatchPages';
+import BatchPage from './Pages/BatchPages';
 import StatePage from './Pages/StatePage';
  
 import CountryPage from './pages/CountryPage';
@@ -25,11 +25,14 @@ import Overview from './Pages/Overview/Overview';
  import SalesList from './Pages/SalesList';
 import SparepartsPage from "./Pages/SpareParts";
 import PurchaseSparepartsPage from './Pages/PurchaseSpareParts'; // ✅ Ensure correct casing
-import Vendor from './Pages/vendor';
+
 import Customer from './Pages/Customer';
 import ReturnSparePartsPage from './Pages/ReturnSpareParts';
+import Vendor from './Pages/vendor';
+
+
  
- const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
+//  const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
@@ -56,7 +59,7 @@ export default function App() {
           path="/login"
           element={
             isLoggedIn ? (
-              <Navigate to="/batch" replace />
+              <Navigate to="/Overview" replace />
             ) : (
               <LoginPage onLogin={handleLogin} />
             )
@@ -90,7 +93,7 @@ export default function App() {
  	          <Route path="spareparts" element={<SparepartsPage />} />
           <Route path="PurchaseSpareParts" element={<PurchaseSparepartsPage />} />
           <Route path="ReturnSpareParts" element={<ReturnSparePartsPage />} />
-          <Route path="vendor" element={<Vendor />} />
+          <Route path="Vendor" element={<Vendor />} />
           <Route path="customer" element={<Customer />} />
 
  
