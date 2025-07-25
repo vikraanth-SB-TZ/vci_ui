@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, Spinner } from "react-bootstrap";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa";
-import "./TotalProduct.css";
+import "../../assets/css/TotalProduct.css";
 
 export default function TotalProductPage() {
   const [stockData, setStockData] = useState([]);

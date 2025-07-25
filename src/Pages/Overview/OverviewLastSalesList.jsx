@@ -1,5 +1,5 @@
 import React from "react";
-import "./LastSalesList.css"; 
+import "../../assets/css/LastSalesList.css";
 
 const salesData = [
   { customer: "MAHLE", date: "10/05/2025", batch: "Batch 1", product: "7 series", quantity: 400 },

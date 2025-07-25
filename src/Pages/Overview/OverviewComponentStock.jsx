@@ -1,6 +1,6 @@
 import React from "react";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
-import "./ComponentStock.css";
+import "../../assets/css/Componentstock.css";
 
 const dummyData = [
   { name: "Nut", qty: 3000, usedVCI: 750, up: true },
