@@ -174,7 +174,7 @@ export default function LoginPage({ onLogin }) {
 
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <Form.Check type="checkbox" label="Remember Me" />
-                <Button variant="link" className="p-0" onClick={() => setShowModal(true)}>
+                <Button variant="link" className="p-0 text-decoration-none" style={{color:"#278C58"}} onClick={() => setShowModal(true)}>
                   Forgot Password?
                 </Button>
               </div>
