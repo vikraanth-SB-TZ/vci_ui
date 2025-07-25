@@ -1,9 +1,29 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Spinner, Modal, Form, Table } from "react-bootstrap";
+import { Button, Spinner, Modal, Form } from "react-bootstrap";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+
+const CustomArrow = ({ direction = "down", size = 12, color = "#5a5a5a" }) => {
+  let rotate = 0;
+  if (direction === "left") rotate = 90;
+  if (direction === "right") rotate = -90;
+  if (direction === "up") rotate = 180;
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      style={{ transform: `rotate(${rotate}deg)` }}
+      fill={color}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M12 16L6 8h12l-6 8z" />
+    </svg>
+  );
+};
 
 export default function BatchPage() {
   const [batches, setBatches] = useState([]);
@@ -11,6 +31,9 @@ export default function BatchPage() {
   const [showModal, setShowModal] = useState(false);
   const [batchName, setBatchName] = useState("");
   const [editingBatch, setEditingBatch] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const apiBase = "http://127.0.0.1:8000/api";
 
@@ -54,13 +77,11 @@ export default function BatchPage() {
       toast.error("Batch name is required!");
       return;
     }
-
     const payload = { batch: batchName.trim() };
-
     try {
       if (editingBatch) {
         const res = await axios.put(`${apiBase}/batches/${editingBatch.id}`, payload);
-        setBatches(batches.map(b => (b.id === editingBatch.id ? res.data.batch : b)));
+        setBatches(batches.map((b) => (b.id === editingBatch.id ? res.data.batch : b)));
         toast.success("Batch updated successfully!");
       } else {
         const res = await axios.post(`${apiBase}/batches`, payload);
@@ -88,84 +109,182 @@ export default function BatchPage() {
     }
   };
 
+  // Pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedBatches = batches.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(batches.length / itemsPerPage);
+
+  const handleItemsPerPageChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
   return (
-    <div className="w-100 py-4 bg-white" style={{ minHeight: '100vh', fontFamily: 'Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif', fontSize: '14px', fontWeight: '500' }}>
-      <div className="d-flex justify-content-between align-items-center mb-3 px-4">
-        <h4 className="fw-semibold text-dark mb-0 fs-4">
-          Batch List <span className="text-dark fw-semibold">({batches.length})</span>
-        </h4>
-        <div className="d-flex gap-2">
-          <Button variant="outline-secondary p-0" style={{ width: '38px', height: '38px' }} onClick={fetchBatches}>
-            {loading ? (
-              <Spinner animation="border" size="sm" />
-            ) : (
-              <i className="bi bi-arrow-clockwise fs-5 text-secondary"></i>
-            )}
+    <div className="vh-100 d-flex flex-column bg-light position-relative">
+      {/* Header */}
+      <div
+        className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white"
+        style={{ position: "sticky", top: 0, zIndex: 10 }}
+      >
+        <h5 className="mb-0 fw-bold">Batch List</h5>
+        <div>
+          <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchBatches}>
+            <i className="bi bi-arrow-clockwise"></i>
           </Button>
-          <Button
-            size="sm"
-            variant="success d-flex align-items-center px-3"
-            style={{ minWidth: '100px', fontSize: '0.9rem', fontWeight: '500' }}
-            onClick={handleAddNewClick}
-          >
-            <i className="bi bi-plus me-1"></i> Add New
+          <Button variant="success" size="sm" onClick={handleAddNewClick}>
+            + Add New
           </Button>
         </div>
       </div>
 
-      {batches.length === 0 ? (
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
-          <div className="text-center">
-            <img
-              src="/empty-box.png"
-              alt="No Data"
-              style={{ width: "160px", opacity: 0.6 }}
-              className="mb-3"
-            />
-            <div className="text-muted fs-6">No batch data available</div>
-          </div>
+      {/* Table */}
+      <div style={{ flex: 1, overflowY: "auto", minWidth: "800px" }}>
+        <div
+          className="d-flex align-items-center px-4 border-bottom small fw-semibold"
+          style={{
+            backgroundColor: "#E9ECEF",
+            fontSize: "16px",
+            height: "60px",
+            color: "#0e0f0eff",
+            fontFamily: "Product Sans, sans-serif",
+            flex: "0 0 auto",
+          }}
+        >
+          <div style={{ width: "80px" }}>S.No</div>
+          <div style={{ flex: 2 }}>Batch</div>
+          <div style={{ flex: 2 }}>Action</div>
         </div>
-      ) : (
-        <div className="shadow-sm overflow-hidden mx-4" style={{ borderRadius: '0.5rem' }}>
-          <Table hover responsive size="sm" className="table-border mb-0">
-            <thead>
-              <tr className="border-bottom border-secondary-subtle">
-                <th className="text-dark fw-semibold py-3 ps-4" style={{ backgroundColor: '#f3f7faff' }}>S.No</th>
-                <th className="text-dark fw-medium py-3" style={{ backgroundColor: '#f6f7f8ff' }}>Batch</th>
-                <th className="text-dark fw-medium py-3 pe-4" style={{ backgroundColor: '#f6f7f8ff' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {batches.map((batch, index) => (
-                <tr key={batch.id} style={{ backgroundColor: index % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
-                  <td className="py-2 ps-4 text-dark">{String(index + 1).padStart(2, '0')}</td>
-                  <td className="py-2 text-dark">{batch.batch}</td>
-                  <td className="py-2 pe-4 d-flex gap-2">
-                    <Button variant="outline-primary" size="sm" title="Edit" onClick={() => handleEdit(batch)}>
-                      <i className="bi bi-pencil-square"></i>
-                    </Button>
-                    <Button variant="outline-danger" size="sm" title="Delete" onClick={() => handleDelete(batch.id)}>
-                      <i className="bi bi-trash"></i>
-                    </Button>
-                  </td>
-                </tr>
+
+        {loading ? (
+          <div className="text-center mt-4">
+            <Spinner animation="border" />
+          </div>
+        ) : batches.length === 0 ? (
+          <div
+            className="d-flex flex-column justify-content-center align-items-center"
+            style={{ height: "calc(80vh - 160px)" }}
+          >
+            <img
+              src="https://placehold.co/160x160/E0E0E0/333333?text=No+Data"
+              alt="Empty"
+              style={{ width: "160px" }}
+            />
+            <p className="mt-3 text-muted">No batches found.</p>
+          </div>
+        ) : (
+          paginatedBatches.map((batch, index) => (
+            <div
+              key={batch.id}
+              className="px-4 py-2 border-bottom d-flex bg-white align-items-center small"
+            >
+              <div style={{ width: "80px" }}>{indexOfFirstItem + index + 1}</div>
+              <div style={{ flex: 2 }}>{batch.batch}</div>
+              <div style={{ flex: 2 }}>
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  className="me-1"
+                  onClick={() => handleEdit(batch)}
+                >
+                  <i className="bi bi-pencil-square me-1"></i>
+                </Button>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={() => handleDelete(batch.id)}
+                >
+                  <i className="bi bi-trash"></i>
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Footer Pagination */}
+      {batches.length > 0 && (
+        <div
+          className="d-flex justify-content-between align-items-center py-2 px-4 border-top bg-white"
+          style={{ position: "sticky", bottom: 0 }}
+        >
+          {/* Items per page */}
+          <div
+            className="position-relative px-2 py-1 rounded"
+            style={{ backgroundColor: "#f1f3f5", width: "140px" }}
+          >
+            <select
+              className="form-select form-select-sm border-0 bg-transparent pe-4"
+              value={itemsPerPage}
+              onChange={handleItemsPerPageChange}
+              style={{
+                boxShadow: "none",
+                background: "transparent",
+                appearance: "none",
+                WebkitAppearance: "none",
+                MozAppearance: "none",
+                cursor: "pointer",
+              }}
+            >
+              {[5, 10, 20, 50].map((size) => (
+                <option key={size} value={size}>
+                  {size} per page
+                </option>
               ))}
-            </tbody>
-          </Table>
+            </select>
+            <span
+              className="position-absolute"
+              style={{
+                right: "8px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                pointerEvents: "none",
+              }}
+            >
+              <CustomArrow direction="down" size={12} />
+            </span>
+          </div>
+
+          {/* Range & navigation */}
+          <div
+            className="d-flex align-items-center justify-content-between px-3 py-1 rounded"
+            style={{
+              backgroundColor: "#fff",
+              border: "1px solid #dee2e6",
+              minWidth: "100px",
+            }}
+          >
+            <Button
+              variant="link"
+              size="sm"
+              className="p-0 me-2"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            >
+              <CustomArrow direction="left" />
+            </Button>
+            <span className="small">
+              {batches.length === 0
+                ? "0-0"
+                : `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, batches.length)}`}
+            </span>
+            <Button
+              variant="link"
+              size="sm"
+              className="p-0 ms-2"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            >
+              <CustomArrow direction="right" />
+            </Button>
+          </div>
         </div>
       )}
 
       {/* Modal */}
-      <Modal
-        show={showModal}
-        onHide={handleModalClose}
-        centered
-        backdrop="static"
-        contentClassName="border-0 rounded-4 shadow-sm"
-      >
+      <Modal show={showModal} onHide={handleModalClose} centered backdrop="static" contentClassName="border-0 rounded-4 shadow-sm">
         <Modal.Body className="p-4">
-          {/* Header */}
-          <div className="d-flex justify-content-between align-items-center mb-4">
+          <div className="d-flex justify-content-between align-items-center mb-3">
             <h5 className="fw-semibold mb-0">
               {editingBatch ? "Edit Batch" : "Add New Batch"}
             </h5>
@@ -178,20 +297,18 @@ export default function BatchPage() {
               <i className="bi bi-x-lg fs-6"></i>
             </Button>
           </div>
-
-          {/* Input */}
-          <Form.Group className="mb-4">
-            <Form.Label className="fw-medium">Batch Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter batch name"
-              value={batchName}
-              onChange={(e) => setBatchName(e.target.value)}
-              className="border-0 border-bottom rounded-0 shadow-none"
-            />
-          </Form.Group>
-
-          {/* Footer Buttons */}
+          <div className="p-3 rounded-3 border-1 mb-3">
+            <Form.Group>
+              <Form.Label className="fw-medium">Batch Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter batch name"
+                value={batchName}
+                onChange={(e) => setBatchName(e.target.value)}
+                className="shadow-none"
+              />
+            </Form.Group>
+          </div>
           <div className="d-flex justify-content-end gap-2">
             <Button variant="light" onClick={handleModalClose} className="px-4">
               Cancel

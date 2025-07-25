@@ -149,4 +149,6 @@ body,
 .card-container .card {
   flex-grow: 1;
 }
-
+.form-control {
+  border-radius: 0 !important;
+}

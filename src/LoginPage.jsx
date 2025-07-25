@@ -135,7 +135,7 @@ export default function LoginPage({ onLogin }) {
 
             <Form onSubmit={handleLogin}>
               <Form.Group className="mb-3" controlId="formEmail">
-                <Form.Label>Email</Form.Label>
+                <Form.Label className="fw-bold">Email</Form.Label>
                 <Form.Control
                   type="email"
                   value={formData.email}
@@ -145,27 +145,36 @@ export default function LoginPage({ onLogin }) {
               </Form.Group>
 
               <Form.Group className="mb-3" controlId="formPassword">
-                <Form.Label>Password</Form.Label>
-                <div className="input-group">
-                  <Form.Control
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    placeholder="Enter password"
-                  />
-                  <span
-                    className="input-group-text"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
-                  </span>
-                </div>
+              <div className="position-relative">
+                <Form.Label className="fw-bold">Password</Form.Label>
+                <Form.Control
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="Enter password"
+                  className="pe-5 rounded-0"
+                />
+                <i
+                  className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    top: "74%",
+                    right: "10px",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    fontSize: "1.2rem",
+                    color: "#00000080",   // <-- changed color
+                    zIndex: 10,
+                  }}
+                ></i>
+              </div>
+
               </Form.Group>
 
-              <div className="d-flex justify-content-between align-items-center mb-3 ">
+              <div className="d-flex justify-content-between align-items-center mb-3">
                 <Form.Check type="checkbox" label="Remember Me" />
-                <Button variant="link" className="p-0 text-decoration-none" style={{ color: '#278C58' }}onClick={() => setShowModal(true)}>
+                <Button variant="link" className="p-0" onClick={() => setShowModal(true)}>
                   Forgot Password?
                 </Button>
               </div>
