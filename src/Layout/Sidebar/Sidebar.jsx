@@ -219,7 +219,7 @@ export default function Sidebar({ collapsed }) {
         </div>
 
         <div className="mb-1">
-          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("Customers"); }} className={linkClass("Customers")}>
+          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("Customer"); }} className={linkClass("Customer")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             {!collapsed && "Customer"}
           </a>

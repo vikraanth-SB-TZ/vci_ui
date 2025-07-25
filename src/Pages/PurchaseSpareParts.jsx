@@ -7,13 +7,10 @@ import axios from "axios"; // <-- make sure axios is installed
 const API_BASE = import.meta?.env?.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
 export default function PurchaseSparepartsPage() {
-  /* ------------------------------------------------------------------ */
-  /* State                                                              */
-  /* ------------------------------------------------------------------ */
-  const [vendors, setVendors] = useState([]); // [{id, first_name, last_name, ...}]
-  const [batches, setBatches] = useState([]); // [{id, batch}]
-  const [availableSpareparts, setAvailableSpareparts] = useState([]); // [{id,name,...}]
-  const [spareparts, setSpareparts] = useState([]); // purchase list
+  const [vendors, setVendors] = useState([]); 
+  const [batches, setBatches] = useState([]); 
+  const [availableSpareparts, setAvailableSpareparts] = useState([]);
+  const [spareparts, setSpareparts] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [sparePartsRows, setSparePartsRows] = useState([{ sparepart_id: "", quantity: "" }]);

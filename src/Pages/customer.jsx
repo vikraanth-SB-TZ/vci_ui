@@ -987,7 +987,7 @@ export default function App() { // Changed to App as per instructions for defaul
           </div>
         </div>
         <div className="d-flex justify-content-end mt-4 mb-2 me-2">
-          <Button
+          {/* <Button
             variant="secondary"
             onClick={closeForm}
             className="me-2"
@@ -1004,7 +1004,7 @@ export default function App() { // Changed to App as per instructions for defaul
             }}
           >
             Cancel
-          </Button>
+          </Button> */}
           <Button
             variant="primary"
             type="submit"
@@ -1012,7 +1012,7 @@ export default function App() { // Changed to App as per instructions for defaul
             style={{
               width: "120px",
               height: "45px",
-              backgroundColor: "#007bff",
+              backgroundColor: "#278C58",
               color: "#fff",
               border: "none",
               borderRadius: "5px",
