@@ -157,6 +157,7 @@ export default function Sidebar({ collapsed }) {
               <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("SparepartsPage"); }} className={subLinkClass("SparepartsPage")}>- Spare Parts</a>
               <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("PurchaseSparepartsPage"); }} className={subLinkClass("PurchaseSparepartsPage")}>- Purchase Spare Parts</a>
               <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("ReturnSpareParts"); }} className={subLinkClass("ReturnSpareParts")}>- Return</a>
+              
             </div>
           )}
         </div>

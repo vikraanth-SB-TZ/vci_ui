@@ -22,9 +22,15 @@ import SaleReturnPage from './Pages/SaleReturnPage';
 import SaleInvoice from './Pages/SaleInvoice';
 // import PcbPurchaseList from './Pages/PcbPurchaseList';
 import Overview from './Pages/Overview/Overview';
+ import SalesList from './Pages/SalesList';
+import SparepartsPage from "./Pages/SpareParts";
+import PurchaseSparepartsPage from './Pages/PurchaseSpareParts'; // ✅ Ensure correct casing
+import Vendor from './Pages/Vendor';
+import Customer from './Pages/Customer';
+import ReturnSparePartsPage from './Pages/ReturnSpareParts';
  
- 
- 
+ const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
+
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
  
@@ -81,7 +87,12 @@ export default function App() {
           <Route path="salesOrder" element={<SalesList />} />   // ✅ Add this inside your main route
           <Route path="/sales/add" element={<AddNewSalePage />} />
           <Route path="/sales/edit/:id" element={<EditSalePage />} />
- 
+ 	          <Route path="spareparts" element={<SparepartsPage />} />
+          <Route path="PurchaseSpareParts" element={<PurchaseSparepartsPage />} />
+          <Route path="ReturnSpareParts" element={<ReturnSparePartsPage />} />
+          <Route path="vendor" element={<Vendor />} />
+          <Route path="customer" element={<Customer />} />
+
  
           <Route path="/sales/view/:id" element={<ViewSalePage />} />
           <Route path="salesReturn" element={<SaleReturnPage />} />
