@@ -91,7 +91,7 @@ export default function Sidebar({ collapsed }) {
             className={linkClass("overview")}
           >
             <img
-              src={isActive("overview") ? "/Overview_G.png" : "/squares.png"}
+              src={isActive("overview") ? "/Overviiew_G.png" : "/squares.png"}
               alt="Overview"
               style={{
                 width: "18px",
@@ -436,9 +436,9 @@ export default function Sidebar({ collapsed }) {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              handleLinkClick("Customer");
+              handleLinkClick("Customers");
             }}
-            className={linkClass("Customer")}
+            className={linkClass("Customers")}
           >
             <img
               src={isActive("Customer") ? "/Vendor_G.png" : "/Customer.png"}
