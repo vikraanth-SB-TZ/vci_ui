@@ -1,518 +1,810 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Form, Spinner } from "react-bootstrap";
 import axios from "axios";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import Select from 'react-select';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import $ from "jquery";
+import "datatables.net-dt/css/dataTables.dataTables.css";
+import "datatables.net";
 
 export default function Vendor() {
-  const [vendors, setVendors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState(initialForm());
-  const [isEditing, setIsEditing] = useState(false);
-  const [states, setStates] = useState([]); // Corrected: Moved inside the component
-  const [districts, setDistricts] = useState([]); // Corrected: Moved inside the component
+    const [vendors, setVendors] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(false);
+    const [formData, setFormData] = useState(initialForm());
+    const [isEditing, setIsEditing] = useState(false);
+    const [states, setStates] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [errors, setErrors] = useState({});
+    const tableRef = useRef(null);
 
-  function initialForm() {
-    return {
-      id: null,
-      first_name: "",
-      last_name: "",
-      gender: "",
-      mobile: "",
-      altMobile: "",
-      email: "",
-      company_name: "",
-      address: "",
-      city: "",
-      state: "",
-      district: "",
-      pincode: "",
-      gst: "",
-      dob: "",
-    };
-  }
-
-  useEffect(() => {
-    fetchVendors();
-    fetchStates();
-    fetchDistricts();
-  }, []);
-
-  const fetchVendors = () => {
-    setLoading(true);
-    axios
-      .get("/api/vendors")
-      .then((res) => {
-        setVendors(res.data.data || res.data);
-      })
-      .catch((err) => {
-        console.error("Error fetching vendors", err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
-
-const fetchStates = () => {
-  axios.get("/api/states")
-    .then((res) => {
-      console.log("States API response:", res.data);
-      setStates(res.data);
-    })
-    .catch((err) => console.error("Error fetching states", err));
-};
-
-const fetchDistricts = () => {
-  axios.get("/api/districts")
-    .then((res) => {
-      console.log("Districts API response:", res.data);
-      setDistricts(res.data);
-    })
-    .catch((err) => console.error("Error fetching districts", err));
-};
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = () => {
-    const payload = {
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      gender: formData.gender,
-      mobile: formData.mobile,
-      alter_mobile: formData.altMobile,
-      email: formData.email,
-      company_name: formData.company_name,
-      address: formData.address,
-      city: formData.city,
-      state_id: formData.state,
-      district_id: formData.district,
-      pincode: formData.pincode,
-      gst_no: formData.gst,
-      date_of_birth: formData.dob,
-    };
-
-    const request = isEditing
-      ? axios.put(`/api/vendors/${formData.id}`, payload)
-      : axios.post("/api/vendors", payload);
-
-    request
-      .then(() => {
+    function initialForm() {
+        return {
+            id: null,
+            first_name: "",
+            last_name: "",
+            gender: "",
+            mobile: "",
+            altMobile: "",
+            email: "",
+            company_name: "",
+            address: "",
+            city: "",
+            state: "",
+            district: "",
+            pincode: "",
+            gst: "",
+            dob: "",
+        };
+    }
+    useEffect(() => {
+        if (localStorage.getItem("vendor_refresh") === "true") {
+            fetchVendors();
+            localStorage.removeItem("vendor_refresh");
+        }
+    }, []);
+    useEffect(() => {
         fetchVendors();
-        closeForm();
-      })
-      .catch((err) => {
-        console.error("Save failed", err);
-        alert("Failed to save vendor");
-      });
-  };
+        fetchStates();
+        fetchDistricts();
+    }, []);
 
-  const handleEdit = (vendor) => {
-    setFormData({
-      id: vendor.id,
-      first_name: vendor.first_name || "",
-      last_name: vendor.last_name || "",
-      gender: vendor.gender || "",
-      mobile: vendor.mobile || "",
-      altMobile: vendor.alter_mobile || "",
-      email: vendor.email || "",
-      company_name: vendor.company_name || "",
-      address: vendor.address || "",
-      city: vendor.city || "",
-      state: vendor.state_id || "",
-      district: vendor.district_id || "",
-      pincode: vendor.pincode || "",
-      gst: vendor.gst_no || "",
-      dob: vendor.date_of_birth || "",
+    useEffect(() => {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+            $(tableRef.current).DataTable().destroy();
+        }
+        if (!loading && vendors.length > 0) {
+            $(tableRef.current).DataTable({
+                ordering: true,
+                paging: true,
+                searching: true,
+                lengthChange: true,
+                columnDefs: [{ targets: 0, className: "text-center" }],
+            });
+        }
+    }, [vendors, loading]);
+
+    const fetchVendors = () => {
+        setLoading(true);
+        axios
+            .get("/api/vendors")
+            .then((res) => {
+                setVendors(res.data.data || res.data);
+            })
+            .catch(() => {
+                toast.error("Failed to fetch vendors.", { autoClose: 3000 });
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    };
+
+    const fetchStates = () => {
+        axios.get("/api/states")
+            .then((res) => setStates(res.data))
+            .catch(() => toast.error("Failed to fetch states.", { autoClose: 3000 }));
+    };
+
+    const fetchDistricts = () => {
+        axios.get("/api/districts")
+            .then((res) => setDistricts(res.data))
+            .catch(() => toast.error("Failed to fetch districts.", { autoClose: 3000 }));
+    };
+
+    const handleChange = (e, selectName = null) => {
+        let name, value;
+        if (selectName) {
+            name = selectName;
+            value = e ? e.value : "";
+        } else {
+            name = e.target.name;
+            value = e.target.value;
+        }
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
+        if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
+        if (!formData.email.trim()) newErrors.email = "Email is required.";
+        else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email address is invalid.";
+        if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
+        if (!formData.gender) newErrors.gender = "Gender is required.";
+        if (!formData.dob) newErrors.dob = "Date of Birth is required.";
+        if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
+        if (!formData.address.trim()) newErrors.address = "Address is required.";
+        if (!formData.city.trim()) newErrors.city = "City is required.";
+        if (!formData.state) newErrors.state = "State is required.";
+        if (!formData.district) newErrors.district = "District is required.";
+        if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!validateForm()) {
+            toast.error("Please fill in all required fields correctly.", { autoClose: 3000 });
+            return;
+        }
+        const payload = {
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            gender: formData.gender,
+            mobile: formData.mobile,
+            alter_mobile: formData.altMobile,
+            email: formData.email,
+            company_name: formData.company_name,
+            address: formData.address,
+            city: formData.city,
+            state_id: formData.state,
+            district_id: formData.district,
+            pincode: formData.pincode,
+            gst_no: formData.gst,
+            date_of_birth: formData.dob,
+        };
+        const request = isEditing
+            ? axios.put(`/api/vendors/${formData.id}`, payload)
+            : axios.post("/api/vendors", payload);
+
+          request
+            .then(() => {
+                localStorage.setItem("vendor_refresh", "true");
+                window.location.reload();
+            })
+            .catch((err) => {
+                if (err.response && err.response.data) {
+                    const { message, errors: backendErrors } = err.response.data;
+                    let newErrors = {};
+                    if (backendErrors) {
+                        Object.keys(backendErrors).forEach(field => {
+                            const fieldErrors = backendErrors[field];
+                            if (Array.isArray(fieldErrors)) {
+                                newErrors[field] = fieldErrors[0];
+                                toast.error(fieldErrors[0], { autoClose: 3000 });
+                            } else {
+                                newErrors[field] = fieldErrors;
+                                toast.error(fieldErrors, { autoClose: 3000 });
+                            }
+                        });
+                    } else if (message) {
+                        toast.error(`Failed to save vendor: ${message}`, { autoClose: 3000 });
+                    } else {
+                        toast.error("Failed to save vendor. Please try again.", { autoClose: 3000 });
+                    }
+                    setErrors(newErrors);
+                } else {
+                    toast.error("Failed to save vendor. Please check your network connection.", { autoClose: 3000 });
+                }
+            });
+    };
+    const handleEdit = (vendor) => {
+        setFormData({
+            id: vendor.id,
+            first_name: vendor.first_name || "",
+            last_name: vendor.last_name || "",
+            gender: vendor.gender || "",
+            mobile: vendor.mobile || "",
+            altMobile: vendor.alter_mobile || "",
+            email: vendor.email || "",
+            company_name: vendor.company_name || "",
+            address: vendor.address || "",
+            city: vendor.city || "",
+            state: vendor.state_id || "",
+            district: vendor.district_id || "",
+            pincode: vendor.pincode || "",
+            gst: vendor.gst_no || "",
+            dob: vendor.date_of_birth || "",
+        });
+        setIsEditing(true);
+        setShowForm(true);
+        setErrors({});
+    };
+
+    const openForm = () => {
+        setFormData(initialForm());
+        setIsEditing(false);
+        setShowForm(true);
+        setErrors({});
+    };
+
+    const closeForm = () => {
+        setFormData(initialForm());
+        setIsEditing(false);
+        setShowForm(false);
+        setErrors({});
+    };
+
+    const genderOptions = [
+        { value: "Male", label: "Male" },
+        { value: "Female", label: "Female" },
+        { value: "Other", label: "Other" },
+    ];
+
+    const stateOptions = states.map(state => ({
+        value: state.id,
+        label: state.states,
+    }));
+
+    const districtOptions = districts.map(district => ({
+        value: district.id,
+        label: district.districts,
+    }));
+
+    const errorStyle = {
+        color: "#dc3545",
+        fontSize: "13px",
+        marginTop: "4px",
+    };
+
+    const getInputStyle = (fieldName) => ({
+        width: "270px",
+        height: "50px",
+        fontFamily: "Product Sans, sans-serif",
+        fontWeight: 400,
+        fontSize: "16px",
+        borderRadius: "4px",
+        border: `1px solid ${errors[fieldName] ? "#dc3545" : "#D3DBD5"}`,
+        backgroundColor: "#FFFFFF",
+        color: "#212529",
     });
-    setIsEditing(true);
-    setShowForm(true);
-  };
 
-  // const handleDelete = (id) => {
-  //   if (window.confirm("Are you sure you want to delete this vendor?")) {
-  //     axios
-  //       .delete(`/api/vendors/${id}`)
-  //       .then(() => fetchVendors())
-  //       .catch((err) => console.error("Delete failed", err));
-  //   }
-  // };
-
-  const openForm = () => {
-    setFormData(initialForm());
-    setIsEditing(false);
-    setShowForm(true);
-  };
-
-  const closeForm = () => {
-    setFormData(initialForm());
-    setIsEditing(false);
-    setShowForm(false);
-  };
-
-  return (
-    <div className="vh-80 d-flex flex-column position-relative bg-light">
-      <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-        <h5 className="mb-0 fw-bold">Vendor</h5>
-        <div>
-          <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchVendors}>
-            <i className="bi bi-arrow-clockwise"></i>
-          </Button>
-          <Button variant="success" size="sm" onClick={openForm}>
-            + Add New
-          </Button>
+    const SimpleOption = ({ innerProps, label }) => (
+        <div {...innerProps} className="simple-option">
+            {label}
         </div>
-      </div>
+    );
 
-      <div className="flex-grow-1 overflow-auto">
-        <div style={{ minWidth: "1200px" }}>
-          <div className="d-flex align-items-center px-4 border-bottom small fw-semibold" style={{ backgroundColor: "#DBDBDB73", fontSize: "16px", height: "60px", color: "#0e0f0eff" }}>
-            <div style={{ width: "80px" }}>S.No</div>
-            <div style={{ flex: 2 }}>Name</div>
-            <div style={{ flex: 2 }}>Mobile</div>
-            <div style={{ flex: 2 }}>Email</div>
-            <div style={{ flex: 2 }}>Gender</div>
-            <div style={{ flex: 2 }}>Company</div>
-            <div style={{ flex: 2 }}>Address</div>
-            <div style={{ flex: 2 }}>Action</div>
-          </div>
+    const customSelectStyles = {
+        control: (provided, state) => ({
+            ...provided,
+            width: "270px",
+            height: "50px",
+            minHeight: "50px",
+            fontFamily: "Product Sans, sans-serif",
+            fontWeight: 400,
+            fontSize: "16px",
+            borderRadius: "4px",
+            border: `1px solid ${state.selectProps.name && errors[state.selectProps.name] ? "#dc3545" : "#D3DBD5"}`,
+            boxShadow: "none",
+            "&:hover": {
+                borderColor: "#D3DBD5",
+            },
+            display: 'flex',
+            alignItems: 'center',
+            paddingLeft: '8px',
+            paddingRight: '8px',
+            cursor: 'pointer',
+        }),
+        singleValue: (provided) => ({
+            ...provided,
+            color: "#212529",
+        }),
+        placeholder: (provided) => ({
+            ...provided,
+            fontFamily: 'Product Sans, sans-serif',
+            fontWeight: 400,
+            color: "#828282",
+        }),
+        indicatorSeparator: () => ({
+            display: 'none',
+        }),
+        dropdownIndicator: (provided, state) => ({
+            ...provided,
+            color: '#000',
+            transition: 'transform 0.2s ease-in-out',
+            transform: state.isFocused ? 'rotate(180deg)' : null,
+        }),
+        menu: (provided) => ({
+            ...provided,
+            fontFamily: "Product Sans, sans-serif",
+            fontWeight: 400,
+            fontSize: "16px",
+            borderRadius: "4px",
+            border: "1px solid #D3DBD5",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+            marginTop: '4px',
+            zIndex: 1000,
+        }),
+        option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isFocused ? "#F0F0F0" : "white",
+            color: "#212529",
+            padding: "10px 15px",
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            cursor: 'pointer',
+            "&:active": {
+                backgroundColor: "#E0E0E0",
+            },
+        }),
+    };
 
-          <div
-            className="bg-light"
-            style={{
-              maxHeight: "calc(100vh - 200px)",
-              overflowY: "auto",
-              fontFamily: "Product Sans, sans-serif",
-              fontWeight: 400,
-              fontSize: "18px",
-              fontStyle: "regular",
-              color: "#212529",
-            }}
-          >
-            {loading ? (
-              <div className="text-center mt-4">
-                <Spinner animation="border" />
-              </div>
-            ) : vendors.length === 0 ? (
-              <div
-                className="d-flex flex-column justify-content-center align-items-center"
-                style={{ height: "calc(80vh - 160px)", width: "100%" }}
-              >
-                <img src="/empty-box.png" alt="Empty" style={{ width: "160px" }} />
-              </div>
-            ) : (
-              vendors.map((vendor, index) => (
-                <div
-                  key={vendor.id}
-                  className="px-4 py-2 border-bottom d-flex bg-white align-items-center small"
-                >
-                  <div style={{ width: "80px" }}>{index + 1}</div>
-                  <div style={{ flex: 2 }}>
-                    {`${vendor.first_name || ""} ${vendor.last_name || ""}`}
-                  </div>
-                  <div style={{ flex: 2 }}>{vendor.mobile}</div>
-                  <div style={{ flex: 2 }}>{vendor.email}</div>
-                  <div style={{ flex: 2 }}>{vendor.gender}</div>
-                  <div style={{ flex: 2 }}>{vendor.company_name}</div>
-                  <div style={{ flex: 2 }}>{vendor.address}</div>
-                  <div style={{ flex: 2 }}>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-1"
-                      onClick={() => handleEdit(vendor)}
-                    >
-                      <i className="bi bi-pencil-square me-1"></i>
+    return (
+        <div className="vh-80 d-flex flex-column position-relative bg-light">
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                limit={1}
+            />
+            <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
+                <h5 className="mb-0 fw-bold">Vendors ({vendors.length})</h5>
+                <div>
+                    <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchVendors}>
+                        <i className="bi bi-arrow-clockwise"></i>
                     </Button>
-                    {/* <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDelete(vendor.id)}
-                    >
-                      <i className="bi bi-trash me-1"></i>
-                    </Button> */}
-                  </div>
+                    <Button variant="success" size="sm" onClick={openForm}>
+                        + Add New
+                    </Button>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Slide-in Form */}
-      <div className={`position-fixed top-10 bg-white shadow-lg px-3 pt-2 pb-2 ${showForm ? "slide-in" : "slide-out"}`} style={{
-        width: "590px", height: "100vh", zIndex: 1050, overflowY: "auto", paddingBottom: "80px",
-        fontFamily: "Product Sans, sans-serif", fontWeight: 400
-      }}>
-        <div className="d-flex justify-content-between align-items-center mb-2">
-          <h5 className="mb-0 fw-bold">{isEditing ? "Edit Vendor" : "Add New Vendor"}</h5>
-          <button
-            onClick={closeForm}
-            style={{
-              width: "33px",
-              height: "33px",
-              backgroundColor: "#F0F0F0",
-              border: "none",
-              borderRadius: "50%",
-              fontSize: "20px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 0,
-            }}
-            aria-label="Close"
-          >
-            &times;
-          </button>
-        </div>
-
-        {/* Personal Info */}
-        <h6 className="fw-bold mb-1">Personal Information</h6>
-        <hr className="mt-1 mb-2" />
-        <div className="row gx-2 personal-form">
-          <div className="col-6 mb-2">
-            <Form.Label
-              className="mb-1"
-              style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}
-            >
-              First Name
-            </Form.Label>
-            <Form.Control
-              className="custom-placeholder"
-              name="first_name"
-              value={formData.first_name}
-              onChange={handleChange}
-              placeholder="Enter First Name"
-              size="sm"
-            />
-          </div>
-
-          <div className="col-6 mb-2">
-            <Form.Label
-              className="mb-1"
-              style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}
-            >
-              Last Name
-            </Form.Label>
-            <Form.Control
-              className="custom-placeholder"
-              name="last_name"
-              value={formData.last_name}
-              onChange={handleChange}
-              placeholder="Enter Last Name"
-              size="sm"
-            />
-          </div>
-
-          <div className="col-6 mb-2">
-            <Form.Label
-              className="mb-1"
-              style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}
-            >
-              Gender
-            </Form.Label>
-            <Form.Select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              size="sm"
-                              className="custom-dropdown"
-
-            //   className="custom-placeholder"
-
-            >
-                
-              <option value="">Select Gender</option>
-              
-              <option>Male</option>
-              <option>Female</option>
-            </Form.Select>
-          </div>
-
-          <div className="col-6 mb-2">
-            <Form.Label
-              className="mb-1"
-              style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}
-            >
-              Date of Birth
-            </Form.Label>
-            <Form.Control
-              className="custom-placeholder"
-              type="date"
-              name="dob"
-              value={formData.dob}
-              onChange={handleChange}
-              size="sm"
-            />
-          </div>
-
-          <div className="col-6 mb-2">
-            <Form.Label
-              className="mb-1"
-              style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}
-            >
-              Mobile No.
-            </Form.Label>
-            <Form.Control
-              className="custom-placeholder"
-              name="mobile"
-              value={formData.mobile}
-              onChange={handleChange}
-              placeholder="Enter Mobile No."
-              size="sm"
-            />
-          </div>
-
-          <div className="col-6 mb-2">
-            <Form.Label
-              className="mb-1"
-              style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}
-            >
-              Alternative Mobile
-            </Form.Label>
-            <Form.Control
-              className="custom-placeholder"
-              name="altMobile"
-              value={formData.altMobile}
-              onChange={handleChange}
-              placeholder="Enter Alternative Mobile No."
-              size="sm"
-            />
-          </div>
-        </div>
-
-
-        {/* Other Info */}
-        <h6 className="fw-bold mb-1 mt-2">Other Information</h6>
-        <hr className="mt-1 mb-2" />
-        <div className="row gx-2"> {/* Added a row for consistent layout */}
-          {[
-            { name: "company_name", label: "Company Name" },
-            { name: "address" },
-            { name: "city" },
-            { name: "pincode" },
-            { name: "gst", label: "GST No." },
-            { name: "email" },
-          ].map(({ name, label }) => (
-            <div className="col-6 mb-2" key={name}>
-              <Form.Label
-                className="mb-1"
-                style={{
-                  fontFamily: "Product Sans, sans-serif",
-                  fontWeight: 400,
-                  color: "#393C3AE5",
-                }}
-              >
-                {label || name.charAt(0).toUpperCase() + name.slice(1)}
-              </Form.Label>
-              <Form.Control
-                name={name}
-                value={formData[name]}
-                onChange={handleChange}
-                placeholder={`Enter ${label || name}`}
-                size="sm"
-                style={{
-                  fontFamily: "Product Sans, sans-serif",
-                  fontWeight: 400,
-                }}
-              />
             </div>
-          ))}
 
-          {/* Custom Select for State */}
-          <div className="col-6 mb-2">
-            <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-              State
-            </Form.Label>
-<Form.Select
-  name="state"
-  value={formData.state}
-  onChange={handleChange}
-  size="sm"
-  className="custom-dropdown"
->
-  <option value="">Select State</option>
-  {states.map((state) => (
-    <option key={state.id} value={state.id}>
-      {state.states}
-    </option>
-  ))}
-</Form.Select>
+            <div className="flex-grow-1 overflow-auto px-4 py-3">
+                <div className="table-responsive">
+                    <table ref={tableRef} className="table custom-table">
+                        <thead>
+                            <tr>
+                                <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
+                                <th>Name</th>
+                                <th>Mobile</th>
+                                <th>Email</th>
+                                <th>Gender</th>
+                                <th>Company</th>
+                                <th>Address</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="8" className="text-center py-4">
+                                        <Spinner animation="border" />
+                                    </td>
+                                </tr>
+                            ) : vendors.length === 0 ? (
+                                <tr>
+                                    <td colSpan="8" className="text-center py-4 text-muted">
+                                        No vendors found.
+                                    </td>
+                                </tr>
+                            ) : (
+                                vendors.map((vendor, index) => (
+                                    <tr key={vendor.id}>
+                                        <td style={{ textAlign: "center" }}>{index + 1}</td>
+                                        <td>{`${vendor.first_name || ""} ${vendor.last_name || ""}`}</td>
+                                        <td>{vendor.mobile}</td>
+                                        <td>{vendor.email}</td>
+                                        <td>{vendor.gender}</td>
+                                        <td>{vendor.company_name}</td>
+                                        <td>{vendor.address}</td>
+                                        <td>
+                                            <Button
+                                                variant="outline-primary"
+                                                size="sm"
+                                                className="me-1"
+                                                onClick={() => handleEdit(vendor)}
+                                            >
+                                                <i className="bi bi-pencil-square me-1"></i>
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-          </div>
-
-          {/* Custom Select for District */}
-          <div className="col-6 mb-2">
-            <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-              District
-            </Form.Label>
-            <Form.Select
-              name="district"
-              value={formData.district}
-              onChange={handleChange}
-              size="sm"
-                className="custom-dropdown"
-
-              style={{
-                fontFamily: "Product Sans, sans-serif",
-                fontWeight: 400,
-              }}
+            <div
+                className={`position-fixed bg-white shadow-lg px-3 pt-2 pb-2 vendor-form-slide`}
+                style={{
+                    width: "600px",
+                    height: "calc(100vh - 58px)",
+                    top: "58px",
+                    right: showForm ? "0" : "-800px",
+                    transition: "right 0.4s ease-in-out",
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                    opacity: 1,
+                    fontFamily: "Product Sans, sans-serif",
+                    fontWeight: 400,
+                    zIndex: 1050,
+                }}
             >
-              <option value="">Select District</option>
-              {districts.map((district) => (
-<option key={district.id} value={district.id}>
-  {district.districts}
-</option>
-              ))}
-            </Form.Select>
-          </div>
-        </div> {/* Closing tag for the row added */}
+                <div
+                    className="d-flex justify-content-between align-items-center"
+                    style={{ marginBottom: "30px" }}
+                >
+                    <h5
+                        className="mb-0 fw-bold"
+                        style={{
+                            fontFamily: "Product Sans, sans-serif",
+                            fontWeight: 700,
+                            fontSize: "25px",
+                            color: "#212529",
+                            lineHeight: "1",
+                            letterSpacing: "0",
+                        }}
+                    >
+                        {isEditing ? "Edit Vendor" : "Add New Vendor"}
+                    </h5>
+                    <button
+                        onClick={closeForm}
+                        style={{
+                            width: "33px",
+                            height: "33px",
+                            backgroundColor: "#F0F0F0",
+                            border: "none",
+                            borderRadius: "50%",
+                            fontSize: "20px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: 0,
+                        }}
+                        aria-label="Close"
+                    >
+                        &times;
+                    </button>
+                </div>
 
-        <div className="text-end mt-3">
-          <Button
-            variant="success"
-            onClick={handleSubmit}
-            style={{ width: "179px" }}
-          >
-            {isEditing ? "Update" : "Save"}
-          </Button>
+                <h6
+                    className="mb-1"
+                    style={{
+                        fontFamily: "Product Sans, sans-serif",
+                        fontWeight: 700,
+                        fontSize: "20px",
+                        color: "#141414",
+                        lineHeight: "1",
+                        letterSpacing: "0",
+                    }}
+                >
+                    Personal Information
+                </h6>
+                <hr className="mt-1 mb-2" />
+                <form onSubmit={handleSubmit}>
+                    <div className="row gx-4 personal-form">
+                        <div className="col-6 mb-2">
+                            <Form.Label
+                                className="mb-1"
+                                style={{
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
+                                }}
+                            >
+                                First Name
+                            </Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="first_name"
+                                value={formData.first_name}
+                                onChange={handleChange}
+                                placeholder="Enter Vendor First Name"
+                                size="sm"
+                                isInvalid={!!errors.first_name}
+                                style={getInputStyle("first_name")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.first_name}
+                            </Form.Control.Feedback>
+                        </div>
+
+                        <div className="col-6 mb-2">
+                            <Form.Label
+                                className="mb-1"
+                                style={{
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
+                                }}
+                            >
+                                Last Name
+                            </Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="last_name"
+                                value={formData.last_name}
+                                onChange={handleChange}
+                                placeholder="Enter Vendor Last Name"
+                                size="sm"
+                                isInvalid={!!errors.last_name}
+                                style={getInputStyle("last_name")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.last_name}
+                            </Form.Control.Feedback>
+                        </div>
+
+                        <div className="col-6 mb-2">
+                            <Form.Label
+                                className="mb-1"
+                                style={{
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
+                                }}
+                            >
+                                Gender
+                            </Form.Label>
+                            <Select
+                                name="gender"
+                                value={genderOptions.find(option => option.value === formData.gender)}
+                                onChange={(selectedOption) => handleChange(selectedOption, "gender")}
+                                options={genderOptions}
+                                placeholder="Select Gender"
+                                isClearable={true}
+                                styles={customSelectStyles}
+                                components={{ Option: SimpleOption }}
+                                classNamePrefix="react-select"
+                            />
+                            {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
+                        </div>
+
+                        <div className="col-6 mb-2">
+                            <Form.Label
+                                className="mb-1"
+                                style={{
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
+                                }}
+                            >
+                                Date of Birth
+                            </Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                type="date"
+                                name="dob"
+                                value={formData.dob}
+                                onChange={handleChange}
+                                size="sm"
+                                isInvalid={!!errors.dob}
+                                style={getInputStyle("dob")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.dob}
+                            </Form.Control.Feedback>
+                        </div>
+
+                        <div className="col-6 mb-2">
+                            <Form.Label
+                                className="mb-1"
+                                style={{
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
+                                }}
+                            >
+                                Mobile No.
+                            </Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="mobile"
+                                value={formData.mobile}
+                                onChange={handleChange}
+                                placeholder="Enter Mobile No."
+                                size="sm"
+                                isInvalid={!!errors.mobile}
+                                style={getInputStyle("mobile")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.mobile}
+                            </Form.Control.Feedback>
+                        </div>
+
+                        <div className="col-6 mb-2">
+                            <Form.Label
+                                className="mb-1"
+                                style={{
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
+                                }}
+                            >
+                                Alternative Mobile
+                            </Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="altMobile"
+                                value={formData.altMobile}
+                                onChange={handleChange}
+                                placeholder="Enter Alternative Mobile No."
+                                size="sm"
+                                isInvalid={!!errors.altMobile}
+                                style={getInputStyle("altMobile")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.altMobile}
+                            </Form.Control.Feedback>
+                        </div>
+
+                        <div className="col-6 mb-2">
+                            <Form.Label
+                                className="mb-1"
+                                style={{
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
+                                }}
+                            >
+                                Email
+                            </Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="Enter Email"
+                                size="sm"
+                                isInvalid={!!errors.email}
+                                style={getInputStyle("email")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.email}
+                            </Form.Control.Feedback>
+                        </div>
+                    </div>
+
+                    <h6
+                        className="fw-bold mb-1 mt-2"
+                        style={{
+                            fontFamily: "Product Sans, sans-serif",
+                            fontWeight: 700,
+                            fontSize: "20px",
+                            color: "#141414",
+                            lineHeight: "1",
+                            letterSpacing: "0",
+                        }}
+                    >
+                        Other Information
+                    </h6>
+                    <hr className="mt-1 mb-2" />
+
+                    <div className="row gx-4">
+                        {[
+                            { name: "company_name", label: "Company Name", placeholder: "Enter Company Name" },
+                            { name: "address", label: "Address", placeholder: "Enter Address" },
+                            { name: "city", label: "City", placeholder: "Enter City" },
+                            { name: "pincode", label: "Pincode", placeholder: "Enter Pincode" },
+                            { name: "gst", label: "GST No.", placeholder: "Enter GST Number" },
+                        ].map(({ name, label, placeholder }) => (
+                            <div className="col-6 mb-2" key={name}>
+                                <Form.Label
+                                    className="mb-1"
+                                    style={{
+                                        color: "#393C3AE5",
+                                        width: "325px",
+                                        fontFamily: "Product Sans, sans-serif",
+                                        fontWeight: 400,
+                                    }}
+                                >
+                                    {label}
+                                </Form.Label>
+                                <Form.Control
+                                    name={name}
+                                    value={formData[name]}
+                                    onChange={handleChange}
+                                    placeholder={placeholder}
+                                    size="sm"
+                                    isInvalid={!!errors[name]}
+                                    style={getInputStyle(name)}
+                                />
+                                <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                    {errors[name]}
+                                </Form.Control.Feedback>
+                            </div>
+                        ))}
+
+                        <div className="col-6 mb-2">
+                            <Form.Label
+                                className="mb-1"
+                                style={{
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
+                                }}
+                            >
+                                State
+                            </Form.Label>
+                            <Select
+                                name="state"
+                                value={stateOptions.find(option => option.value === formData.state)}
+                                onChange={(selectedOption) => handleChange(selectedOption, "state")}
+                                options={stateOptions}
+                                placeholder="Select State"
+                                isClearable={true}
+                                styles={customSelectStyles}
+                                components={{ Option: SimpleOption }}
+                                classNamePrefix="react-select"
+                            />
+                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
+                        </div>
+
+                        <div className="col-6 mb-2">
+                            <Form.Label
+                                className="mb-1"
+                                style={{
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
+                                }}
+                            >
+                                District
+                            </Form.Label>
+                            <Select
+                                name="district"
+                                value={districtOptions.find(option => option.value === formData.district)}
+                                onChange={(selectedOption) => handleChange(selectedOption, "district")}
+                                options={districtOptions}
+                                placeholder="Select District"
+                                isClearable={true}
+                                styles={customSelectStyles}
+                                components={{ Option: SimpleOption }}
+                                classNamePrefix="react-select"
+                            />
+                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
+                        </div>
+                    </div>
+
+                    <div className="d-flex justify-content-end mt-4">
+                        <Button
+                            variant="success"
+                            type="submit"
+                            style={{
+                                width: "179px",
+                                height: "50px",
+                                fontSize: "16px",
+                                borderRadius: "6px",
+                            }}
+                        >
+                            {isEditing ? "Update Vendor" : "Save"}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+            <style>{`
+                .vendor-form-slide {
+                    box-shadow: 0 0 24px rgba(0,0,0,0.08);
+                }
+                .custom-table th, .custom-table td {
+                    font-family: 'Product Sans', sans-serif;
+                    font-weight: 400;
+                    font-size: 16px;
+                    color: #212529;
+                }
+                .custom-placeholder::placeholder {
+                    font-family: 'Product Sans', sans-serif;
+                    font-weight: 400;
+                    color: #828282;
+                }
+                .simple-option {
+                    padding: 10px 15px;
+                    cursor: pointer;
+                }
+            `}</style>
         </div>
-      </div>
-
-      <style>{`
-        .slide-in { right: 0; transition: right 0.4s ease-in-out; }
-        .slide-out { right: -600px; transition: right 0.4s ease-in-out; }
-        input.form-control:focus, select.form-select:focus {
-          box-shadow: none !important;
-          border-color: #ced4da !important;
-        }
-        .custom-placeholder::placeholder {
-          font-family: 'Product Sans', sans-serif;
-          font-weight: 400;
-          color: #828282;
-        }
-.custom-dropdown {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: none;
-  padding-right: 2.5rem;
-  position: relative;
-  background-color: #fff;
-  font-family: 'Product Sans', sans-serif;
-  font-weight: 400;
-  border: 1px solid #ced4da;
-  border-radius: 0.25rem;
-
-  /* Add custom ▼ arrow */
-  background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='10' viewBox='0 0 24 24' width='10' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 10px;
-}
-
-      `}</style>
-    </div>
-  );
+    );
 }

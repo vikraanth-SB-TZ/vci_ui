@@ -431,6 +431,9 @@ export default function Sidebar({ collapsed }) {
         <div className="sidebar-link-titles">{!collapsed && "Sales"}</div>
 
         <div className="mb-1">
+          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("VciCustomer"); }} className={linkClass("VciCustomer")}>
+            <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+            {!collapsed && "Customer"}
           {/* Customer */}
           <a
             href="#"
