@@ -17,45 +17,44 @@ export default function StatePage() {
   const apiBase = "http://127.0.0.1:8000/api";
   const tableRef = useRef(null);
 
-  // ✅ Fetch data on mount
   useEffect(() => {
-    fetchStates();
     fetchCountries();
+    fetchStates();
   }, []);
 
-  // ✅ Initialize / reload DataTable every time states changes
   useEffect(() => {
-    if (!loading && states.length > 0) {
-      if ($.fn.DataTable.isDataTable(tableRef.current)) {
-        $(tableRef.current).DataTable().destroy();
-      }
+    if (!loading && states.length > 0 && !$.fn.DataTable.isDataTable(tableRef.current)) {
       $(tableRef.current).DataTable({
         ordering: true,
         paging: true,
         searching: true,
         lengthChange: true,
+        columnDefs: [{ targets: 0, className: "text-center" }],
       });
     }
   }, [states, loading]);
 
+  const fetchCountries = async () => {
+    try {
+      const res = await axios.get(`${apiBase}/countries`);
+      setCountries(Array.isArray(res.data) ? res.data : []);
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+    }
+  };
+
   const fetchStates = async () => {
     setLoading(true);
     try {
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
+      }
       const res = await axios.get(`${apiBase}/states`);
       setStates(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Error fetching states:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchCountries = async () => {
-    try {
-      const res = await axios.get(`${apiBase}/countries`);
-      setCountries(res.data);
-    } catch (error) {
-      console.error("Error fetching countries:", error);
     }
   };
 
@@ -66,13 +65,6 @@ export default function StatePage() {
     setShowModal(true);
   };
 
-  const handleEdit = (state) => {
-    setEditingStateId(state.id);
-    setNewStateName(state.state);
-    setCountryId(state.country?.id);
-    setShowModal(true);
-  };
-
   const handleModalClose = () => {
     setShowModal(false);
     setNewStateName("");
@@ -80,53 +72,40 @@ export default function StatePage() {
     setEditingStateId(null);
   };
 
+  const handleEdit = (state) => {
+    setEditingStateId(state.id);
+    setNewStateName(state.state);
+    setCountryId(state.country_id || state.country?.id || "");
+    setShowModal(true);
+  };
+
   const handleSave = async () => {
     if (!newStateName.trim() || !countryId) return;
     const payload = { state: newStateName.trim(), country_id: parseInt(countryId) };
 
     try {
-      // destroy DataTable before change
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-
-      const selectedCountry = countries.find(c => c.id === parseInt(countryId));
-
       if (editingStateId) {
-        const res = await axios.put(`${apiBase}/states/${editingStateId}`, payload);
-
-        setStates(prev =>
-          prev.map(s =>
-            s.id === editingStateId
-              ? { ...res.data, country: selectedCountry }
-              : s
-          )
-        );
+        await axios.put(`${apiBase}/states/${editingStateId}`, payload);
       } else {
-        const res = await axios.post(`${apiBase}/states`, payload);
-
-        setStates(prev => [
-          ...prev,
-          { ...res.data, country: selectedCountry }
-        ]);
+        await axios.post(`${apiBase}/states`, payload);
       }
-
+      await fetchStates();
       handleModalClose();
     } catch (error) {
-      console.error("Error saving state:", error.response?.data || error);
+      console.error("Error saving state:", error);
     }
   };
 
-
   const handleDelete = async (id) => {
     try {
-      // ❗ Destroy DataTable before changing state
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-
       await axios.delete(`${apiBase}/states/${id}`);
-      setStates((prev) => prev.filter((s) => s.id !== id));
+      await fetchStates();
     } catch (error) {
       console.error("Error deleting state:", error);
     }
@@ -135,9 +114,7 @@ export default function StatePage() {
   return (
     <div className="p-4">
       <div className="d-flex justify-content-between mb-3">
-        <h5 className="fw-bold">
-    States ({states.length.toString().padStart(2, '0')})
-  </h5>
+        <h5 className="fw-bold">States ({states.length.toString().padStart(2, "0")})</h5>
         <div>
           <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchStates}>
             <i className="bi bi-arrow-clockwise"></i>
@@ -148,43 +125,59 @@ export default function StatePage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="text-center mt-4">
-          <Spinner animation="border" />
-        </div>
-      ) : (
-        <div className="table-responsive ">
-          <table ref={tableRef} className="table custom-table">
-            <thead>
+      <div className="table-responsive">
+        <table ref={tableRef} className="table custom-table">
+          <thead>
+            <tr>
+              <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
+              <th>State</th>
+              <th>Country</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
               <tr>
-                <th style={{ textAlign: "center" }}>S.No</th>
-                <th>State</th>
-                <th>Country</th>
-                <th>Action</th>
+                <td colSpan="4" className="text-center py-4">
+                  <Spinner animation="border" />
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {states.map((state, index) => (
+            ) : states.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="text-center py-4 text-muted">
+                  No states found.
+                </td>
+              </tr>
+            ) : (
+              states.map((state, index) => (
                 <tr key={state.id}>
                   <td style={{ textAlign: "center" }}>{index + 1}</td>
                   <td>{state.state}</td>
                   <td>{state.country?.country || "—"}</td>
                   <td>
-                    <Button variant="outline-primary" size="sm" className="me-1" onClick={() => handleEdit(state)}>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      className="me-1"
+                      onClick={() => handleEdit(state)}
+                    >
                       <i className="bi bi-pencil-square"></i>
                     </Button>
-                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(state.id)}>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => handleDelete(state.id)}
+                    >
                       <i className="bi bi-trash"></i>
                     </Button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Modal */}
       <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
         <Modal.Body className="p-4">
           <div className="d-flex justify-content-between align-items-center mb-3">
@@ -200,15 +193,20 @@ export default function StatePage() {
           </div>
           <Form.Group className="mb-3">
             <Form.Label className="fw-medium">State Name</Form.Label>
-            <Form.Control type="text" value={newStateName} onChange={(e) => setNewStateName(e.target.value)} />
+            <Form.Control
+              type="text"
+              placeholder="Enter State Name"
+              value={newStateName}
+              onChange={(e) => setNewStateName(e.target.value)}
+            />
           </Form.Group>
           <Form.Group>
             <Form.Label className="fw-medium">Select Country</Form.Label>
             <Form.Select value={countryId} onChange={(e) => setCountryId(e.target.value)}>
               <option value="">Select Country</option>
-              {countries.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.country}
+              {countries.map((country) => (
+                <option key={country.id} value={country.id}>
+                  {country.country}
                 </option>
               ))}
             </Form.Select>
@@ -217,7 +215,11 @@ export default function StatePage() {
             <Button variant="light" onClick={handleModalClose}>
               Cancel
             </Button>
-            <Button variant="success" onClick={handleSave} disabled={!newStateName.trim() || !countryId}>
+            <Button
+              variant="success"
+              onClick={handleSave}
+              disabled={!newStateName.trim() || !countryId}
+            >
               {editingStateId ? "Update" : "Save"}
             </Button>
           </div>
