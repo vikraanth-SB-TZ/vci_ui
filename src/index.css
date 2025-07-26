@@ -152,3 +152,7 @@ body,
 .form-control {
   border-radius: 0 !important;
 }
+
+.custom-table thead th {
+  background-color:  #E9ECEF;
+}
