@@ -1,25 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Button, Spinner, Offcanvas, Form } from "react-bootstrap";
+import $ from "jquery";
+import "datatables.net-dt/css/dataTables.dataTables.css";
+import "datatables.net";
 import "bootstrap-icons/font/bootstrap-icons.css";
-
-const CustomArrow = ({ direction = "down", size = 12, color = "#5a5a5a" }) => {
-  let rotate = 0;
-  if (direction === "left") rotate = 90;
-  if (direction === "right") rotate = -90;
-  if (direction === "up") rotate = 180;
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      style={{ transform: `rotate(${rotate}deg)` }}
-      fill={color}
-    >
-      <path d="M12 16L6 8h12l-6 8z" />
-    </svg>
-  );
-};
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function ProductPage() {
   const [products, setProducts] = useState([]);
@@ -40,25 +27,28 @@ export default function ProductPage() {
     test: "Ok",
   });
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-
   const apiBase = "http://localhost:8000/api";
+  const tableRef = useRef(null);
 
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-    fetchBatches();
+    fetchAllData();
   }, []);
+
+  const fetchAllData = async () => {
+    await Promise.all([fetchProducts(), fetchCategories(), fetchBatches()]);
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
     try {
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
+      }
       const res = await axios.get(`${apiBase}/products`);
-      setProducts(res.data);
+      setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error(error);
+      toast.error("Failed to fetch products!");
     } finally {
       setLoading(false);
     }
@@ -81,6 +71,18 @@ export default function ProductPage() {
       console.error(error);
     }
   };
+
+  useEffect(() => {
+    if (!loading && products.length > 0 && !$.fn.DataTable.isDataTable(tableRef.current)) {
+      $(tableRef.current).DataTable({
+        ordering: true,
+        paging: true,
+        searching: true,
+        lengthChange: true,
+        columnDefs: [{ targets: 0, className: "text-center" }],
+      });
+    }
+  }, [products, loading]);
 
   const handleAddNewClick = () => {
     setIsEditing(false);
@@ -115,40 +117,50 @@ export default function ProductPage() {
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`${apiBase}/products/${id}`);
-    setProducts(products.filter((p) => p.id !== id));
+    try {
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
+      }
+      await axios.delete(`${apiBase}/products/${id}`);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      toast.success("Product deleted successfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete product!");
+    }
   };
 
   const handleSave = async () => {
-    if (isEditing) await axios.put(`${apiBase}/products/${productData.id}`, productData);
-    else await axios.post(`${apiBase}/products`, productData);
-    fetchProducts();
-    setShowModal(false);
+    try {
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
+      }
+      if (isEditing) {
+        await axios.put(`${apiBase}/products/${productData.id}`, productData);
+        toast.success("Product updated successfully!");
+      } else {
+        await axios.post(`${apiBase}/products`, productData);
+        toast.success("Product added successfully!");
+      }
+      await fetchProducts();
+      setShowModal(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save product!");
+    }
   };
 
   const handleChange = (e) => {
     setProductData({ ...productData, [e.target.name]: e.target.value });
   };
 
-  // Handle items per page change
-  const handleItemsPerPageChange = (e) => {
-    setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
-
-  // Pagination logic
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const paginatedProducts = products.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(products.length / itemsPerPage);
-
   return (
-    <div className="vh-100 d-flex flex-column bg-light">
+    <div className="p-4">
       {/* Header */}
-      <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white sticky-top">
-        <h5 className="mb-0 fw-bold">Product List ({products.length})</h5>
+      <div className="d-flex justify-content-between mb-3">
+        <h5 className="fw-bold">Products ({products.length.toString().padStart(2, "0")})</h5>
         <div>
-          <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchProducts}>
+          <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchAllData}>
             <i className="bi bi-arrow-clockwise"></i>
           </Button>
           <Button variant="success" size="sm" onClick={handleAddNewClick}>
@@ -157,140 +169,83 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <div style={{ flex: 1, overflowY: "auto", minWidth: "1000px" }}>
-        {/* Header Row */}
-        <div
-          className="d-flex align-items-center px-4 border-bottom small fw-semibold"
-          style={{ backgroundColor: "#E9ECEF", height: "60px" }}
-        >
-          <div style={{ width: "60px" }}>S.No</div>
-          <div style={{ flex: 2 }}>Batch</div>
-          <div style={{ flex: 2 }}>Category</div>
-          <div style={{ flex: 2 }}>Serial No.</div>
-          <div style={{ flex: 2 }}>Manufacture No.</div>
-          <div style={{ flex: 2 }}>Firmware</div>
-          <div style={{ flex: 2 }}>HSN Code</div>
-          <div style={{ flex: 2 }}>Sale Status</div>
-          <div style={{ flex: 2 }}>Test</div>
-          <div style={{ width: "160px" }}>Action</div>
-        </div>
-
-        {loading ? (
-          <div className="text-center mt-4">
-            <Spinner animation="border" />
-          </div>
-        ) : products.length === 0 ? (
-          <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: "60vh" }}>
-            <img src="/empty-box.png" alt="Empty" style={{ width: "160px", opacity: 0.6 }} />
-            <p className="mt-3 text-muted">No product data available</p>
-          </div>
-        ) : (
-          paginatedProducts.map((p, i) => (
-            <div key={p.id} className="px-4 py-2 border-bottom d-flex bg-white align-items-center small">
-              <div style={{ width: "60px" }}>{indexOfFirstItem + i + 1}</div>
-              <div style={{ flex: 2 }}>{p.batch?.batch || "—"}</div>
-              <div style={{ flex: 2 }}>{p.category?.category || "—"}</div>
-              <div style={{ flex: 2 }}>{p.serial_no || "—"}</div>
-              <div style={{ flex: 2 }}>{p.manufacture_no || "—"}</div>
-              <div style={{ flex: 2 }}>{p.firmware_version || "—"}</div>
-              <div style={{ flex: 2 }}>{p.hsn_code || "—"}</div>
-              <div style={{ flex: 2 }}>{p.sale_status || "—"}</div>
-              <div style={{ flex: 2 }}>{p.test || "—"}</div>
-              <div style={{ width: "160px" }}>
-                <Button variant="outline-primary" size="sm" className="me-1" onClick={() => handleEdit(p)}>
-                  <i className="bi bi-pencil-square"></i>
-                </Button>
-                <Button variant="outline-danger" size="sm" onClick={() => handleDelete(p.id)}>
-                  <i className="bi bi-trash"></i>
-                </Button>
-              </div>
-            </div>
-          ))
-        )}
+      <div className="table-responsive">
+        <table ref={tableRef} className="table custom-table">
+          <thead>
+            <tr>
+              <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
+              <th>Batch</th>
+              <th>Category</th>
+              <th>Serial No</th>
+              <th>Manufacture No</th>
+              <th>Firmware</th>
+              <th>HSN Code</th>
+              <th>Sale Status</th>
+              <th>Test</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan="10" className="text-center py-4">
+                  <Spinner animation="border" />
+                </td>
+              </tr>
+            ) : products.length === 0 ? (
+              <tr>
+                <td colSpan="10" className="text-center py-4 text-muted">
+                  No product data available
+                </td>
+              </tr>
+            ) : (
+              products.map((p, index) => (
+                <tr key={p.id}>
+                  <td style={{ textAlign: "center" }}>{index + 1}</td>
+                  <td>{p.batch?.batch || "—"}</td>
+                  <td>{p.category?.category || "—"}</td>
+                  <td>{p.serial_no || "—"}</td>
+                  <td>{p.manufacture_no || "—"}</td>
+                  <td>{p.firmware_version || "—"}</td>
+                  <td>{p.hsn_code || "—"}</td>
+                  <td>{p.sale_status || "—"}</td>
+                  <td>{p.test || "—"}</td>
+                  <td>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      className="me-1"
+                      onClick={() => handleEdit(p)}
+                    >
+                      <i className="bi bi-pencil-square"></i>
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => handleDelete(p.id)}
+                    >
+                      <i className="bi bi-trash"></i>
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
-      {/* Pagination Footer */}
-      {products.length > 0 && (
-        <div
-          className="d-flex justify-content-between align-items-center py-2 px-4 border-top bg-white"
-          style={{ position: "sticky", bottom: 0 }}
-        >
-          <div
-            className="position-relative px-2 py-1 rounded"
-            style={{ backgroundColor: "#f1f3f5", width: "140px" }}
-          >
-            <select
-              className="form-select form-select-sm border-0 bg-transparent pe-4"
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-              style={{
-                boxShadow: "none",
-                background: "transparent",
-                appearance: "none",
-                WebkitAppearance: "none",
-                MozAppearance: "none",
-                cursor: "pointer",
-              }}
-            >
-              {[5, 10, 20, 50].map((size) => (
-                <option key={size} value={size}>
-                  {size} per page
-                </option>
-              ))}
-            </select>
-            <span
-              className="position-absolute"
-              style={{
-                right: "8px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                pointerEvents: "none",
-              }}
-            >
-              <CustomArrow direction="down" size={12} />
-            </span>
-          </div>
-
-          <div
-            className="d-flex align-items-center justify-content-between px-3 py-1 rounded"
-            style={{
-              backgroundColor: "#fff",
-              border: "1px solid #dee2e6",
-              minWidth: "100px",
-            }}
-          >
-            <Button
-              variant="link"
-              size="sm"
-              className="p-0 me-2"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            >
-              <CustomArrow direction="left" />
-            </Button>
-            <span className="small">
-              {products.length === 0
-                ? "0-0"
-                : `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, products.length)}`}
-            </span>
-            <Button
-              variant="link"
-              size="sm"
-              className="p-0 ms-2"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            >
-              <CustomArrow direction="right" />
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Offcanvas Modal */}
-      <Offcanvas show={showModal} onHide={() => setShowModal(false)} placement="end" backdrop="static">
+      <Offcanvas
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        placement="end"
+        backdrop="static"
+        style={{ width: "500px" }}
+      >
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title>{isEditing ? "Edit Product" : "Add Product"}</Offcanvas.Title>
+          <Offcanvas.Title className="fw-bold">
+            {isEditing ? "Edit Product" : "Add New Product"}
+          </Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body>
           <Form className="row g-3">
@@ -305,6 +260,7 @@ export default function ProductPage() {
                 ))}
               </Form.Select>
             </Form.Group>
+
             <Form.Group className="col-md-6">
               <Form.Label>Category</Form.Label>
               <Form.Select name="category_id" value={productData.category_id} onChange={handleChange}>
@@ -316,6 +272,7 @@ export default function ProductPage() {
                 ))}
               </Form.Select>
             </Form.Group>
+
             <Form.Group className="col-md-6">
               <Form.Label>Serial No.</Form.Label>
               <Form.Control
@@ -325,6 +282,7 @@ export default function ProductPage() {
                 placeholder="Enter Serial No."
               />
             </Form.Group>
+
             <Form.Group className="col-md-6">
               <Form.Label>Manufacture No.</Form.Label>
               <Form.Control
@@ -334,6 +292,7 @@ export default function ProductPage() {
                 placeholder="Enter Manufacture No."
               />
             </Form.Group>
+
             <Form.Group className="col-md-6">
               <Form.Label>Firmware Version</Form.Label>
               <Form.Control
@@ -343,6 +302,7 @@ export default function ProductPage() {
                 placeholder="Enter Firmware Version"
               />
             </Form.Group>
+
             <Form.Group className="col-md-6">
               <Form.Label>HSN Code</Form.Label>
               <Form.Control
@@ -352,6 +312,7 @@ export default function ProductPage() {
                 placeholder="Enter HSN Code"
               />
             </Form.Group>
+
             <Form.Group className="col-md-6">
               <Form.Label>Sale Status</Form.Label>
               <Form.Select name="sale_status" value={productData.sale_status} onChange={handleChange}>
@@ -360,6 +321,7 @@ export default function ProductPage() {
                 <option value="Reserved">Reserved</option>
               </Form.Select>
             </Form.Group>
+
             <Form.Group className="col-md-6">
               <Form.Label>Test Status</Form.Label>
               <Form.Select name="test" value={productData.test} onChange={handleChange}>
@@ -367,14 +329,17 @@ export default function ProductPage() {
                 <option value="Issue">Issue</option>
               </Form.Select>
             </Form.Group>
-            <div className="d-flex justify-content-end mt-3">
-              <Button variant="success" onClick={handleSave}>
-                Save
-              </Button>
-            </div>
           </Form>
+
+          <div className="d-flex justify-content-end mt-4">
+            <Button variant="success" onClick={handleSave} style={{ minWidth: "120px" }}>
+              Save
+            </Button>
+          </div>
         </Offcanvas.Body>
       </Offcanvas>
+
+      <ToastContainer position="top-right" autoClose={2000} />
     </div>
   );
 }
