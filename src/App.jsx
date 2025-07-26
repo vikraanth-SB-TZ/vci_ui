@@ -28,7 +28,7 @@ import PurchaseSparepartsPage from './Pages/PurchaseSpareParts'; // ✅ Ensure c
 import Vendor from './Pages/Vendor';
 import Customer from './Pages/Customer';
 import ReturnSparePartsPage from './Pages/ReturnSpareParts';
- 
+
  const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
 
 export default function App() {
