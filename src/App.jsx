@@ -25,12 +25,9 @@ import Overview from './Pages/Overview/Overview';
  import SalesList from './Pages/SalesList';
 import SparepartsPage from "./Pages/SpareParts";
 import PurchaseSparepartsPage from './Pages/PurchaseSpareParts'; // ✅ Ensure correct casing
-
-import Customer from './Pages/Customer';
+import VciCustomer from './Pages/VciCustomer';
 import ReturnSparePartsPage from './Pages/ReturnSpareParts';
-
- const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
-import Vendor from './Pages/vendor';
+import Vendor from './Pages/Vendor';
 
 
  
@@ -96,7 +93,7 @@ export default function App() {
           <Route path="PurchaseSpareParts" element={<PurchaseSparepartsPage />} />
           <Route path="ReturnSpareParts" element={<ReturnSparePartsPage />} />
           <Route path="Vendor" element={<Vendor />} />
-          <Route path="customer" element={<Customer />} />
+          <Route path="VciCustomer" element={<VciCustomer />} />
 
  
           <Route path="/sales/view/:id" element={<ViewSalePage />} />

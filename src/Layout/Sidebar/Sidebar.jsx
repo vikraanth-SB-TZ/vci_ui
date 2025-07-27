@@ -431,9 +431,6 @@ export default function Sidebar({ collapsed }) {
         <div className="sidebar-link-titles">{!collapsed && "Sales"}</div>
 
         <div className="mb-1">
-          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("VciCustomer"); }} className={linkClass("VciCustomer")}>
-            <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
-            {!collapsed && "Customer"}
           {/* Customer */}
           <a
             href="#"
@@ -443,6 +440,7 @@ export default function Sidebar({ collapsed }) {
             }}
             className={linkClass("Customers")}
           >
+            </a>
             <img
               src={isActive("Customer") ? "/Vendor_G.png" : "/Customer.png"}
               alt="Customer"
@@ -462,6 +460,9 @@ export default function Sidebar({ collapsed }) {
                 Customer
               </span>
             )}
+          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("VciCustomer"); }} className={linkClass("VciCustomer")}>
+            <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+            {!collapsed && "Customer"}
           </a>
 
           {/* Sales Order */}

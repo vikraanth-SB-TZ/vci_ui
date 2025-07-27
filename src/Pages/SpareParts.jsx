@@ -63,8 +63,12 @@ export default function App() {
     }
   };
 
-  const handleRefresh = () => {
-    fetchSpareparts();
+  // Refresh logic: disables button, shows spinner, reloads data
+  const handleRefresh = async () => {
+    setLoading(true);
+    await fetchSpareparts();
+    setLoading(false);
+    toast.success("Spare parts list refreshed!");
   };
 
   const handleChange = (e) => {
@@ -200,7 +204,7 @@ export default function App() {
     border: `1px solid ${errors[fieldName] ? "#dc3545" : "#D3DBD5"}`,
     backgroundColor: "#FFFFFF",
     color: "#212529",
-    padding: "0 10px", // Added padding for better appearance
+    padding: "0 10px",
   });
 
   const getTextAreaStyle = (fieldName) => ({
@@ -218,36 +222,30 @@ export default function App() {
 
   const handleQuantityPerVCIBlur = async (e) => {
     const quantityToDeduct = parseInt(e.target.value, 10);
-    // Only deduct if editing an existing part AND the value has changed and is a valid number
     if (!editingPart || isNaN(quantityToDeduct) || quantityToDeduct <= 0) return;
-    
-    // Check if the quantity per VCI has actually changed from the original part's quantity
-    // and if the input value is different from the form data (meaning user has typed something)
     if (editingPart.quantityPerVCI === quantityToDeduct && formData.quantityPerVCI === String(quantityToDeduct)) {
-      return; // No change, no deduction needed
+      return;
     }
-
     toast.info(`Attempting to deduct ${quantityToDeduct} from "${editingPart.name}"...`, {
       autoClose: 2000,
       toastId: 'deductionInfo'
     });
     try {
-      const used_on = new Date().toISOString().split("T")[0]; // Get current date in YYYY-MM-DD format
+      const used_on = new Date().toISOString().split("T")[0];
       const res = await axios.post("http://localhost:8000/api/spareparts/use", {
         sparepart_id: editingPart.id,
         quantity_used: quantityToDeduct,
         used_on,
       });
       toast.success(res.data.message || "Stock updated successfully!");
-      // Fetch the latest spare parts data to update the table and form
       const latestSpareparts = await fetchSpareparts();
       const updatedPartInList = latestSpareparts.find(p => p.id === editingPart.id);
       if (updatedPartInList) {
         setFormData(prev => ({
           ...prev,
-          quantity: updatedPartInList.quantity // Update the quantity in the form data
+          quantity: updatedPartInList.quantity
         }));
-        setEditingPart(updatedPartInList); // Also update the editingPart itself
+        setEditingPart(updatedPartInList);
       } else {
         console.warn("Updated part not found in fetched list after deduction.");
       }
@@ -269,7 +267,13 @@ export default function App() {
       <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
         <h5 className="mb-0 fw-bold">Spare parts ({spareparts.length})</h5>
         <div>
-          <Button variant="outline-secondary" size="sm" className="me-2" onClick={handleRefresh}>
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            className="me-2"
+            onClick={handleRefresh}
+            disabled={loading}
+          >
             {loading ? (
               <Spinner animation="border" size="sm" />
             ) : (
@@ -471,7 +475,7 @@ export default function App() {
         .slide-out {
           position: fixed;
           top: 0;
-          right: -600px; /* This is what makes it slide out */
+          right: -600px;
           width: 600px;
           height: 100vh;
           transition: right 0.4s ease-in-out;
