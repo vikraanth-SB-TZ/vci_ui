@@ -1,16 +1,22 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { Button, Spinner, Form, ToastContainer, Toast } from "react-bootstrap";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import { Button, Spinner, Form } from "react-bootstrap";
 import flatpickr from "flatpickr";
 import "flatpickr/dist/themes/material_green.css";
-import axios from "axios"; // <-- make sure axios is installed
+import axios from "axios";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+import $ from "jquery";
+import "datatables.net-dt/css/dataTables.dataTables.css";
+import "datatables.net";
 
 const API_BASE = import.meta?.env?.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
 export default function PurchaseSparepartsPage() {
-  const [vendors, setVendors] = useState([]); 
-  const [batches, setBatches] = useState([]); 
+  const [vendors, setVendors] = useState([]);
+  const [batches, setBatches] = useState([]);
   const [availableSpareparts, setAvailableSpareparts] = useState([]);
-  const [spareparts, setSpareparts] = useState([]); 
+  const [spareparts, setSpareparts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [sparePartsRows, setSparePartsRows] = useState([{ sparepart_id: "", quantity: "" }]);
@@ -18,50 +24,87 @@ export default function PurchaseSparepartsPage() {
   const datePickerRef = useRef();
   const [editingPurchase, setEditingPurchase] = useState(null);
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10); // Default items per page
+  const [formData, setFormData] = useState({
+    vendor_id: "",
+    batch_id: "",
+    invoiceNo: "",
+    notes: ""
+  });
 
-  // Form error states
   const [formErrors, setFormErrors] = useState({});
+  const tableRef = useRef(null);
 
-  // Toast states
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastVariant, setToastVariant] = useState("success"); // 'success' or 'danger'
+  const getBlueBorderStyles = (value, isInvalid) => {
+    const baseStyle = {};
+    if (isInvalid) {
+      return {
+        ...baseStyle,
+        borderColor: '#dc3545',
+        boxShadow: '0 0 0 0.25rem rgba(220, 53, 69, 0.25)',
+      };
+    } else if (value) {
+      return {
+        ...baseStyle,
+        borderColor: '#ced4da',
+        boxShadow: 'none',
+      };
+    }
+    return baseStyle;
+  };
 
-  /* ------------------------------------------------------------------ */
-  /* Flatpickr init                                                     */
-  /* ------------------------------------------------------------------ */
+  const getTableInputStyles = (value, isInvalid) => {
+    const baseTableInputStyle = {
+      height: "38px",
+      backgroundColor: "transparent",
+      paddingLeft: "0",
+      border: "1px solid #ced4da",
+    };
+    if (isInvalid) {
+      return {
+        ...baseTableInputStyle,
+        borderColor: '#dc3545',
+        boxShadow: '0 0 0 0.25rem rgba(220, 53, 69, 0.25)',
+      };
+    } else if (value) {
+      return {
+        ...baseTableInputStyle,
+        borderColor: '#ced4da',
+        boxShadow: 'none',
+      };
+    }
+    return baseTableInputStyle;
+  };
+
   useEffect(() => {
     if (!datePickerRef.current) return;
     const fp = flatpickr(datePickerRef.current, {
-      defaultDate: editingPurchase ? new Date(editingPurchase.invoice_date) : null,
       dateFormat: "d/m/Y",
-      onChange: ([date]) => setInvoiceDate(date),
+      onChange: ([date]) => {
+        setInvoiceDate(date);
+        setFormErrors((prev) => ({ ...prev, invoice_date: "" }));
+        setFormData((prev) => ({
+          ...prev,
+          invoiceDate: date ? date.toISOString().split("T")[0] : "",
+        }));
+      },
       disableMobile: true,
       locale: { firstDayOfWeek: 1 },
     });
-
-    // Set initial date if editing
-    if (editingPurchase && datePickerRef.current) {
+    if (editingPurchase && editingPurchase.invoice_date) {
       fp.setDate(new Date(editingPurchase.invoice_date), true);
+      setInvoiceDate(new Date(editingPurchase.invoice_date));
+      setFormData((prev) => ({
+        ...prev,
+        invoiceDate: new Date(editingPurchase.invoice_date).toISOString().split("T")[0],
+      }));
+    } else {
+      fp.clear();
+      setInvoiceDate(null);
+      setFormData((prev) => ({ ...prev, invoiceDate: "" }));
     }
     return () => fp?.destroy();
-  }, [editingPurchase]); // Re-initialize flatpickr when editingPurchase changes
+  }, [editingPurchase, showForm]);
 
-  /* ------------------------------------------------------------------ */
-  /* Toast Helper                                                       */
-  /* ------------------------------------------------------------------ */
-  const showCustomToast = (message, variant = "success") => {
-    setToastMessage(message);
-    setToastVariant(variant);
-    setShowToast(true);
-  };
-
-  /* ------------------------------------------------------------------ */
-  /* Data fetch helpers                                                 */
-  /* ------------------------------------------------------------------ */
   const fetchVendors = useCallback(async () => {
     try {
       const { data } = await axios.get(`${API_BASE}/api/vendors`, { headers: { Accept: "application/json" } });
@@ -69,7 +112,7 @@ export default function PurchaseSparepartsPage() {
       setVendors(rows);
     } catch (err) {
       console.error("Error loading vendors:", err);
-      showCustomToast("Failed to load vendors.", "danger");
+      toast.error("Failed to load vendors.");
     }
   }, []);
 
@@ -80,7 +123,7 @@ export default function PurchaseSparepartsPage() {
       setBatches(rows);
     } catch (err) {
       console.error("Error loading batches:", err);
-      showCustomToast("Failed to load batches.", "danger");
+      toast.error("Failed to load batches.");
     }
   }, []);
 
@@ -91,7 +134,7 @@ export default function PurchaseSparepartsPage() {
       setAvailableSpareparts(rows);
     } catch (err) {
       console.error("Error loading spareparts master list:", err);
-      showCustomToast("Failed to load available spare parts.", "danger");
+      toast.error("Failed to load available spare parts.");
     }
   }, []);
 
@@ -103,15 +146,12 @@ export default function PurchaseSparepartsPage() {
       setSpareparts(rows);
     } catch (err) {
       console.error("Error loading purchases:", err);
-      showCustomToast("Failed to load purchases.", "danger");
+      toast.error("Failed to load purchases.");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  /* ------------------------------------------------------------------ */
-  /* Initial load                                                       */
-  /* ------------------------------------------------------------------ */
   useEffect(() => {
     fetchVendors();
     fetchBatches();
@@ -119,16 +159,27 @@ export default function PurchaseSparepartsPage() {
     fetchPurchases();
   }, [fetchVendors, fetchBatches, fetchAvailableSpareparts, fetchPurchases]);
 
-  /* ------------------------------------------------------------------ */
-  /* Form row management                                                */
-  /* ------------------------------------------------------------------ */
+  useEffect(() => {
+    if ($.fn.DataTable.isDataTable(tableRef.current)) {
+      $(tableRef.current).DataTable().destroy();
+    }
+    if (!loading && spareparts.length > 0) {
+      $(tableRef.current).DataTable({
+        ordering: true,
+        paging: true,
+        searching: true,
+        lengthChange: true,
+        columnDefs: [{ targets: 0, className: "text-center" }],
+      });
+    }
+  }, [spareparts, loading]);
+
   const handleAddRow = () => {
     setSparePartsRows((rows) => [...rows, { sparepart_id: "", quantity: "" }]);
   };
 
   const handleRemoveRow = (index) => {
     setSparePartsRows((rows) => rows.filter((_, i) => i !== index));
-    // Also remove any related errors
     setFormErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
       delete newErrors[`sparepart-${index}`];
@@ -143,7 +194,6 @@ export default function PurchaseSparepartsPage() {
       copy[index] = { ...copy[index], [field]: value };
       return copy;
     });
-    // Clear error for this specific field when it changes
     setFormErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
       delete newErrors[`${field}-${index}`];
@@ -151,9 +201,12 @@ export default function PurchaseSparepartsPage() {
     });
   };
 
-  /* ------------------------------------------------------------------ */
-  /* Form Validation                                                    */
-  /* ------------------------------------------------------------------ */
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
   const validateForm = (payload, items) => {
     let errors = {};
     if (!payload.vendor_id) {
@@ -181,141 +234,126 @@ export default function PurchaseSparepartsPage() {
       });
     }
     setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      const firstErrorMsg = errors[Object.keys(errors)[0]];
+      toast.error(firstErrorMsg || "Please correct the errors in the form.");
+    }
     return Object.keys(errors).length === 0;
   };
 
-  /* ------------------------------------------------------------------ */
-  /* Submit                                                             */
-  /* ------------------------------------------------------------------ */
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-
-    const form = new FormData(e.target);
-    const vendor_id = form.get("vendor_id");
-    const batch_id = form.get("batch_id");
-    const invoice_no = form.get("invoiceNo");
-    const notes = form.get("notes") || null;
-
+    const vendor_id = formData.vendor_id;
+    const batch_id = formData.batch_id;
+    const invoice_no = formData.invoiceNo;
+    const notes = formData.notes || null;
     const invoice_date = invoiceDate ? invoiceDate.toISOString().split("T")[0] : null;
-
-    // Build items from controlled state (safer than re-reading form)
     const items = sparePartsRows
       .map((row) => {
         const quantity = parseInt(row.quantity, 10) || 0;
         return { sparepart_id: row.sparepart_id, quantity };
       })
       .filter((i) => i.sparepart_id && i.quantity > 0);
-
     const payload = { vendor_id, batch_id, invoice_no, invoice_date, notes, items };
-
-    if (!validateForm(payload, sparePartsRows)) { // Pass sparePartsRows directly for item validation
-      showCustomToast("Please correct the errors in the form.", "danger");
+    if (!validateForm(payload, sparePartsRows)) {
       return;
     }
-
     try {
       const { data } = editingPurchase
         ? await axios.put(
-            `${API_BASE}/api/sparepart-purchases/${editingPurchase.id}`,
-            payload,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-            }
-          )
+          `${API_BASE}/api/sparepart-purchases/${editingPurchase.id}`,
+          payload,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        )
         : await axios.post(
-            `${API_BASE}/api/spareparts/purchase`,
-            payload,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Accept: "application/json",
-              },
-            }
-          );
-
+          `${API_BASE}/api/spareparts/purchase`,
+          payload,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
       if (data?.success) {
-        showCustomToast(editingPurchase ? "Purchase updated successfully!" : "Purchase added successfully!");
+        toast.success(editingPurchase ? "Purchase updated successfully!" : "Purchase added successfully!");
         setShowForm(false);
-        setEditingPurchase(null); // Clear editing state
+        setEditingPurchase(null);
         fetchPurchases();
-        // reset form rows
         setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-        // reset invoice date in UI
+        setInvoiceDate(null);
         if (datePickerRef.current?._flatpickr) {
           datePickerRef.current._flatpickr.clear();
         }
-        setInvoiceDate(null);
-        setFormErrors({}); // Clear errors on success
+        setFormErrors({});
+        setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
       } else {
-        showCustomToast(data?.message || "Failed to save purchase.", "danger");
+        toast.error(data?.message || "Failed to save purchase.");
       }
     } catch (error) {
-      // Axios error diagnostics
       if (error.response) {
         console.error("Server responded with error:", error.response.status, error.response.data);
-        showCustomToast(`Server error (${error.response.status}): ${error.response.data?.message ?? "See console"}`, "danger");
+        toast.error(`Server error (${error.response.status}): ${error.response.data?.message ?? "See console"}`);
       } else if (error.request) {
         console.error("No response received:", error.request);
-        showCustomToast("No response from server. Check network/API base URL.", "danger");
+        toast.error("No response from server. Check network/API base URL.");
       } else {
         console.error("Request setup error:", error.message);
-        showCustomToast("Error preparing request. See console.", "danger");
+        toast.error("Error preparing request. See console.");
       }
     }
   };
 
-  /* ------------------------------------------------------------------ */
-  /* Delete purchase                                                    */
-  /* ------------------------------------------------------------------ */
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this purchase?")) return;
-    try {
-      const { data } = await axios.delete(`${API_BASE}/api/sparepart-purchases/${id}`, {
-        headers: { Accept: "application/json" },
-      });
-      if (data?.success) {
-        setSpareparts((rows) => rows.filter((p) => p.id !== id));
-        showCustomToast("Purchase deleted successfully!");
-      } else {
-        showCustomToast(data?.message || "Failed to delete.", "danger");
+    toast.warn(
+      ({ closeToast }) => (
+        <div>
+          Are you sure you want to delete this purchase?
+          <div className="d-flex justify-content-end mt-2">
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={async () => {
+                closeToast();
+                try {
+                  const { data } = await axios.delete(`${API_BASE}/api/sparepart-purchases/${id}`, {
+                    headers: { Accept: "application/json" },
+                  });
+                  if (data?.success) {
+                    setSpareparts((rows) => rows.filter((p) => p.id !== id));
+                    toast.success("Purchase deleted successfully!");
+                  } else {
+                    toast.error(data?.message || "Failed to delete.");
+                  }
+                } catch (err) {
+                  console.error("Error during delete request:", err);
+                  toast.error("Error deleting purchase. See console.");
+                }
+              }}
+              className="me-2"
+            >
+              Yes, Delete
+            </Button>
+            <Button variant="secondary" size="sm" onClick={closeToast}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ),
+      {
+        position: "top-center",
+        autoClose: false,
+        closeButton: false,
+        draggable: false,
       }
-    } catch (err) {
-      console.error("Error during delete request:", err);
-      showCustomToast("Error deleting purchase. See console.", "danger");
-    }
+    );
   };
 
-  /* ------------------------------------------------------------------ */
-  /* Pagination Logic                                                   */
-  /* ------------------------------------------------------------------ */
-  const totalPurchases = spareparts.length;
-  const totalPages = Math.ceil(totalPurchases / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const currentPurchases = spareparts.slice(startIndex, startIndex + pageSize);
-
-  const handlePageSizeChange = (e) => {
-    setPageSize(parseInt(e.target.value, 10));
-    setCurrentPage(1); // Reset to first page on size change
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
-  /* ------------------------------------------------------------------ */
-  /* Helpers                                                            */
-  /* ------------------------------------------------------------------ */
   const customSelectStyle = {
     backgroundRepeat: "no-repeat",
     backgroundPosition: "right 10px center",
@@ -331,224 +369,142 @@ export default function PurchaseSparepartsPage() {
 
   const handleShowForm = (purchase = null) => {
     setEditingPurchase(purchase);
-    setFormErrors({}); // Clear errors when opening form
+    setFormErrors({});
     if (purchase) {
       setSparePartsRows(
         purchase.items.map((item) => ({
-          sparepart_id: String(item.sparepart_id), // Ensure it's a string for select value
-          quantity: String(item.quantity), // Ensure it's a string for input value
+          sparepart_id: String(item.sparepart_id),
+          quantity: String(item.quantity),
         }))
       );
-      // Set the invoice date for flatpickr
-      const date = new Date(purchase.invoice_date);
-      setInvoiceDate(date);
-      if (datePickerRef.current?._flatpickr) {
-        datePickerRef.current._flatpickr.setDate(date, true);
-      }
+      setInvoiceDate(new Date(purchase.invoice_date));
+      setFormData({
+        vendor_id: String(purchase.vendor_id),
+        batch_id: String(purchase.batch_id),
+        invoiceNo: purchase.invoice_no,
+        notes: purchase.notes || ""
+      });
     } else {
-      // Reset form for new entry
       setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
       setInvoiceDate(null);
-      if (datePickerRef.current?._flatpickr) {
-        datePickerRef.current._flatpickr.clear();
-      }
+      setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
     }
     setShowForm(true);
   };
 
-  /* ------------------------------------------------------------------ */
-  /* Render                                                             */
-  /* ------------------------------------------------------------------ */
   return (
-    <div className="d-flex flex-column h-100" style={{ height: "100vh" }}>
-      {/* Toast Container */}
-      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 1060 }}>
-        <Toast onClose={() => setShowToast(false)} show={showToast} delay={3000} autohide bg={toastVariant}>
-          <Toast.Header>
-            <strong className="me-auto">{toastVariant === "success" ? "Success" : "Error"}</strong>
-          </Toast.Header>
-          <Toast.Body className={toastVariant === "success" ? "text-white" : "text-white"}>{toastMessage}</Toast.Body>
-        </Toast>
-      </ToastContainer>
-
-      {/* Header */}
-      <section className="px-4 py-3 border-bottom bg-white d-flex justify-content-between align-items-center">
-        <h5 className="mb-0 fw-bold">
-          Purchase Spare Parts <span className="text-muted fw-normal">({totalPurchases})</span>
-        </h5>
+    <div className="vh-80 d-flex flex-column position-relative bg-light">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover limit={1} />
+      <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
+        <h5 className="mb-0 fw-bold">Purchase Spare Parts ({spareparts.length})</h5>
         <div>
-          <Button variant="light" className="me-2" onClick={fetchPurchases}>
+          <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchPurchases}>
             {loading ? <Spinner animation="border" size="sm" /> : <i className="bi bi-arrow-clockwise"></i>}
           </Button>
-          <Button variant="success" onClick={() => handleShowForm()}>
-            <i className="bi bi-plus-lg me-1"></i> Add New
+          <Button variant="success" size="sm" onClick={() => handleShowForm()}>
+            + Add New
           </Button>
         </div>
-      </section>
-
-      {/* Table Header */}
-      <div className="d-flex flex-column position-relative" style={{ height: "89vh", overflow: "hidden" }}>
-        <div
-          className="d-flex px-4 align-items-center"
-          style={{
-            backgroundColor: "#f2f2f2",
-            height: "60px",
-            fontWeight: 700,
-            color: "#393C3A",
-            fontFamily: "Product Sans, sans-serif",
-            borderBottom: "1px solid #ccc",
-            fontSize: "18px",
-          }}
-        >
-          <div style={{ width: "80px" }}>S.No</div>
-          <div style={{ flex: 2 }}>Vendor Name</div>
-          <div style={{ flex: 2 }}>Invoice Date</div>
-          <div style={{ flex: 2 }}>Invoice No</div>
-          <div style={{ flex: 2 }}>Purchase ID</div>
-          <div style={{ flex: 2 }}>Action</div>
-        </div>
-
-        <div className="flex-grow-1 overflow-auto bg-light">
-          {loading ? (
-            <div className="text-center mt-4">
-              <Spinner animation="border" />
-            </div>
-          ) : spareparts.length === 0 ? (
-            <div
-              className="d-flex flex-column justify-content-center align-items-center"
-              style={{ height: "calc(80vh - 160px)", width: "100%" }}
-            >
-              <img src="/empty-box.png" alt="Empty" style={{ width: "160px" }} />
-              <p className="mt-3 text-muted">No purchases found.</p>
-            </div>
-          ) : (
-            currentPurchases.map((purchase, index) => (
-              <div
-                key={purchase.id}
-                className="px-4 py-2 border-bottom d-flex bg-white align-items-center small"
-              >
-                {/* Index */}
-                <div style={{ width: "80px" }}>{startIndex + index + 1}</div>
-
-                {/* Vendor Name */}
-                <div style={{ flex: 2 }}>
-                  {(() => {
-                    const vendor = vendors.find((v) => String(v.id) === String(purchase.vendor_id));
-                    return vendor
-                      ? `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim()
-                      : purchase.vendor_id;
-                  })()}
-                </div>
-
-                {/* Invoice Date */}
-                <div style={{ flex: 2 }}>
-                  {new Date(purchase.invoice_date).toLocaleDateString("en-GB")}
-                </div>
-
-                {/* Invoice No */}
-                <div style={{ flex: 2 }}>{purchase.invoice_no}</div>
-
-                {/* Purchase ID */}
-                <div style={{ flex: 2 }}>{purchase.id}</div>
-
-                {/* Action Buttons */}
-                <div style={{ flex: 2 }}>
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    className="me-1"
-                    onClick={() => {
-                      handleShowForm(purchase);
-                    }}
-                  >
-                    <i className="bi bi-pencil-square me-1"></i>
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={() => handleDelete(purchase.id)}
-                  >
-                    <i className="bi bi-trash me-1"></i>
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* Pagination Controls */}
-        {!loading && spareparts.length > 0 && (
-          <div className="d-flex justify-content-between align-items-center mt-3 px-4 pb-4">
-            <Form.Select
-              className="form-select form-select-sm pagination-select"
-              onChange={handlePageSizeChange}
-              value={pageSize}
-            >
-              <option value="5">5 per page</option>
-              <option value="10">10 per page</option>
-              <option value="15">15 per page</option>
-              <option value="20">20 per page</option>
-            </Form.Select>
-
-            <div className="pagination-controls-group">
-              <Button
-                variant="link"
-                className="pagination-arrow-btn"
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-              >
-                <i className="bi bi-chevron-left"></i>
-              </Button>
-              <span className="pagination-info-text">
-                {totalPurchases === 0
-                  ? "0-0"
-                  : `${startIndex + 1}-${Math.min(
-                      startIndex + pageSize,
-                      totalPurchases
-                    )}`} of {totalPurchases}
-              </span>
-              <Button
-                variant="link"
-                className="pagination-arrow-btn"
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages || totalPurchases === 0}
-              >
-                <i className="bi bi-chevron-right"></i>
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
-
-      {/* Slide Form */}
+      <div className="flex-grow-1 overflow-auto px-4 py-3">
+        <div className="table-responsive">
+          <table ref={tableRef} className="table custom-table">
+            <thead>
+              <tr>
+                <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
+                <th>Vendor Name</th>
+                <th>Invoice Date</th>
+                <th>Invoice No</th>
+                <th>Purchase ID</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="text-center py-4">
+                    <Spinner animation="border" />
+                  </td>
+                </tr>
+              ) : spareparts.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center py-4 text-muted">
+                    No purchases found.
+                  </td>
+                </tr>
+              ) : (
+                spareparts.map((purchase, index) => (
+                  <tr key={purchase.id}>
+                    <td style={{ textAlign: "center" }}>{index + 1}</td>
+                    <td>
+                      {(() => {
+                        const vendor = vendors.find((v) => String(v.id) === String(purchase.vendor_id));
+                        return vendor
+                          ? `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim()
+                          : purchase.vendor_id;
+                      })()}
+                    </td>
+                    <td>{new Date(purchase.invoice_date).toLocaleDateString("en-GB")}</td>
+                    <td>{purchase.invoice_no}</td>
+                    <td>{purchase.id}</td>
+                    <td>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-1"
+                        onClick={() => handleShowForm(purchase)}
+                      >
+                        <i className="bi bi-pencil-square me-1"></i>
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(purchase.id)}
+                      >
+                        <i className="bi bi-trash me-1"></i>
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {/* Slide Form - UI updated only */}
       <div
+        className={`position-fixed bg-white shadow-lg purchase-form-slide`}
         style={{
-          position: "fixed",
-          top: "78px",
-          right: showForm ? "0" : "-600px",
-          width: "100%",
-          maxWidth: "600px",
-          height: "100%",
-          backgroundColor: "#fff",
-          boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
+          width: "600px",
+          height: "100vh",
+          top: "58px",
+          right: showForm ? "0" : "-800px",
+          transition: "right 0.4s ease-in-out",
+          overflowY: "auto",
+          overflowX: "hidden",
+          opacity: 1,
+          fontFamily: "Product Sans, sans-serif",
+          fontWeight: 400,
           zIndex: 1050,
           padding: "30px",
-          overflowY: "auto",
-          borderLeft: "1px solid #dee2e6",
-          transition: "right 0.4s ease-in-out",
+          borderLeft: "1px solid #dee2e6"
         }}
       >
         <div className="d-flex justify-content-between align-items-start mb-4">
-          <h5 className="mb-4 fw-semibold">
-            {editingPurchase ? "Edit Spare Part Purchase" : "Add Spare Part Purchase"}
-          </h5>
+          <h5 className="fw-bold mb-0">{editingPurchase ? "Edit Purchase Spare parts" : "Add New Purchase Spare parts"}</h5>
           <button
             onClick={() => {
               setShowForm(false);
-              setEditingPurchase(null); // Clear editing state on close
-              setFormErrors({}); // Clear errors on close
+              setEditingPurchase(null);
+              setFormErrors({});
+              setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+              setInvoiceDate(null);
+              if (datePickerRef.current?._flatpickr) {
+                datePickerRef.current._flatpickr.clear();
+              }
+              setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
             }}
             style={{
               width: "40px",
@@ -569,140 +525,115 @@ export default function PurchaseSparepartsPage() {
             &times;
           </button>
         </div>
-
-        <Form onSubmit={handleFormSubmit}>
+        <Form onSubmit={handleFormSubmit} noValidate>
           <div className="row mb-3">
             <div className="col-6">
-              <Form.Group controlId="vendor_id">
-                <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                  Vendor
-                </Form.Label>
-                <Form.Select
-                  name="vendor_id"
-                  required
-                  style={customSelectStyle}
-                  defaultValue={editingPurchase?.vendor_id || ""} // Set default value for editing
-                  isInvalid={!!formErrors.vendor_id}
-                  onChange={(e) => setFormErrors((prev) => ({ ...prev, vendor_id: "" }))} // Clear error on change
-                >
-                  <option value="" disabled>
-                    Select Vendor
+              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Vendor <span className="text-danger">*</span></Form.Label>
+              <Form.Select
+                name="vendor_id"
+                required
+                style={{ ...customSelectStyle, ...getBlueBorderStyles(formData.vendor_id, !!formErrors.vendor_id) }}
+                value={formData.vendor_id}
+                onChange={handleInputChange}
+                isInvalid={!!formErrors.vendor_id}
+              >
+                <option value="" disabled>Select Vendor</option>
+                {vendors.map((vendor) => (
+                  <option key={vendor.id} value={vendor.id}>
+                    {vendor.first_name} {vendor.last_name}
                   </option>
-                  {vendors.map((vendor) => (
-                    <option key={vendor.id} value={vendor.id}>
-                      {vendor.first_name} {vendor.last_name}
-                    </option>
-                  ))}
-                </Form.Select>
-                <Form.Control.Feedback type="invalid">
-                  {formErrors.vendor_id}
-                </Form.Control.Feedback>
-              </Form.Group>
+                ))}
+              </Form.Select>
+              <Form.Control.Feedback type="invalid" className="d-block">
+                {formErrors.vendor_id}
+              </Form.Control.Feedback>
             </div>
             <div className="col-6">
-              <Form.Group controlId="batch_id">
-                <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                  Batch
-                </Form.Label>
-                <Form.Select
-                  name="batch_id"
-                  required
-                  style={customSelectStyle}
-                  defaultValue={editingPurchase?.batch_id || ""} // Set default value for editing
-                  isInvalid={!!formErrors.batch_id}
-                  onChange={(e) => setFormErrors((prev) => ({ ...prev, batch_id: "" }))} // Clear error on change
-                >
-                  <option value="" disabled>
-                    Select Batch
+              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Batch <span className="text-danger">*</span></Form.Label>
+              <Form.Select
+                name="batch_id"
+                required
+                style={{ ...customSelectStyle, ...getBlueBorderStyles(formData.batch_id, !!formErrors.batch_id) }}
+                value={formData.batch_id}
+                onChange={handleInputChange}
+                isInvalid={!!formErrors.batch_id}
+              >
+                <option value="" disabled>Select Batch</option>
+                {batches.map((batch) => (
+                  <option key={batch.id} value={batch.id}>
+                    {batch.batch}
                   </option>
-                  {batches.map((batch) => (
-                    <option key={batch.id} value={batch.id}>
-                      {batch.batch}
-                    </option>
-                  ))}
-                </Form.Select>
-                <Form.Control.Feedback type="invalid">
-                  {formErrors.batch_id}
-                </Form.Control.Feedback>
-              </Form.Group>
+                ))}
+              </Form.Select>
+              <Form.Control.Feedback type="invalid" className="d-block">
+                {formErrors.batch_id}
+              </Form.Control.Feedback>
             </div>
           </div>
-
           <div className="row mb-3">
             <div className="col-6">
-              <Form.Group controlId="invoiceNo">
-                <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                  Invoice No.
-                </Form.Label>
-                <Form.Control
-                  type="text"
-                  name="invoiceNo"
-                  placeholder="Enter Invoice No."
-                  required
-                  defaultValue={editingPurchase?.invoice_no || ""} // Set default value for editing
-                  isInvalid={!!formErrors.invoice_no}
-                  onChange={(e) => setFormErrors((prev) => ({ ...prev, invoice_no: "" }))} // Clear error on change
-                />
-                <Form.Control.Feedback type="invalid">
-                  {formErrors.invoice_no}
-                </Form.Control.Feedback>
-              </Form.Group>
-            </div>
-            <div className="col-6">
-              <Form.Group controlId="invoiceDate">
-                <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                  Invoice Date
-                </Form.Label>
-                <div style={{ position: "relative" }}>
-                  <Form.Control
-                    ref={datePickerRef}
-                    placeholder="DD/MM/YY"
-                    required
-                    isInvalid={!!formErrors.invoice_date}
-                    // Flatpickr's onChange handles setting state, no need for another onChange here
-                  />
-                  <img
-                    src="/calendar-icon.png"
-                    alt="calendar"
-                    onClick={handleIconClick}
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      width: "22px",
-                      height: "27px",
-                      cursor: "pointer",
-                      filter:
-                        "invert(47%) sepia(9%) saturate(295%) hue-rotate(102deg) brightness(92%) contrast(91%)",
-                    }}
-                  />
-                  <Form.Control.Feedback type="invalid" className="mt-0">
-                    {formErrors.invoice_date}
-                  </Form.Control.Feedback>
-                </div>
-              </Form.Group>
-            </div>
-          </div>
-
-          <div className="mb-3">
-            <Form.Group controlId="notes">
-              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                Notes
-              </Form.Label>
+              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Invoice No. <span className="text-danger">*</span></Form.Label>
               <Form.Control
-                as="textarea"
-                name="notes"
-                placeholder="Enter any notes"
-                rows="3"
-                defaultValue={editingPurchase?.notes || ""}
-              ></Form.Control>
-            </Form.Group>
+                type="text"
+                name="invoiceNo"
+                placeholder="Enter Invoice No."
+                required
+                value={formData.invoiceNo}
+                onChange={handleInputChange}
+                style={getBlueBorderStyles(formData.invoiceNo, !!formErrors.invoice_no)}
+                isInvalid={!!formErrors.invoice_no}
+              />
+              <Form.Control.Feedback type="invalid" className="d-block">
+                {formErrors.invoice_no}
+              </Form.Control.Feedback>
+            </div>
+            <div className="col-6">
+              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Invoice Date <span className="text-danger">*</span></Form.Label>
+              <div style={{ position: "relative" }}>
+                <Form.Control
+                  ref={datePickerRef}
+                  placeholder="DD/MM/YY"
+                  required
+                  style={getBlueBorderStyles(invoiceDate, !!formErrors.invoice_date)}
+                  isInvalid={!!formErrors.invoice_date}
+                />
+                <img
+                  src="https://placehold.co/22x27/E0E0E0/333333?text=Cal"
+                  alt="calendar"
+                  onClick={handleIconClick}
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: "22px",
+                    height: "27px",
+                    cursor: "pointer",
+                    filter:
+                      "invert(47%) sepia(9%) saturate(295%) hue-rotate(102deg) brightness(92%) contrast(91%)",
+                  }}
+                />
+                <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                  {formErrors.invoice_date}
+                </Form.Control.Feedback>
+              </div>
+            </div>
           </div>
-
+          <div className="mb-3">
+            <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Notes</Form.Label>
+            <Form.Control
+              as="textarea"
+              name="notes"
+              placeholder="Enter any notes"
+              rows="3"
+              value={formData.notes}
+              onChange={handleInputChange}
+              style={getBlueBorderStyles(formData.notes, false)}
+            ></Form.Control>
+          </div>
           <div className="mb-3">
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 className="fw-semibold mb-0">Add Spare parts</h6>
+              <h6 className="fw-semibold mb-0">Add Spare parts <span className="text-danger">*</span></h6>
               <button
                 type="button"
                 onClick={handleAddRow}
@@ -720,7 +651,6 @@ export default function PurchaseSparepartsPage() {
                 + Add Row
               </button>
             </div>
-
             <div style={{ position: "relative", width: "530px" }}>
               <div className="table-responsive">
                 <table
@@ -729,8 +659,9 @@ export default function PurchaseSparepartsPage() {
                 >
                   <thead>
                     <tr style={{ backgroundColor: "#E9ECEF", height: "40px", color: "#393C3A" }}>
-                      <th style={{ width: "50%", border: "1px solid #D3DBD5" }}>Sparepart Name</th>
-                      <th style={{ width: "50%", border: "1px solid #D3DBD5" }}>Quantity</th>
+                      <th style={{ width: "50%", border: "1px solid #D3DBD5" }}>Sparepart Name <span className="text-danger">*</span></th>
+                      <th style={{ width: "50%", border: "1px solid #D3DBD5" }}>Quantity <span className="text-danger">*</span></th>
+                      <th style={{ width: "auto", border: "1px solid #D3DBD5", textAlign: "center", width: "50px" }}></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -738,151 +669,121 @@ export default function PurchaseSparepartsPage() {
                       <tr key={index} style={{ height: "52px" }}>
                         <td style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>
                           <Form.Select
-                            className="border-0 shadow-none"
+                            className="shadow-none"
                             name={`sparepart-${index}`}
                             required
-                            style={{ height: "38px", backgroundColor: "transparent", paddingLeft: "0", ...customSelectStyle }}
+                            style={{ ...customSelectStyle, ...getTableInputStyles(row.sparepart_id, !!formErrors[`sparepart-${index}`]) }}
                             value={row.sparepart_id}
                             onChange={(e) => handleRowChange(index, "sparepart_id", e.target.value)}
                             isInvalid={!!formErrors[`sparepart-${index}`]}
                           >
                             <option value="">Select Spare part</option>
-                            {availableSpareparts.map((part) => (
-                              <option key={part.id} value={part.id}>
-                                {part.name}
+                            {availableSpareparts.map((sparepart) => (
+                              <option key={sparepart.id} value={sparepart.id}>
+                                {sparepart.name}
                               </option>
                             ))}
                           </Form.Select>
-                          <Form.Control.Feedback type="invalid" className="mt-0">
+                          <Form.Control.Feedback type="invalid" className="d-block mt-0">
                             {formErrors[`sparepart-${index}`]}
                           </Form.Control.Feedback>
                         </td>
                         <td style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>
                           <Form.Control
                             type="number"
-                            min="1"
-                            className="border-0 shadow-none"
                             name={`quantity-${index}`}
-                            placeholder="Enter Quantity"
+                            placeholder="Qty"
                             required
-                            style={{ height: "38px", backgroundColor: "transparent", paddingLeft: "0" }}
+                            min="1"
                             value={row.quantity}
                             onChange={(e) => handleRowChange(index, "quantity", e.target.value)}
+                            style={getTableInputStyles(row.quantity, !!formErrors[`quantity-${index}`])}
                             isInvalid={!!formErrors[`quantity-${index}`]}
                           />
-                          <Form.Control.Feedback type="invalid" className="mt-0">
+                          <Form.Control.Feedback type="invalid" className="d-block mt-0">
                             {formErrors[`quantity-${index}`]}
                           </Form.Control.Feedback>
                         </td>
+                        <td style={{ border: "1px solid #D3DBD5", textAlign: "center", width: "50px" }}>
+                          {sparePartsRows.length > 1 && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={() => handleRemoveRow(index)}
+                              className="text-danger p-0"
+                              style={{
+                                backgroundColor: "#FFEBEBC9",
+                                color: "#DF5555",
+                                borderRadius: "50%",
+                                width: "32px",
+                                height: "32px",
+                                fontSize: "20px",
+                                lineHeight: "1",
+                                textAlign: "center",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center"
+                              }}
+                            >
+                              &minus;
+                            </Button>
+                          )}
+                        </td>
                       </tr>
                     ))}
+                    {sparePartsRows.length === 0 && (
+                      <tr>
+                        <td colSpan="3" className="text-center text-muted py-3">
+                          No spare parts added yet.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
-
-              {sparePartsRows.map((_, index) => (
-                <div key={index} style={{ position: "absolute", top: 40 + index * 52 + 6 + "px", right: "-40px" }}>
-                  <button
-                    type="button"
-                    className="btn p-0 border-0"
-                    onClick={() => handleRemoveRow(index)}
-                    style={{
-                      backgroundColor: "#FFEBEBC9",
-                      color: "#DF5555",
-                      borderRadius: "50%",
-                      width: "32px",
-                      height: "32px",
-                      fontSize: "20px",
-                      lineHeight: "1",
-                      textAlign: "center",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    &minus;
-                  </button>
-                </div>
-              ))}
-              {/* General error message for spare parts rows */}
-              {formErrors.items && (
-                <div className="text-danger mt-2 small">{formErrors.items}</div>
+              {!!formErrors.items && (
+                <div className="invalid-feedback d-block mt-1">{formErrors.items}</div>
               )}
             </div>
           </div>
-
-          {showForm && (
-            <div style={{ position: "absolute", bottom: "80px", right: "30px", zIndex: 1000 }}>
-              <Button type="submit" className="w-100 btn btn-success">
-                {editingPurchase ? "Update Purchase" : "Save Purchase"}
-              </Button>
-            </div>
-          )}
+          <div className="d-flex justify-content-end mt-4">
+            <Button
+              variant="light"
+              className="me-2"
+              onClick={() => {
+                setShowForm(false);
+                setEditingPurchase(null);
+                setFormErrors({});
+                setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+                setInvoiceDate(null);
+                if (datePickerRef.current?._flatpickr) {
+                  datePickerRef.current._flatpickr.clear();
+                }
+                setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button variant="success" type="submit" style={{ width: "179px", height: "50px", borderRadius: "6px" }}>
+              {editingPurchase ? "Update Purchase" : "Save"}
+            </Button>
+          </div>
         </Form>
       </div>
-
       <style>{`
-        .custom-dropdown {
-          appearance: none;
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          background-image: none;
-          padding-right: 2.5rem;
-          position: relative;
-          background-color: #fff;
-          font-family: 'Product Sans', sans-serif;
-          font-weight: 400;
-          border: 1px solid #ced4da;
-          border-radius: 0.25rem;
-          /* Add custom ▼ arrow */
-          background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='10' viewBox='0 0 24 24' width='10' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-          background-repeat: no-repeat;
-          background-position: right 0.75rem center;
-          background-size: 10px;
+        .purchase-form-slide {
+          box-shadow: 0 0 24px rgba(0,0,0,0.08);
         }
-
-        /* Pagination styles */
-        .pagination-select {
-          width: 150px;
-          border-radius: 4px;
-          border: 1px solid #D3DBD5;
-          height: 40px;
+        .custom-table th, .custom-table td {
           font-family: 'Product Sans', sans-serif;
           font-weight: 400;
           font-size: 16px;
           color: #212529;
         }
-
-        .pagination-controls-group {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .pagination-arrow-btn {
-          color: #007bff;
-          font-size: 20px;
-          text-decoration: none;
-          padding: 5px;
-          border-radius: 50%;
-          transition: background-color 0.2s;
-        }
-
-        .pagination-arrow-btn:hover:not(:disabled) {
-          background-color: #e9ecef;
-          color: #0056b3;
-        }
-
-        .pagination-arrow-btn:disabled {
-          color: #ced4da;
-          cursor: not-allowed;
-        }
-
-        .pagination-info-text {
+        .custom-placeholder::placeholder {
           font-family: 'Product Sans', sans-serif;
           font-weight: 400;
-          font-size: 16px;
-          color: #212529;
+          color: #828282;
         }
       `}</style>
     </div>

@@ -431,13 +431,68 @@ export default function Sidebar({ collapsed }) {
         <div className="sidebar-link-titles">{!collapsed && "Sales"}</div>
 
         <div className="mb-1">
+          {/* Customer */}
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleLinkClick("Customers");
+            }}
+            className={linkClass("Customers")}
+          >
+            </a>
+            <img
+              src={isActive("Customer") ? "/Vendor_G.png" : "/Customer.png"}
+              alt="Customer"
+              style={{
+                width: "18px",
+                filter: isActive("Customer")
+                  ? "none"
+                  : "brightness(0) invert(1)",
+              }}
+            />
+            {!collapsed && (
+              <span
+                style={{
+                  color: isActive("Customer") ? "#28a745" : "white",
+                }}
+              >
+                Customer
+              </span>
+            )}
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("VciCustomer"); }} className={linkClass("VciCustomer")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             {!collapsed && "Customer"}
           </a>
-          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("salesOrder"); }} className={linkClass("salesOrder")}>
-            <img src="/Sale 1.png" alt="Sales Order" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
-            {!collapsed && "Sales Order"}
+
+          {/* Sales Order */}
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleLinkClick("salesOrder");
+            }}
+            className={linkClass("salesOrder")}
+          >
+            <img
+              src={isActive("salesOrder") ? "/Sale_Order_G.png" : "/Sale 1.png"}
+              alt="Sales Order"
+              style={{
+                width: "18px",
+                filter: isActive("salesOrder")
+                  ? "none"
+                  : "brightness(0) invert(1)",
+              }}
+            />
+            {!collapsed && (
+              <span
+                style={{
+                  color: isActive("salesOrder") ? "#28a745" : "white",
+                }}
+              >
+                Sales Order
+              </span>
+            )}
           </a>
 
           {/* Sales Return */}

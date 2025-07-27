@@ -25,9 +25,11 @@ import Overview from './Pages/Overview/Overview';
  import SalesList from './Pages/SalesList';
 import SparepartsPage from "./Pages/SpareParts";
 import PurchaseSparepartsPage from './Pages/PurchaseSpareParts'; // ✅ Ensure correct casing
-import Vendor from './Pages/Vendor';
 import VciCustomer from './Pages/VciCustomer';
 import ReturnSparePartsPage from './Pages/ReturnSpareParts';
+import Vendor from './Pages/Vendor';
+
+
  
 //  const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
 
