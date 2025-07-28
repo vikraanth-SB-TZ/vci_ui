@@ -20,7 +20,7 @@ import EditSalePage from './Pages/EditSalePage';
 import ViewSalePage from './Pages/ViewSalePage';
 import SaleReturnPage from './Pages/SaleReturnPage';
 import SaleInvoice from './Pages/SaleInvoice';
-// import PcbPurchaseList from './Pages/PcbPurchaseList';
+import PcbPurchaseList from './Pages/PcbPurchaseList';
 
 import EditPurchasePage from './Pages/EditPurchasePage';
 
@@ -105,7 +105,7 @@ export default function App() {
           <Route path="salesReturn" element={<SaleReturnPage />} />
           <Route path="pdf" element={<SaleInvoice />} />
  
-          {/* <Route path="purchaseOrder" element={<PcbPurchaseList />} /> */}
+          <Route path="purchaseOrder" element={<PcbPurchaseList />} />
           <Route path="overview" element={<Overview />} />
 
           <Route path="/purchase/:id/edit" element={<EditPurchasePage />} />
