@@ -84,13 +84,13 @@ export default function Vendor() {
     const fetchStates = () => {
         axios.get("/api/states")
             .then((res) => setStates(res.data))
-            .catch(() => toast.error("Failed to fetch states.", { autoClose: 3000 }));
+            // .catch(() => toast.error("Failed to fetch states.", { autoClose: 3000 }));
     };
 
     const fetchDistricts = () => {
         axios.get("/api/districts")
             .then((res) => setDistricts(res.data))
-            .catch(() => toast.error("Failed to fetch districts.", { autoClose: 3000 }));
+            // .catch(() => toast.error("Failed to fetch districts.", { autoClose: 3000 }));
     };
 
     const handleChange = (e, selectName = null) => {

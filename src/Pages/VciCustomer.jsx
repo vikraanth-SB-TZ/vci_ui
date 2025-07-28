@@ -75,9 +75,9 @@ export default function VciCustomer() {
             .then((res) => {
                 setCustomers(res.data.data || res.data);
             })
-            .catch(() => {
-                toast.error("Failed to fetch customers.", { autoClose: 3000 });
-            })
+            // .catch(() => {
+            //     toast.error("Failed to fetch customers.", { autoClose: 3000 });
+            // })
             .finally(() => {
                 setLoading(false);
             });
@@ -86,13 +86,13 @@ export default function VciCustomer() {
     const fetchStates = () => {
         axios.get("/api/states")
             .then((res) => setStates(res.data))
-            .catch(() => toast.error("Failed to fetch states.", { autoClose: 3000 }));
+            // .catch(() => toast.error("Failed to fetch states.", { autoClose: 3000 }));
     };
 
     const fetchDistricts = () => {
         axios.get("/api/districts")
             .then((res) => setDistricts(res.data))
-            .catch(() => toast.error("Failed to fetch districts.", { autoClose: 3000 }));
+            // .catch(() => toast.error("Failed to fetch districts.", { autoClose: 3000 }));
     };
 
     const handleChange = (e, selectName = null) => {
