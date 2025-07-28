@@ -214,15 +214,6 @@ export default function StatePage() {
               <i className="bi bi-x-lg fs-6"></i>
             </Button>
           </div>
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-medium">State Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter State Name"
-              value={newStateName}
-              onChange={(e) => setNewStateName(e.target.value)}
-            />
-          </Form.Group>
           <Form.Group>
             <Form.Label className="fw-medium">Select Country</Form.Label>
             <Form.Select value={countryId} onChange={(e) => setCountryId(e.target.value)}>
@@ -234,6 +225,16 @@ export default function StatePage() {
               ))}
             </Form.Select>
           </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-medium">State Name</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter State Name"
+              value={newStateName}
+              onChange={(e) => setNewStateName(e.target.value)}
+            />
+          </Form.Group>
+          
           <div className="d-flex justify-content-end gap-2 mt-3">
             <Button variant="light" onClick={handleModalClose}>
               Cancel
