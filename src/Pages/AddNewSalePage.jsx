@@ -3,6 +3,8 @@ import { Button, Form, Row, Col, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Select, { components } from 'react-select';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function AddNewSalePage() {
 
@@ -11,9 +13,8 @@ export default function AddNewSalePage() {
   const [customers, setCustomers] = useState([]);
   const [batches, setBatches] = useState([]);
   const [categories, setCategories] = useState([]);
-  // const [serialError, setSerialError] = useState('');
-
-
+   const [serialError, setSerialError] = useState('');
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     customer_id: '',
     batch_id: '',
@@ -27,6 +28,26 @@ export default function AddNewSalePage() {
     tracking_no: '',
     notes: ''
   });
+
+  const validateForm = () => {
+  const newErrors = {};
+
+  if (!formData.customer_id) newErrors.customer_id = "This field is required";
+  if (!formData.batch_id) newErrors.batch_id = "Batch is required";
+  if (!formData.category_id) newErrors.category_id = "Category is required";
+  if (!formData.quantity) newErrors.quantity = "Quantity is required";
+  if (!formData.shipment_name) newErrors.shipment_name = "Shipment Name is required";
+  if (formData.serial_numbers.length === 0) newErrors.serial_numbers = "Serial numbers are required";
+  if (!formData.shipment_date) newErrors.shipment_date = "Shipment Date is required";
+  if (!formData.delivery_date) newErrors.delivery_date = "Delivery Date is required";
+  if (!formData.tracking_no) newErrors.tracking_no = "Tracking No is required";
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
+
+
 
 useEffect(() => {
   if (hasFetched.current) return;
@@ -43,49 +64,48 @@ useEffect(() => {
     .catch(err => console.error('Error loading dropdowns:', err));
 }, []);
 
+const handleChange = async (e) => {
+  const { name, value } = e.target;
+  const updated = { ...formData, [name]: value };
+  setFormData(updated);
 
-  const handleChange = async (e) => {
-    const { name, value } = e.target;
-    const updated = { ...formData, [name]: value };
-    setFormData(updated);
+  if (['quantity', 'from_serial', 'batch_id', 'category_id'].includes(name)) {
+    const { quantity, from_serial, batch_id, category_id } = updated;
 
-    if (['quantity', 'from_serial', 'batch_id', 'category_id'].includes(name)) {
-      const { quantity, from_serial, batch_id, category_id } = {
-        ...updated,
-        [name]: value
-      };
+    if (quantity && batch_id && category_id) {
+      try {
+        const payload = {
+          quantity,
+          batch_id,
+          category_id
+        };
 
-      if (quantity && from_serial && batch_id && category_id) {
-        try {
-          const response = await axios.post('http://localhost:8000/api/products/serials', {
-            from_serial,
-            quantity,
-            batch_id,
-            category_id
-          });
-
-          const serials = response.data?.data || [];
-          setFormData(prev => ({
-            ...prev,
-            serial_numbers: serials
-          }));
-
-
-        //       // Show message if no serials
-        // if (serials.length === 0) {
-        //   setSerialError("No serial numbers found.");
-        // } else {
-        //   setSerialError(""); // clear error if serials found
-        // }
-
-
-        } catch (err) {
-          console.error('Error fetching serials:', err);
-          setFormData(prev => ({ ...prev, serial_numbers: [] }));
+        if (from_serial?.trim() !== '') {
+          payload.from_serial = from_serial;
         }
+
+        const response = await axios.post('http://localhost:8000/api/products/serials', payload);
+        const serials = response.data?.data || [];
+
+        setFormData(prev => ({
+          ...prev,
+          serial_numbers: serials
+        }));
+
+        if (serials.length === 0) {
+          setSerialError("No serial numbers found.");
+        } else {
+          setSerialError("");
+        }
+
+      } catch (err) {
+        console.error('Error fetching serials:', err);
+        setSerialError("Failed to load serial numbers.");
+        setFormData(prev => ({ ...prev, serial_numbers: [] }));
       }
     }
-  };
+  }
+};
 
   const handleCustomerChange = (selected) => {
     setFormData(prev => ({
@@ -101,18 +121,39 @@ useEffect(() => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    axios.post('http://localhost:8000/api/store', formData)
-      .then(() => {
-        alert('Sale added successfully!');
-        navigate('/salesOrder');
-      })
-      .catch(err => {
-        console.error('Error posting sale:', err);
-        alert('Failed to save sale.');
-      });
-  };
+  axios.post('http://localhost:8000/api/saleStore', formData)
+    .then(() => {
+      toast.success('Sale added successfully!');
+      navigate('/salesOrder'); // or remove if you want to stay on the same page
+    })
+    .catch(err => {
+      console.error('Error posting sale:', err);
+      toast.error('Failed to save sale.');
+
+
+if (err.response && err.response.status === 422) {
+    const res = err.response.data;
+
+    // Option 1: If it's a validation object (typical Laravel format)
+    if (res.errors) {
+      setErrors(res.errors); // { quantity: ['message here'] }
+    } 
+    // Option 2: If it's a custom message like your case
+    else if (res.message) {
+      setErrors(prev => ({
+        ...prev,
+           quantity: `Only ${res.available} items available, but ${res.required} requested.`,
+      }));
+    }
+  } else {
+    console.error("Other error:", err);
+  }
+    });
+};
+
 
   const customerOptions = customers.map((c) => ({
     value: c.id,
@@ -128,6 +169,8 @@ useEffect(() => {
           <i className="bi bi-arrow-left" /> Back
         </Button>
       </div>
+
+<ToastContainer position="top-right" autoClose={3000} hideProgressBar />
 
       <Form onSubmit={handleSubmit}>
         <Row className="mb-3">
@@ -183,6 +226,8 @@ useEffect(() => {
     })
   }}
 />
+  {errors.customer_id && <div className="text-danger small mt-1">{errors.customer_id}</div>}
+
 
             </Form.Group>
           </Col>
@@ -193,8 +238,12 @@ useEffect(() => {
               <option value="">Select Batch</option>
               {batches.map((b) => (
                 <option key={b.id} value={b.id}>{b.batch}</option>
+                
               ))}
+
+
             </Form.Select>
+                {errors.batch_id && <div className="text-danger small mt-1">{errors.batch_id}</div>}
           </Col>
 
           <Col md={4}>
@@ -205,6 +254,8 @@ useEffect(() => {
                 <option key={c.id} value={c.id}>{c.category}</option>
               ))}
             </Form.Select>
+            {errors.category_id && <div className="text-danger small mt-1">{errors.category_id}</div>}
+
           </Col>
         </Row>
 
@@ -212,14 +263,19 @@ useEffect(() => {
           <Col md={4} sm={6} xs={12}>
             <Form.Label>Quantity</Form.Label>
             <Form.Control size="sm" name="quantity" value={formData.quantity} onChange={handleChange} placeholder="Enter Quantity" style={{ boxShadow: 'none', borderColor: '#ced4da' }}/>
+            {errors.quantity && <div className="text-danger small mt-1">{errors.quantity}</div>}
+
           </Col>
           <Col md={4} sm={6} xs={12}>
             <Form.Label>From Serial Number</Form.Label>
             <Form.Control size="sm" name="from_serial" value={formData.from_serial} onChange={handleChange} placeholder="Enter From Serial" style={{ boxShadow: 'none', borderColor: '#ced4da' }} />
+          {serialError && <div className="text-danger small mt-1">{serialError}</div>}
           </Col>
           <Col md={4} sm={6} xs={12}>
             <Form.Label>Shipment Name</Form.Label>
             <Form.Control size="sm" name="shipment_name" value={formData.shipment_name} onChange={handleChange} placeholder="Enter Shipment Name" style={{ boxShadow: 'none', borderColor: '#ced4da' }}/>
+    {errors.shipment_name && <div className="text-danger small mt-1">{errors.shipment_name}</div>}
+
           </Col>
         </Row>
 
@@ -245,6 +301,7 @@ useEffect(() => {
                     style={{ boxShadow: 'none', borderColor: '#ced4da' }}
                   />
 
+
                 </td>
               </tr>
             ))}
@@ -255,14 +312,20 @@ useEffect(() => {
           <Col md={4}>
             <Form.Label>Shipment Date</Form.Label>
             <Form.Control size="sm" type="date" name="shipment_date" value={formData.shipment_date} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}/>
+         {errors.shipment_date && <div className="text-danger small mt-1">{errors.shipment_date}</div>}
+
           </Col>
           <Col md={4}>
             <Form.Label>Delivery Date</Form.Label>
             <Form.Control size="sm" type="date" name="delivery_date" value={formData.delivery_date} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}/>
+         {errors.delivery_date && <div className="text-danger small mt-1">{errors.delivery_date}</div>}
+
           </Col>
           <Col md={4}>
             <Form.Label>Tracking No.</Form.Label>
             <Form.Control size="sm" name="tracking_no" value={formData.tracking_no} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}/>
+          {errors.tracking_no && <div className="text-danger small mt-1">{errors.tracking_no}</div>}
+
           </Col>
         </Row>
 
