@@ -8,6 +8,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+
 export default function ProductPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -23,8 +24,8 @@ export default function ProductPage() {
     manufacture_no: "",
     firmware_version: "",
     hsn_code: "",
-    sale_status: "Available",
-    test: "Ok",
+    sale_status: "",
+    test: "",
   });
 
   const apiBase = "http://localhost:8000/api";
@@ -47,7 +48,6 @@ export default function ProductPage() {
       const res = await axios.get(`${apiBase}/products`);
       setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error(error);
       toast.error("Failed to fetch products!");
     } finally {
       setLoading(false);
@@ -59,7 +59,7 @@ export default function ProductPage() {
       const res = await axios.get(`${apiBase}/categories`);
       setCategories(res.data);
     } catch (error) {
-      console.error(error);
+      toast.error("Failed to fetch categories!");
     }
   };
 
@@ -68,7 +68,7 @@ export default function ProductPage() {
       const res = await axios.get(`${apiBase}/batches`);
       setBatches(res.data);
     } catch (error) {
-      console.error(error);
+      toast.error("Failed to fetch batches!");
     }
   };
 
@@ -94,8 +94,8 @@ export default function ProductPage() {
       manufacture_no: "",
       firmware_version: "",
       hsn_code: "",
-      sale_status: "Available",
-      test: "Ok",
+      sale_status: "",
+      test: "",
     });
     setShowModal(true);
   };
@@ -117,24 +117,74 @@ export default function ProductPage() {
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
       await axios.delete(`${apiBase}/products/${id}`);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-      toast.success("Product deleted successfully!");
+      toast.info("Product deleted!");
+      await fetchProducts();
     } catch (error) {
-      console.error(error);
       toast.error("Failed to delete product!");
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let updatedData = { ...productData, [name]: value };
+
+    // If test = Issue, set Sale Status automatically
+    if (name === "test" && value === "Issue") {
+      updatedData.sale_status = "Reserved";
+    }
+    setProductData(updatedData);
+  };
+
+  const validateForm = () => {
+    if (!productData.batch_id) {
+      toast.warn("Please select a batch!");
+      return false;
+    }
+    if (!productData.category_id) {
+      toast.warn("Please select a category!");
+      return false;
+    }
+    if (!productData.serial_no.trim()) {
+      toast.warn("Serial Number is required!");
+      return false;
+    }
+    if (!productData.manufacture_no.trim()) {
+      toast.warn("Manufacture Number is required!");
+      return false;
+    }
+    if (!productData.firmware_version.trim()) {
+      toast.warn("Firmware Version is required!");
+      return false;
+    }
+    if (!productData.hsn_code.trim()) {
+      toast.warn("HSN Code is required!");
+      return false;
+    }
+    if (!productData.test) {
+      toast.warn("Please select a Test Status!");
+      return false;
+    }
+    if (!productData.sale_status) {
+      toast.warn("Please select a Sale Status!");
+      return false;
+    }
+    return true;
+  };
+
   const handleSave = async () => {
+    if (!validateForm()) return;
+
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
+
       if (isEditing) {
         await axios.put(`${apiBase}/products/${productData.id}`, productData);
         toast.success("Product updated successfully!");
@@ -142,20 +192,23 @@ export default function ProductPage() {
         await axios.post(`${apiBase}/products`, productData);
         toast.success("Product added successfully!");
       }
+
       await fetchProducts();
       setShowModal(false);
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to save product!");
+      if (error.response?.status === 422) {
+        const errors = error.response.data.errors;
+        Object.values(errors).forEach((msg) => toast.error(msg[0]));
+      } else {
+        toast.error("Failed to save product!");
+      }
     }
-  };
-
-  const handleChange = (e) => {
-    setProductData({ ...productData, [e.target.name]: e.target.value });
   };
 
   return (
     <div className="p-4">
+      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
+
       {/* Header */}
       <div className="d-flex justify-content-between mb-3">
         <h5 className="fw-bold">Products ({products.length.toString().padStart(2, "0")})</h5>
@@ -180,8 +233,8 @@ export default function ProductPage() {
               <th>Manufacture No</th>
               <th>Firmware</th>
               <th>HSN Code</th>
-              <th>Sale Status</th>
               <th>Test</th>
+              <th>Sale Status</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -207,23 +260,14 @@ export default function ProductPage() {
                   <td>{p.serial_no || "—"}</td>
                   <td>{p.manufacture_no || "—"}</td>
                   <td>{p.firmware_version || "—"}</td>
-                  <td>{p.hsn_code || "—"}</td>
-                  <td>{p.sale_status || "—"}</td>
+                  <td style={{textAlign: "center" }} >{p.hsn_code || "—"}</td>
                   <td>{p.test || "—"}</td>
+                  <td>{p.sale_status || "—"}</td>
                   <td>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      className="me-1"
-                      onClick={() => handleEdit(p)}
-                    >
+                    <Button variant="outline-primary" size="sm" className="me-1" onClick={() => handleEdit(p)}>
                       <i className="bi bi-pencil-square"></i>
                     </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={() => handleDelete(p.id)}
-                    >
+                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(p.id)}>
                       <i className="bi bi-trash"></i>
                     </Button>
                   </td>
@@ -234,13 +278,13 @@ export default function ProductPage() {
         </table>
       </div>
 
-      {/* Offcanvas Modal */}
+      {/* Side Offcanvas Modal with Top Offset */}
       <Offcanvas
         show={showModal}
         onHide={() => setShowModal(false)}
         placement="end"
         backdrop="static"
-        style={{ width: "500px" }}
+        className="custom-offcanvas"
       >
         <Offcanvas.Header closeButton>
           <Offcanvas.Title className="fw-bold">
@@ -314,32 +358,37 @@ export default function ProductPage() {
             </Form.Group>
 
             <Form.Group className="col-md-6">
-              <Form.Label>Sale Status</Form.Label>
-              <Form.Select name="sale_status" value={productData.sale_status} onChange={handleChange}>
-                <option value="Available">Available</option>
-                <option value="Sold">Sold</option>
-                <option value="Reserved">Reserved</option>
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="col-md-6">
               <Form.Label>Test Status</Form.Label>
               <Form.Select name="test" value={productData.test} onChange={handleChange}>
+                <option value="">Select Test Status</option>
                 <option value="Ok">OK</option>
                 <option value="Issue">Issue</option>
               </Form.Select>
             </Form.Group>
+
+            <Form.Group className="col-md-6">
+              <Form.Label>Sale Status</Form.Label>
+              <Form.Select
+                name="sale_status"
+                value={productData.sale_status}
+                onChange={handleChange}
+                disabled={productData.test === "Issue"}
+              >
+                <option value="">Select Sale Status</option>
+                <option value="Available">Available</option>
+                <option value="Sold">Sold</option>
+                <option value="Reserved">Reserved</option>
+              </Form.Select>
+            </Form.Group>            
           </Form>
 
           <div className="d-flex justify-content-end mt-4">
             <Button variant="success" onClick={handleSave} style={{ minWidth: "120px" }}>
-              Save
+              {isEditing ? "Update" : "Save"}
             </Button>
           </div>
         </Offcanvas.Body>
       </Offcanvas>
-
-      <ToastContainer position="top-right" autoClose={2000} />
     </div>
   );
 }
