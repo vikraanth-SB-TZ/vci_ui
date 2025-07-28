@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Button, Spinner, Modal, Form } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
@@ -9,8 +11,8 @@ export default function CountryPage() {
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [newCountryName, setNewCountryName] = useState("");
-  const [editId, setEditId] = useState(null);
+  const [countryName, setCountryName] = useState("");
+  const [editingCountryId, setEditingCountryId] = useState(null);
 
   const apiBase = "http://127.0.0.1:8000/api";
   const tableRef = useRef(null);
@@ -34,69 +36,92 @@ export default function CountryPage() {
   const fetchCountries = async () => {
     setLoading(true);
     try {
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
+      }
       const res = await axios.get(`${apiBase}/countries`);
       setCountries(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error fetching countries:", error);
+      toast.error("Failed to fetch countries!");
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddNewClick = () => {
-    setEditId(null);
-    setNewCountryName("");
+    setEditingCountryId(null);
+    setCountryName("");
+    setShowModal(true);
+  };
+
+  const handleEdit = (country) => {
+    setEditingCountryId(country.id);
+    setCountryName(country.country);
     setShowModal(true);
   };
 
   const handleModalClose = () => {
     setShowModal(false);
-    setNewCountryName("");
-    setEditId(null);
+    setCountryName("");
+    setEditingCountryId(null);
   };
 
   const handleSave = async () => {
-    if (!newCountryName.trim()) return;
-    const payload = { country: newCountryName.trim() };
+    if (!countryName.trim()) {
+      toast.warning("Country name is required!");
+      return;
+    }
+
+    const payload = { country: countryName.trim() };
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-      if (editId) {
-        const res = await axios.put(`${apiBase}/countries/${editId}`, payload);
-        setCountries((prev) => prev.map((c) => (c.id === editId ? res.data : c)));
+
+      if (editingCountryId) {
+        await axios.put(`${apiBase}/countries/${editingCountryId}`, payload);
+        toast.success("Country updated successfully!");
       } else {
-        const res = await axios.post(`${apiBase}/countries`, payload);
-        setCountries((prev) => [...prev, res.data]);
+        await axios.post(`${apiBase}/countries`, payload);
+        toast.success("Country added successfully!");
       }
+
+      await fetchCountries();
       handleModalClose();
     } catch (error) {
-      console.error("Error saving country:", error.response?.data || error);
+      if (error.response?.status === 422) {
+        const errors = error.response.data.errors;
+        Object.values(errors).forEach((msg) => toast.error(msg[0]));
+      } else {
+        toast.error("Failed to save country!");
+      }
     }
   };
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this country?");
+    if (!confirmDelete) return;
+
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
       await axios.delete(`${apiBase}/countries/${id}`);
-      setCountries((prev) => prev.filter((c) => c.id !== id));
+      await fetchCountries();
+      toast.info("Country deleted!");
     } catch (error) {
-      console.error("Error deleting country:", error);
+      toast.error("Failed to delete country!");
     }
-  };
-
-  const handleEdit = (country) => {
-    setEditId(country.id);
-    setNewCountryName(country.country);
-    setShowModal(true);
   };
 
   return (
     <div className="p-4">
+      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
+
       <div className="d-flex justify-content-between mb-3">
-        <h5 className="fw-bold">Countries ({countries.length.toString().padStart(2, "0")})</h5>
+        <h5 className="fw-bold">
+          Countries ({countries.length.toString().padStart(2, "0")})
+        </h5>
         <div>
           <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchCountries}>
             <i className="bi bi-arrow-clockwise"></i>
@@ -161,7 +186,9 @@ export default function CountryPage() {
       <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
         <Modal.Body className="p-4">
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-semibold mb-0">{editId ? "Edit Country" : "Add New Country"}</h5>
+            <h5 className="fw-semibold mb-0">
+              {editingCountryId ? "Edit Country" : "Add New Country"}
+            </h5>
             <Button
               variant="outline-secondary"
               onClick={handleModalClose}
@@ -176,16 +203,16 @@ export default function CountryPage() {
             <Form.Control
               type="text"
               placeholder="Enter Country Name"
-              value={newCountryName}
-              onChange={(e) => setNewCountryName(e.target.value)}
+              value={countryName}
+              onChange={(e) => setCountryName(e.target.value)}
             />
           </Form.Group>
           <div className="d-flex justify-content-end gap-2 mt-3">
             <Button variant="light" onClick={handleModalClose}>
               Cancel
             </Button>
-            <Button variant="success" onClick={handleSave} disabled={!newCountryName.trim()}>
-              {editId ? "Update" : "Save"}
+            <Button variant="success" onClick={handleSave} disabled={!countryName.trim()}>
+              {editingCountryId ? "Update" : "Save"}
             </Button>
           </div>
         </Modal.Body>

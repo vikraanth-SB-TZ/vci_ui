@@ -1,19 +1,18 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Button, Spinner, Modal, Form } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
-import "bootstrap-icons/font/bootstrap-icons.css";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 export default function BatchPage() {
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [batchName, setBatchName] = useState("");
-  const [editingBatch, setEditingBatch] = useState(null);
+  const [editingBatchId, setEditingBatchId] = useState(null);
 
   const apiBase = "http://127.0.0.1:8000/api";
   const tableRef = useRef(null);
@@ -37,28 +36,26 @@ export default function BatchPage() {
   const fetchBatches = async () => {
     setLoading(true);
     try {
-      // Destroy table before refilling
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
       const res = await axios.get(`${apiBase}/batches`);
       setBatches(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error fetching batches:", error);
-      toast.error("Failed to fetch batch list.");
+      toast.error("Failed to fetch batches!");
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddNewClick = () => {
-    setEditingBatch(null);
+    setEditingBatchId(null);
     setBatchName("");
     setShowModal(true);
   };
 
   const handleEdit = (batch) => {
-    setEditingBatch(batch);
+    setEditingBatchId(batch.id);
     setBatchName(batch.batch);
     setShowModal(true);
   };
@@ -66,55 +63,62 @@ export default function BatchPage() {
   const handleModalClose = () => {
     setShowModal(false);
     setBatchName("");
-    setEditingBatch(null);
+    setEditingBatchId(null);
   };
 
   const handleSave = async () => {
     if (!batchName.trim()) {
-      toast.error("Batch name is required!");
+      toast.warning("Batch name is required!");
       return;
     }
+
     const payload = { batch: batchName.trim() };
+
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-      if (editingBatch) {
-        const res = await axios.put(`${apiBase}/batches/${editingBatch.id}`, payload);
-        setBatches((prev) => prev.map((b) => (b.id === editingBatch.id ? res.data : b)));
+
+      if (editingBatchId) {
+        await axios.put(`${apiBase}/batches/${editingBatchId}`, payload);
         toast.success("Batch updated successfully!");
       } else {
-        const res = await axios.post(`${apiBase}/batches`, payload);
-        setBatches((prev) => [...prev, res.data]);
+        await axios.post(`${apiBase}/batches`, payload);
         toast.success("Batch added successfully!");
       }
+
+      await fetchBatches();
       handleModalClose();
     } catch (error) {
-      const errMsg =
-        error.response?.data?.errors?.batch?.[0] ||
-        error.response?.data?.message ||
-        "Failed to save batch.";
-      toast.error(errMsg);
+      if (error.response?.status === 422) {
+        const errors = error.response.data.errors;
+        Object.values(errors).forEach((msg) => toast.error(msg[0]));
+      } else {
+        toast.error("Failed to save batch!");
+      }
     }
   };
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this batch?");
+    if (!confirmDelete) return;
+
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
       await axios.delete(`${apiBase}/batches/${id}`);
-      setBatches((prev) => prev.filter((b) => b.id !== id));
-      toast.success("Batch deleted successfully.");
+      await fetchBatches();
+      toast.info("Batch deleted!");
     } catch (error) {
-      console.error("Error deleting batch:", error);
-      toast.error("Failed to delete batch.");
+      toast.error("Failed to delete batch!");
     }
   };
 
   return (
     <div className="p-4">
-      {/* Header */}
+      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
+
       <div className="d-flex justify-content-between mb-3">
         <h5 className="fw-bold">Batches ({batches.length.toString().padStart(2, "0")})</h5>
         <div>
@@ -178,11 +182,12 @@ export default function BatchPage() {
         </table>
       </div>
 
-      {/* Modal */}
       <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
         <Modal.Body className="p-4">
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-semibold mb-0">{editingBatch ? "Edit Batch" : "Add New Batch"}</h5>
+            <h5 className="fw-semibold mb-0">
+              {editingBatchId ? "Edit Batch" : "Add New Batch"}
+            </h5>
             <Button
               variant="outline-secondary"
               onClick={handleModalClose}
@@ -206,13 +211,11 @@ export default function BatchPage() {
               Cancel
             </Button>
             <Button variant="success" onClick={handleSave} disabled={!batchName.trim()}>
-              {editingBatch ? "Update" : "Save"}
+              {editingBatchId ? "Update" : "Save"}
             </Button>
           </div>
         </Modal.Body>
       </Modal>
-
-      <ToastContainer position="top-right" autoClose={2000} />
     </div>
   );
 }

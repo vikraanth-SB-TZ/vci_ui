@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Button, Spinner, Modal, Form } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
@@ -39,7 +41,7 @@ export default function StatePage() {
       const res = await axios.get(`${apiBase}/countries`);
       setCountries(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error fetching countries:", error);
+      toast.error("Failed to fetch countries!");
     }
   };
 
@@ -52,7 +54,7 @@ export default function StatePage() {
       const res = await axios.get(`${apiBase}/states`);
       setStates(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error fetching states:", error);
+      toast.error("Failed to fetch states!");
     } finally {
       setLoading(false);
     }
@@ -80,39 +82,60 @@ export default function StatePage() {
   };
 
   const handleSave = async () => {
-    if (!newStateName.trim() || !countryId) return;
+    if (!newStateName.trim()) {
+      toast.warning("State name is required!");
+      return;
+    }
+    if (!countryId) {
+      toast.warning("Country is required!");
+      return;
+    }
+
     const payload = { state: newStateName.trim(), country_id: parseInt(countryId) };
 
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
+
       if (editingStateId) {
         await axios.put(`${apiBase}/states/${editingStateId}`, payload);
+        toast.success("State updated successfully!");
       } else {
         await axios.post(`${apiBase}/states`, payload);
+        toast.success("State added successfully!");
       }
       await fetchStates();
       handleModalClose();
     } catch (error) {
-      console.error("Error saving state:", error);
+      if (error.response?.status === 422) {
+        const errors = error.response.data.errors;
+        Object.values(errors).forEach((msg) => toast.error(msg[0]));
+      } else {
+        toast.error("Failed to save state!");
+      }
     }
   };
 
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this state?");
+    if (!confirmDelete) return;
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
       await axios.delete(`${apiBase}/states/${id}`);
       await fetchStates();
+      toast.info("State deleted!");
     } catch (error) {
-      console.error("Error deleting state:", error);
+      toast.error("Failed to delete state!");
     }
   };
 
   return (
     <div className="p-4">
+      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
+
       <div className="d-flex justify-content-between mb-3">
         <h5 className="fw-bold">States ({states.length.toString().padStart(2, "0")})</h5>
         <div>

@@ -156,3 +156,14 @@ body,
 .custom-table thead th {
   background-color:  #E9ECEF;
 }
+.custom-offcanvas {
+  width: 450px !important;          /* Fixed width */
+  top: 70px !important;             /* Adjust for header height */
+  height: calc(100% - 70px) !important;  /* Full height except top */
+  border-left: 1px solid #ddd;
+  border-radius: 8px 0 0 0;
+}
+
+
+
+
