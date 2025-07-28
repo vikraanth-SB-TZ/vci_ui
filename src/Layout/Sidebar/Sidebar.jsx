@@ -432,34 +432,8 @@ export default function Sidebar({ collapsed }) {
 
         <div className="mb-1">
           {/* Customer */}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handleLinkClick("Customers");
-            }}
-            className={linkClass("Customers")}
-          >
-            </a>
-            <img
-              src={isActive("Customer") ? "/Vendor_G.png" : "/Customer.png"}
-              alt="Customer"
-              style={{
-                width: "18px",
-                filter: isActive("Customer")
-                  ? "none"
-                  : "brightness(0) invert(1)",
-              }}
-            />
-            {!collapsed && (
-              <span
-                style={{
-                  color: isActive("Customer") ? "#28a745" : "white",
-                }}
-              >
-                Customer
-              </span>
-            )}
+
+
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("VciCustomer"); }} className={linkClass("VciCustomer")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
             {!collapsed && "Customer"}

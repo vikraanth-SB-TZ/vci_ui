@@ -1,11 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Button, Spinner, Form } from "react-bootstrap";
-import flatpickr from "flatpickr";
-import "flatpickr/dist/themes/material_green.css";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+// import 'react-toastify/dist/React-Toastify.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
@@ -16,12 +14,12 @@ export default function PurchaseSparepartsPage() {
   const [vendors, setVendors] = useState([]);
   const [batches, setBatches] = useState([]);
   const [availableSpareparts, setAvailableSpareparts] = useState([]);
-  const [spareparts, setSpareparts] = useState([]);
+  const [spareparts, setSpareparts] = useState([]); // This holds the list of all purchases
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [sparePartsRows, setSparePartsRows] = useState([{ sparepart_id: "", quantity: "" }]);
-  const [invoiceDate, setInvoiceDate] = useState(null);
-  const datePickerRef = useRef();
+  const [invoiceDate, setInvoiceDate] = useState(""); // Changed to string for direct input
+  const dateInputRef = useRef(); // Renamed ref for date input
   const [editingPurchase, setEditingPurchase] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -33,6 +31,7 @@ export default function PurchaseSparepartsPage() {
 
   const [formErrors, setFormErrors] = useState({});
   const tableRef = useRef(null);
+  const dataTableInstance = useRef(null); 
 
   const getBlueBorderStyles = (value, isInvalid) => {
     const baseStyle = {};
@@ -75,36 +74,6 @@ export default function PurchaseSparepartsPage() {
     return baseTableInputStyle;
   };
 
-  useEffect(() => {
-    if (!datePickerRef.current) return;
-    const fp = flatpickr(datePickerRef.current, {
-      dateFormat: "d/m/Y",
-      onChange: ([date]) => {
-        setInvoiceDate(date);
-        setFormErrors((prev) => ({ ...prev, invoice_date: "" }));
-        setFormData((prev) => ({
-          ...prev,
-          invoiceDate: date ? date.toISOString().split("T")[0] : "",
-        }));
-      },
-      disableMobile: true,
-      locale: { firstDayOfWeek: 1 },
-    });
-    if (editingPurchase && editingPurchase.invoice_date) {
-      fp.setDate(new Date(editingPurchase.invoice_date), true);
-      setInvoiceDate(new Date(editingPurchase.invoice_date));
-      setFormData((prev) => ({
-        ...prev,
-        invoiceDate: new Date(editingPurchase.invoice_date).toISOString().split("T")[0],
-      }));
-    } else {
-      fp.clear();
-      setInvoiceDate(null);
-      setFormData((prev) => ({ ...prev, invoiceDate: "" }));
-    }
-    return () => fp?.destroy();
-  }, [editingPurchase, showForm]);
-
   const fetchVendors = useCallback(async () => {
     try {
       const { data } = await axios.get(`${API_BASE}/api/vendors`, { headers: { Accept: "application/json" } });
@@ -112,7 +81,7 @@ export default function PurchaseSparepartsPage() {
       setVendors(rows);
     } catch (err) {
       console.error("Error loading vendors:", err);
-      toast.error("Failed to load vendors.");
+      // toast.error("Failed to load vendors."); // Optionally show toast for fetch errors
     }
   }, []);
 
@@ -123,7 +92,7 @@ export default function PurchaseSparepartsPage() {
       setBatches(rows);
     } catch (err) {
       console.error("Error loading batches:", err);
-      toast.error("Failed to load batches.");
+      // toast.error("Failed to load batches."); // Optionally show toast for fetch errors
     }
   }, []);
 
@@ -134,7 +103,7 @@ export default function PurchaseSparepartsPage() {
       setAvailableSpareparts(rows);
     } catch (err) {
       console.error("Error loading spareparts master list:", err);
-      toast.error("Failed to load available spare parts.");
+      // toast.error("Failed to load available spare parts."); // Optionally show toast for fetch errors
     }
   }, []);
 
@@ -160,17 +129,26 @@ export default function PurchaseSparepartsPage() {
   }, [fetchVendors, fetchBatches, fetchAvailableSpareparts, fetchPurchases]);
 
   useEffect(() => {
-    if ($.fn.DataTable.isDataTable(tableRef.current)) {
-      $(tableRef.current).DataTable().destroy();
+    // Destroy DataTable if an instance exists
+    if (dataTableInstance.current) {
+      dataTableInstance.current.destroy();
+      dataTableInstance.current = null;
     }
-    if (!loading && spareparts.length > 0) {
-      $(tableRef.current).DataTable({
-        ordering: true,
-        paging: true,
-        searching: true,
-        lengthChange: true,
-        columnDefs: [{ targets: 0, className: "text-center" }],
-      });
+
+    // Only re-init if there is data and not loading
+    if (!loading && spareparts.length > 0 && tableRef.current) {
+      // Use setTimeout to ensure DOM is updated before DataTables initializes
+      setTimeout(() => {
+        dataTableInstance.current = $(tableRef.current).DataTable({
+          ordering: true,
+          paging: true,
+          searching: true,
+          lengthChange: true,
+          columnDefs: [{ targets: 0, className: "text-center" }],
+          // Ensure DataTables is re-drawn when data changes
+          destroy: true, // This allows re-initialization
+        });
+      }, 0);
     }
   }, [spareparts, loading]);
 
@@ -207,6 +185,12 @@ export default function PurchaseSparepartsPage() {
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  const handleDateChange = (e) => {
+    const { value } = e.target;
+    setInvoiceDate(value);
+    setFormErrors((prev) => ({ ...prev, invoice_date: "" }));
+  };
+
   const validateForm = (payload, items) => {
     let errors = {};
     if (!payload.vendor_id) {
@@ -228,6 +212,7 @@ export default function PurchaseSparepartsPage() {
         if (!item.sparepart_id) {
           errors[`sparepart-${index}`] = "Spare part is required.";
         }
+        // Ensure quantity is a positive number, allowing 0 if that's valid in your context, otherwise enforce > 0
         if (!item.quantity || parseInt(item.quantity, 10) <= 0 || isNaN(parseInt(item.quantity, 10))) {
           errors[`quantity-${index}`] = "Quantity must be a positive number.";
         }
@@ -247,20 +232,27 @@ export default function PurchaseSparepartsPage() {
     const batch_id = formData.batch_id;
     const invoice_no = formData.invoiceNo;
     const notes = formData.notes || null;
-    const invoice_date = invoiceDate ? invoiceDate.toISOString().split("T")[0] : null;
+    const invoice_date = invoiceDate; // Use directly from state
+
+    // Filter out rows that are completely empty or have invalid quantities
     const items = sparePartsRows
       .map((row) => {
-        const quantity = parseInt(row.quantity, 10) || 0;
-        return { sparepart_id: row.sparepart_id, quantity };
+        const quantity = parseInt(row.quantity, 10);
+        return { sparepart_id: row.sparepart_id, quantity: isNaN(quantity) ? 0 : quantity };
       })
-      .filter((i) => i.sparepart_id && i.quantity > 0);
+      .filter((i) => i.sparepart_id && i.quantity > 0); // Only include valid items
+
     const payload = { vendor_id, batch_id, invoice_no, invoice_date, notes, items };
-    if (!validateForm(payload, sparePartsRows)) {
+
+    if (!validateForm(payload, sparePartsRows)) { // Validate against sparePartsRows (raw input)
       return;
     }
+
     try {
-      const { data } = editingPurchase
-        ? await axios.put(
+      setLoading(true); // Set loading state for form submission
+      let data;
+      if (editingPurchase) {
+        const resp = await axios.put(
           `${API_BASE}/api/sparepart-purchases/${editingPurchase.id}`,
           payload,
           {
@@ -269,8 +261,17 @@ export default function PurchaseSparepartsPage() {
               Accept: "application/json",
             },
           }
-        )
-        : await axios.post(
+        );
+        data = resp.data;
+        if (data?.success) {
+          toast.success("Purchase updated successfully!");
+          // Update the specific row in the table instead of refetching all
+          setSpareparts(prev => prev.map(p => p.id === editingPurchase.id ? { ...p, ...payload, items: items } : p));
+        } else {
+          toast.error(data?.message || "Failed to update purchase.");
+        }
+      } else {
+        const resp = await axios.post(
           `${API_BASE}/api/spareparts/purchase`,
           payload,
           {
@@ -280,32 +281,39 @@ export default function PurchaseSparepartsPage() {
             },
           }
         );
-      if (data?.success) {
-        toast.success(editingPurchase ? "Purchase updated successfully!" : "Purchase added successfully!");
-        setShowForm(false);
-        setEditingPurchase(null);
-        fetchPurchases();
-        setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-        setInvoiceDate(null);
-        if (datePickerRef.current?._flatpickr) {
-          datePickerRef.current._flatpickr.clear();
+        data = resp.data;
+        if (data?.success) {
+          toast.success("Purchase added successfully!");
+          // Add the new purchase to the state directly
+          // Assuming the API returns the newly created purchase with its ID,
+          // update 'id: data.purchase_id' to match your API response key
+          setSpareparts(prev => [...prev, { ...payload, id: data.purchase_id || Date.now(), items: items }]);
+        } else {
+          toast.error(data?.message || "Failed to add purchase.");
         }
-        setFormErrors({});
-        setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
-      } else {
-        toast.error(data?.message || "Failed to save purchase.");
       }
+
+      // Reset form fields and close form
+      setShowForm(false);
+      setEditingPurchase(null);
+      setSparePartsRows([{ sparepart_id: "", quantity: "" }]); // Reset to one empty row
+      setInvoiceDate("");
+      setFormErrors({});
+      setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
+
     } catch (error) {
       if (error.response) {
         console.error("Server responded with error:", error.response.status, error.response.data);
-        toast.error(`Server error (${error.response.status}): ${error.response.data?.message ?? "See console"}`);
+        toast.error(`Server error (${error.response.status}): ${error.response.data?.message ?? "Please check form data or server logs."}`);
       } else if (error.request) {
         console.error("No response received:", error.request);
-        toast.error("No response from server. Check network/API base URL.");
+        toast.error("No response from server. Please check your network connection or API base URL.");
       } else {
         console.error("Request setup error:", error.message);
-        toast.error("Error preparing request. See console.");
+        toast.error("An error occurred before sending the request. Please see console for details.");
       }
+    } finally {
+      setLoading(false); // Always stop loading, even on error
     }
   };
 
@@ -325,14 +333,14 @@ export default function PurchaseSparepartsPage() {
                     headers: { Accept: "application/json" },
                   });
                   if (data?.success) {
-                    setSpareparts((rows) => rows.filter((p) => p.id !== id));
+                    setSpareparts((rows) => rows.filter((p) => String(p.id) !== String(id))); // Ensure ID comparison is robust
                     toast.success("Purchase deleted successfully!");
                   } else {
                     toast.error(data?.message || "Failed to delete.");
                   }
                 } catch (err) {
                   console.error("Error during delete request:", err);
-                  toast.error("Error deleting purchase. See console.");
+                  toast.error("Error deleting purchase. Please see console.");
                 }
               }}
               className="me-2"
@@ -363,30 +371,29 @@ export default function PurchaseSparepartsPage() {
     MozAppearance: "none",
   };
 
-  const handleIconClick = () => {
-    datePickerRef.current?._flatpickr?.open();
-  };
-
   const handleShowForm = (purchase = null) => {
     setEditingPurchase(purchase);
-    setFormErrors({});
+    setFormErrors({}); // Clear errors when opening form
     if (purchase) {
+      // Ensure sparepart_id and quantity are strings for select/input value consistency
       setSparePartsRows(
-        purchase.items.map((item) => ({
-          sparepart_id: String(item.sparepart_id),
-          quantity: String(item.quantity),
-        }))
+        purchase.items && purchase.items.length > 0
+          ? purchase.items.map((item) => ({
+            sparepart_id: String(item.sparepart_id),
+            quantity: String(item.quantity),
+          }))
+          : [{ sparepart_id: "", quantity: "" }] // Always ensure at least one row for editing
       );
-      setInvoiceDate(new Date(purchase.invoice_date));
+      setInvoiceDate(purchase.invoice_date); // Set date directly from purchase data
       setFormData({
-        vendor_id: String(purchase.vendor_id),
-        batch_id: String(purchase.batch_id),
+        vendor_id: String(purchase.vendor_id), // Convert to string
+        batch_id: String(purchase.batch_id),   // Convert to string
         invoiceNo: purchase.invoice_no,
         notes: purchase.notes || ""
       });
     } else {
-      setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-      setInvoiceDate(null);
+      setSparePartsRows([{ sparepart_id: "", quantity: "" }]); // Clear for new form
+      setInvoiceDate(""); // Clear date for new form
       setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
     }
     setShowForm(true);
@@ -416,58 +423,90 @@ export default function PurchaseSparepartsPage() {
                 <th>Invoice Date</th>
                 <th>Invoice No</th>
                 <th>Purchase ID</th>
+                <th>Sparepart Name</th>
+                <th>Quantity</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {loading && spareparts.length === 0 ? ( // Only show loading spinner if no data fetched yet
                 <tr>
-                  <td colSpan="6" className="text-center py-4">
+                  <td colSpan="8" className="text-center py-4">
                     <Spinner animation="border" />
                   </td>
                 </tr>
               ) : spareparts.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-4 text-muted">
+                  <td colSpan="8" className="text-center py-4 text-muted">
                     No purchases found.
                   </td>
                 </tr>
               ) : (
-                spareparts.map((purchase, index) => (
-                  <tr key={purchase.id}>
-                    <td style={{ textAlign: "center" }}>{index + 1}</td>
-                    <td>
-                      {(() => {
-                        const vendor = vendors.find((v) => String(v.id) === String(purchase.vendor_id));
-                        return vendor
-                          ? `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim()
-                          : purchase.vendor_id;
-                      })()}
-                    </td>
-                    <td>{new Date(purchase.invoice_date).toLocaleDateString("en-GB")}</td>
-                    <td>{purchase.invoice_no}</td>
-                    <td>{purchase.id}</td>
-                    <td>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-1"
-                        onClick={() => handleShowForm(purchase)}
-                      >
-                        <i className="bi bi-pencil-square me-1"></i>
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(purchase.id)}
-                      >
-                        <i className="bi bi-trash me-1"></i>
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
-                ))
+                spareparts.map((purchase, index) => {
+                  const items = purchase.items || [];
+                  return (
+                    <tr key={purchase.id}>
+                      <td style={{ textAlign: "center" }}>{index + 1}</td>
+                      <td>
+                        {(() => {
+                          const vendor = vendors.find((v) => String(v.id) === String(purchase.vendor_id));
+                          return vendor
+                            ? `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim()
+                            : `ID: ${purchase.vendor_id}`; // Fallback for missing vendor data
+                        })()}
+                      </td>
+                      <td>{new Date(purchase.invoice_date).toLocaleDateString("en-GB")}</td>
+                      <td>{purchase.invoice_no}</td>
+                      <td>{purchase.id}</td>
+                      <td>
+                        {items.length === 0
+                          ? <span className="text-muted">No items</span>
+                          : (
+                            <ul style={{ paddingLeft: 18, marginBottom: 0 }}>
+                              {items.map((item, idx) => {
+                                const sp = availableSpareparts.find(sp => String(sp.id) === String(item.sparepart_id));
+                                return (
+                                  <li key={idx}>
+                                    {sp ? sp.name : `ID: ${item.sparepart_id}`} {/* Fallback for missing sparepart data */}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          )
+                        }
+                      </td>
+                      <td>
+                        {items.length === 0
+                          ? <span className="text-muted">-</span>
+                          : (
+                            <ul style={{ paddingLeft: 18, marginBottom: 0 }}>
+                              {items.map((item, idx) => (
+                                <li key={idx}>{item.quantity}</li>
+                              ))}
+                            </ul>
+                          )
+                        }
+                      </td>
+                      <td>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="me-1"
+                          onClick={() => handleShowForm(purchase)}
+                        >
+                          <i className="bi bi-pencil-square me-1"></i>
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDelete(purchase.id)}
+                        >
+                          <i className="bi bi-trash me-1"></i>
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -499,11 +538,8 @@ export default function PurchaseSparepartsPage() {
               setShowForm(false);
               setEditingPurchase(null);
               setFormErrors({});
-              setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-              setInvoiceDate(null);
-              if (datePickerRef.current?._flatpickr) {
-                datePickerRef.current._flatpickr.clear();
-              }
+              setSparePartsRows([{ sparepart_id: "", quantity: "" }]); // Reset to one empty row
+              setInvoiceDate(""); // Clear date for new form
               setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
             }}
             style={{
@@ -591,27 +627,14 @@ export default function PurchaseSparepartsPage() {
               <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Invoice Date <span className="text-danger">*</span></Form.Label>
               <div style={{ position: "relative" }}>
                 <Form.Control
-                  ref={datePickerRef}
+                  type="date" // Changed type to "date"
+                  ref={dateInputRef} // Using the renamed ref
                   placeholder="DD/MM/YY"
                   required
+                  value={invoiceDate} // Bind value to invoiceDate state
+                  onChange={handleDateChange} // Handle date change separately
                   style={getBlueBorderStyles(invoiceDate, !!formErrors.invoice_date)}
                   isInvalid={!!formErrors.invoice_date}
-                />
-                <img
-                  src="https://placehold.co/22x27/E0E0E0/333333?text=Cal"
-                  alt="calendar"
-                  onClick={handleIconClick}
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: "22px",
-                    height: "27px",
-                    cursor: "pointer",
-                    filter:
-                      "invert(47%) sepia(9%) saturate(295%) hue-rotate(102deg) brightness(92%) contrast(91%)",
-                  }}
                 />
                 <Form.Control.Feedback type="invalid" className="d-block mt-0">
                   {formErrors.invoice_date}
@@ -660,78 +683,79 @@ export default function PurchaseSparepartsPage() {
                   <thead>
                     <tr style={{ backgroundColor: "#E9ECEF", height: "40px", color: "#393C3A" }}>
                       <th style={{ width: "50%", border: "1px solid #D3DBD5" }}>Sparepart Name <span className="text-danger">*</span></th>
-                      <th style={{ width: "50%", border: "1px solid #D3DBD5" }}>Quantity <span className="text-danger">*</span></th>
-                      <th style={{ width: "auto", border: "1px solid #D3DBD5", textAlign: "center", width: "50px" }}></th>
+                      <th style={{ width: "auto", border: "1px solid #D3DBD5" }}>Quantity <span className="text-danger">*</span></th>
+                      <th style={{ width: "50px", border: "1px solid #D3DBD5", textAlign: "center" }}></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sparePartsRows.map((row, index) => (
-                      <tr key={index} style={{ height: "52px" }}>
-                        <td style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>
-                          <Form.Select
-                            className="shadow-none"
-                            name={`sparepart-${index}`}
-                            required
-                            style={{ ...customSelectStyle, ...getTableInputStyles(row.sparepart_id, !!formErrors[`sparepart-${index}`]) }}
-                            value={row.sparepart_id}
-                            onChange={(e) => handleRowChange(index, "sparepart_id", e.target.value)}
-                            isInvalid={!!formErrors[`sparepart-${index}`]}
-                          >
-                            <option value="">Select Spare part</option>
-                            {availableSpareparts.map((sparepart) => (
-                              <option key={sparepart.id} value={sparepart.id}>
-                                {sparepart.name}
-                              </option>
-                            ))}
-                          </Form.Select>
-                          <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                            {formErrors[`sparepart-${index}`]}
-                          </Form.Control.Feedback>
-                        </td>
-                        <td style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>
-                          <Form.Control
-                            type="number"
-                            name={`quantity-${index}`}
-                            placeholder="Qty"
-                            required
-                            min="1"
-                            value={row.quantity}
-                            onChange={(e) => handleRowChange(index, "quantity", e.target.value)}
-                            style={getTableInputStyles(row.quantity, !!formErrors[`quantity-${index}`])}
-                            isInvalid={!!formErrors[`quantity-${index}`]}
-                          />
-                          <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                            {formErrors[`quantity-${index}`]}
-                          </Form.Control.Feedback>
-                        </td>
-                        <td style={{ border: "1px solid #D3DBD5", textAlign: "center", width: "50px" }}>
-                          {sparePartsRows.length > 1 && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={() => handleRemoveRow(index)}
-                              className="text-danger p-0"
-                              style={{
-                                backgroundColor: "#FFEBEBC9",
-                                color: "#DF5555",
-                                borderRadius: "50%",
-                                width: "32px",
-                                height: "32px",
-                                fontSize: "20px",
-                                lineHeight: "1",
-                                textAlign: "center",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center"
-                              }}
+                    {sparePartsRows.length > 0 ? (
+                      sparePartsRows.map((row, index) => (
+                        <tr key={index} style={{ height: "52px" }}>
+                          <td style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>
+                            <Form.Select
+                              className="shadow-none"
+                              name={`sparepart-${index}`}
+                              required
+                              style={{ ...customSelectStyle, ...getTableInputStyles(row.sparepart_id, !!formErrors[`sparepart-${index}`]) }}
+                              value={row.sparepart_id}
+                              onChange={(e) => handleRowChange(index, "sparepart_id", e.target.value)}
+                              isInvalid={!!formErrors[`sparepart-${index}`]}
                             >
-                              &minus;
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                    {sparePartsRows.length === 0 && (
+                              <option value="">Select Spare part</option>
+                              {availableSpareparts.map((sparepart) => (
+                                <option key={sparepart.id} value={sparepart.id}>
+                                  {sparepart.name}
+                                </option>
+                              ))}
+                            </Form.Select>
+                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                              {formErrors[`sparepart-${index}`]}
+                            </Form.Control.Feedback>
+                          </td>
+                          <td style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>
+                            <Form.Control
+                              type="number"
+                              name={`quantity-${index}`}
+                              placeholder="Qty"
+                              required
+                              min="1"
+                              value={row.quantity}
+                              onChange={(e) => handleRowChange(index, "quantity", e.target.value)}
+                              style={getTableInputStyles(row.quantity, !!formErrors[`quantity-${index}`])}
+                              isInvalid={!!formErrors[`quantity-${index}`]}
+                            />
+                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                              {formErrors[`quantity-${index}`]}
+                            </Form.Control.Feedback>
+                          </td>
+                          <td style={{ border: "1px solid #D3DBD5", textAlign: "center", width: "50px" }}>
+                            {sparePartsRows.length > 1 && (
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => handleRemoveRow(index)}
+                                className="text-danger p-0"
+                                style={{
+                                  backgroundColor: "#FFEBEBC9",
+                                  color: "#DF5555",
+                                  borderRadius: "50%",
+                                  width: "32px",
+                                  height: "32px",
+                                  fontSize: "20px",
+                                  lineHeight: "1",
+                                  textAlign: "center",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center"
+                                }}
+                              >
+                                &minus;
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
                       <tr>
                         <td colSpan="3" className="text-center text-muted py-3">
                           No spare parts added yet.
@@ -747,24 +771,7 @@ export default function PurchaseSparepartsPage() {
             </div>
           </div>
           <div className="d-flex justify-content-end mt-4">
-            <Button
-              variant="light"
-              className="me-2"
-              onClick={() => {
-                setShowForm(false);
-                setEditingPurchase(null);
-                setFormErrors({});
-                setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-                setInvoiceDate(null);
-                if (datePickerRef.current?._flatpickr) {
-                  datePickerRef.current._flatpickr.clear();
-                }
-                setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
-              }}
-            >
-              Cancel
-            </Button>
-            <Button variant="success" type="submit" style={{ width: "179px", height: "50px", borderRadius: "6px" }}>
+            <Button variant="success" type="submit" style={{ width: "179px", height: "50px", borderRadius: "6px", bottom: "90px" }}>
               {editingPurchase ? "Update Purchase" : "Save"}
             </Button>
           </div>

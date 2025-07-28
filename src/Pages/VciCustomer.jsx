@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button, Form, Spinner } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -18,11 +18,6 @@ export default function VciCustomer() {
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [errors, setErrors] = useState({});
-    const [selectedCustomer, setSelectedCustomer] = useState(null);
-
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
-
     const tableRef = useRef(null);
 
     function initialForm() {
@@ -46,9 +41,9 @@ export default function VciCustomer() {
     }
 
     useEffect(() => {
-        if (localStorage.getItem("vci_customer_refresh") === "true") {
+        if (localStorage.getItem("customer_refresh") === "true") {
             fetchCustomers();
-            localStorage.removeItem("vci_customer_refresh");
+            localStorage.removeItem("customer_refresh");
         }
     }, []);
 
@@ -79,9 +74,8 @@ export default function VciCustomer() {
             .get("/api/customers")
             .then((res) => {
                 setCustomers(res.data.data || res.data);
-                setCurrentPage(1);
             })
-            .catch((err) => {
+            .catch(() => {
                 toast.error("Failed to fetch customers.", { autoClose: 3000 });
             })
             .finally(() => {
@@ -90,30 +84,19 @@ export default function VciCustomer() {
     };
 
     const fetchStates = () => {
-        axios
-            .get("/api/states")
-            .then((res) => {
-                setStates(res.data);
-            })
-            .catch((err) => {
-                toast.error("Failed to fetch states.", { autoClose: 3000 });
-            });
+        axios.get("/api/states")
+            .then((res) => setStates(res.data))
+            .catch(() => toast.error("Failed to fetch states.", { autoClose: 3000 }));
     };
 
     const fetchDistricts = () => {
-        axios
-            .get("/api/districts")
-            .then((res) => {
-                setDistricts(res.data);
-            })
-            .catch((err) => {
-                toast.error("Failed to fetch districts.", { autoClose: 3000 });
-            });
+        axios.get("/api/districts")
+            .then((res) => setDistricts(res.data))
+            .catch(() => toast.error("Failed to fetch districts.", { autoClose: 3000 }));
     };
 
     const handleChange = (e, selectName = null) => {
-        let name;
-        let value;
+        let name, value;
         if (selectName) {
             name = selectName;
             value = e ? e.value : "";
@@ -122,13 +105,7 @@ export default function VciCustomer() {
             value = e.target.value;
         }
         setFormData((prev) => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: "" }));
-        }
-    };
-
-    const handleCustomerSelectChange = (selectedOption) => {
-        setSelectedCustomer(selectedOption);
+        if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
     const validateForm = () => {
@@ -166,10 +143,10 @@ export default function VciCustomer() {
             company_name: formData.company_name,
             address: formData.address,
             city: formData.city,
-            states_id: formData.state,
-            districts_id: formData.district,
+            state_id: formData.state,
+            district_id: formData.district,
             pincode: formData.pincode,
-            gst_no: formData.gst,
+            gst_no: formData.gst, // Corrected to match backend expectation if any
             date_of_birth: formData.dob,
         };
         const request = isEditing
@@ -178,7 +155,7 @@ export default function VciCustomer() {
 
         request
             .then(() => {
-                localStorage.setItem("vci_customer_refresh", "true");
+                localStorage.setItem("customer_refresh", "true");
                 window.location.reload();
             })
             .catch((err) => {
@@ -208,23 +185,48 @@ export default function VciCustomer() {
             });
     };
 
-    const errorStyle = {
-        color: "#dc3545",
-        fontSize: "13px",
-        marginTop: "4px",
+    // Function to handle PDF download
+    const handleDownloadPdf = async () => {
+        try {
+            const response = await axios.get("/api/pdf", {
+                responseType: "blob", // Important: tells Axios to expect a binary response
+            });
+
+            if (response.status === 200 && response.data) {
+                const blob = new Blob([response.data], { type: response.headers['content-type'] || "application/pdf" });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.setAttribute("download", "customers.pdf");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                toast.success("PDF downloaded successfully.", { autoClose: 2000 });
+            } else {
+                toast.error("No PDF data received from server.", { autoClose: 3000 });
+            }
+        } catch (error) {
+            console.error("PDF download error:", error);
+            toast.error("Failed to download PDF. Please check your network or contact support.", { autoClose: 3000 });
+        }
     };
 
-    const getInputStyle = (fieldName) => ({
-        width: "270px",
-        height: "50px",
-        fontFamily: "Product Sans, sans-serif",
-        fontWeight: 400,
-        fontSize: "16px",
-        borderRadius: "4px",
-        border: `1px solid ${errors[fieldName] ? "#dc3545" : "#D3DBD5"}`,
-        backgroundColor: "#FFFFFF",
-        color: "#212529",
-    });
+    const stateOptions = states.map(state => ({
+        value: String(state.id),
+        label: state.states || state.name,
+    }));
+
+    const districtOptions = districts.map(district => ({
+        value: String(district.id),
+        label: district.districts || district.name,
+    }));
+
+    const genderOptions = [
+        { value: "Male", label: "Male" },
+        { value: "Female", label: "Female" },
+        { value: "Other", label: "Other" },
+    ];
 
     const handleEdit = (customer) => {
         setFormData({
@@ -238,8 +240,9 @@ export default function VciCustomer() {
             company_name: customer.company_name || "",
             address: customer.address || "",
             city: customer.city || "",
-            state: customer.states_id || "",
-            district: customer.districts_id || "",
+            // Make sure these are always strings:
+            state: customer.state_id ? String(customer.state_id) : "",
+            district: customer.district_id ? String(customer.district_id) : "",
             pincode: customer.pincode || "",
             gst: customer.gst_no || "",
             dob: customer.date_of_birth || "",
@@ -263,27 +266,29 @@ export default function VciCustomer() {
         setErrors({});
     };
 
-    const customerOptions = customers.map(customer => ({
-        value: customer.id,
-        label: `${customer.first_name} ${customer.last_name}`,
-        company: customer.company_name,
-    }));
+    const errorStyle = {
+        color: "#dc3545",
+        fontSize: "13px",
+        marginTop: "4px",
+    };
 
-    const genderOptions = [
-        { value: "Male", label: "Male" },
-        { value: "Female", label: "Female" },
-        { value: "Other", label: "Other" },
-    ];
+    const getInputStyle = (fieldName) => ({
+        width: "270px",
+        height: "50px",
+        fontFamily: "Product Sans, sans-serif",
+        fontWeight: 400,
+        fontSize: "16px",
+        borderRadius: "4px",
+        border: `1px solid ${errors[fieldName] ? "#dc3545" : "#D3DBD5"}`,
+        backgroundColor: "#FFFFFF",
+        color: "#212529",
+    });
 
-    const stateOptions = states.map(state => ({
-        value: state.id,
-        label: state.states,
-    }));
-
-    const districtOptions = districts.map(district => ({
-        value: district.id,
-        label: district.districts,
-    }));
+    const SimpleOption = ({ innerProps, label }) => (
+        <div {...innerProps} className="simple-option">
+            {label}
+        </div>
+    );
 
     const customSelectStyles = {
         control: (provided, state) => ({
@@ -351,24 +356,6 @@ export default function VciCustomer() {
         }),
     };
 
-    const CustomerOption = ({ innerProps, label, data }) => (
-        <div {...innerProps} className="customer-option">
-            <div className="customer-avatar">
-                {label.charAt(0).toUpperCase()}
-            </div>
-            <div className="customer-info">
-                <div className="customer-name">{label}</div>
-                <div className="customer-company">{data.company}</div>
-            </div>
-        </div>
-    );
-
-    const SimpleOption = ({ innerProps, label }) => (
-        <div {...innerProps} className="simple-option">
-            {label}
-        </div>
-    );
-
     return (
         <div className="vh-80 d-flex flex-column position-relative bg-light">
             <ToastContainer
@@ -386,33 +373,16 @@ export default function VciCustomer() {
             <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
                 <h5 className="mb-0 fw-bold">Customers ({customers.length})</h5>
                 <div>
-                    <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        className="me-2"
-                        onClick={fetchCustomers}
-                    >
+                    <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchCustomers}>
                         <i className="bi bi-arrow-clockwise"></i>
+                    </Button>
+                    <Button variant="info" size="sm" className="me-2" onClick={handleDownloadPdf}>
+                        <i className="bi bi-file-earmark-pdf me-1"></i> Download PDF
                     </Button>
                     <Button variant="success" size="sm" onClick={openForm}>
                         + Add New
                     </Button>
                 </div>
-            </div>
-
-            <div className="px-4 py-3 bg-white border-bottom">
-                <Form.Group controlId="selectCustomerDropdown" style={{ width: "325px" }}>
-                    <Select
-                        value={customerOptions.find(option => option.value === selectedCustomer?.value)}
-                        onChange={handleCustomerSelectChange}
-                        options={customerOptions}
-                        placeholder="Select Customer"
-                        isClearable={true}
-                        styles={customSelectStyles}
-                        components={{ Option: CustomerOption }}
-                        name="selectedCustomer"
-                    />
-                </Form.Group>
             </div>
 
             <div className="flex-grow-1 overflow-auto px-4 py-3">
@@ -502,7 +472,7 @@ export default function VciCustomer() {
                             letterSpacing: "0",
                         }}
                     >
-                        {isEditing ? "Edit customer" : "Add New Customer"}
+                        {isEditing ? "Edit Customer" : "Add New Customer"}
                     </h5>
                     <button
                         onClick={closeForm}
@@ -539,314 +509,250 @@ export default function VciCustomer() {
                     Personal Information
                 </h6>
                 <hr className="mt-1 mb-2" />
-                <div className="row gx-4 personal-form">
-                    <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                                color: "#393C3AE5",
-                                width: "325px",
-                                fontFamily: "Product Sans, sans-serif",
-                                fontWeight: 400,
-                            }}
-                        >
-                            First Name
-                        </Form.Label>
-                        <Form.Control
-                            className="custom-placeholder"
-                            name="first_name"
-                            value={formData.first_name}
-                            onChange={handleChange}
-                            placeholder="Enter Customer First Name"
-                            size="sm"
-                            isInvalid={!!errors.first_name}
-                            style={getInputStyle("first_name")}
-                        />
-                        <Form.Control.Feedback type="invalid" style={errorStyle}>
-                            {errors.first_name}
-                        </Form.Control.Feedback>
-                    </div>
-
-                    <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                                color: "#393C3AE5",
-                                width: "325px",
-                                fontFamily: "Product Sans, sans-serif",
-                                fontWeight: 400,
-                            }}
-                        >
-                            Last Name
-                        </Form.Label>
-                        <Form.Control
-                            className="custom-placeholder"
-                            name="last_name"
-                            value={formData.last_name}
-                            onChange={handleChange}
-                            placeholder="Enter Customer Last Name"
-                            size="sm"
-                            isInvalid={!!errors.last_name}
-                            style={getInputStyle("last_name")}
-                        />
-                        <Form.Control.Feedback type="invalid" style={errorStyle}>
-                            {errors.last_name}
-                        </Form.Control.Feedback>
-                    </div>
-
-                    <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                                color: "#393C3AE5",
-                                width: "325px",
-                                fontFamily: "Product Sans, sans-serif",
-                                fontWeight: 400,
-                            }}
-                        >
-                            Gender
-                        </Form.Label>
-                        <Select
-                            name="gender"
-                            value={genderOptions.find(option => option.value === formData.gender)}
-                            onChange={(selectedOption) => handleChange(selectedOption, "gender")}
-                            options={genderOptions}
-                            placeholder="Select Gender"
-                            isClearable={true}
-                            styles={customSelectStyles}
-                            components={{ Option: SimpleOption }}
-                            classNamePrefix="react-select"
-                        />
-                        {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
-                    </div>
-
-                    <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                                color: "#393C3AE5",
-                                width: "325px",
-                                fontFamily: "Product Sans, sans-serif",
-                                fontWeight: 400,
-                            }}
-                        >
-                            Date of Birth
-                        </Form.Label>
-                        <Form.Control
-                            className="custom-placeholder"
-                            type="date"
-                            name="dob"
-                            value={formData.dob}
-                            onChange={handleChange}
-                            size="sm"
-                            isInvalid={!!errors.dob}
-                            style={getInputStyle("dob")}
-                        />
-                        <Form.Control.Feedback type="invalid" style={errorStyle}>
-                            {errors.dob}
-                        </Form.Control.Feedback>
-                    </div>
-
-                    <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                                color: "#393C3AE5",
-                                width: "325px",
-                                fontFamily: "Product Sans, sans-serif",
-                                fontWeight: 400,
-                            }}
-                        >
-                            Mobile No.
-                        </Form.Label>
-                        <Form.Control
-                            className="custom-placeholder"
-                            name="mobile"
-                            value={formData.mobile}
-                            onChange={handleChange}
-                            placeholder="Enter Mobile No."
-                            size="sm"
-                            isInvalid={!!errors.mobile}
-                            style={getInputStyle("mobile")}
-                        />
-                        <Form.Control.Feedback type="invalid" style={errorStyle}>
-                            {errors.mobile}
-                        </Form.Control.Feedback>
-                    </div>
-
-                    <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                                color: "#393C3AE5",
-                                width: "325px",
-                                fontFamily: "Product Sans, sans-serif",
-                                fontWeight: 400,
-                            }}
-                        >
-                            Alternative Mobile
-                        </Form.Label>
-                        <Form.Control
-                            className="custom-placeholder"
-                            name="altMobile"
-                            value={formData.altMobile}
-                            onChange={handleChange}
-                            placeholder="Enter Alternative Mobile No."
-                            size="sm"
-                            isInvalid={!!errors.altMobile}
-                            style={getInputStyle("altMobile")}
-                        />
-                        <Form.Control.Feedback type="invalid" style={errorStyle}>
-                            {errors.altMobile}
-                        </Form.Control.Feedback>
-                    </div>
-
-                    <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                                color: "#393C3AE5",
-                                width: "325px",
-                                fontFamily: "Product Sans, sans-serif",
-                                fontWeight: 400,
-                            }}
-                        >
-                            Email
-                        </Form.Label>
-                        <Form.Control
-                            className="custom-placeholder"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            placeholder="Enter Email"
-                            size="sm"
-                            isInvalid={!!errors.email}
-                            style={getInputStyle("email")}
-                        />
-                        <Form.Control.Feedback type="invalid" style={errorStyle}>
-                            {errors.email}
-                        </Form.Control.Feedback>
-                    </div>
-                </div>
-
-                <h6
-                    className="fw-bold mb-1 mt-2"
-                    style={{
-                        fontFamily: "Product Sans, sans-serif",
-                        fontWeight: 700,
-                        fontSize: "20px",
-                        color: "#141414",
-                        lineHeight: "1",
-                        letterSpacing: "0",
-                    }}
-                >
-                    Other Information
-                </h6>
-                <hr className="mt-1 mb-2" />
-
-                <div className="row gx-4">
-                    {[
-                        { name: "company_name", label: "Company Name", placeholder: "Enter Company Name" },
-                        { name: "address", label: "Address", placeholder: "Enter Address" },
-                        { name: "city", label: "City", placeholder: "Enter City" },
-                        { name: "pincode", label: "Pincode", placeholder: "Enter Pincode" },
-                        { name: "gst", label: "GST No.", placeholder: "Enter GST Number" },
-                    ].map(({ name, label, placeholder }) => (
-                        <div className="col-6 mb-2" key={name}>
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                {label}
-                            </Form.Label>
+                <form onSubmit={handleSubmit}>
+                    <div className="row gx-4 personal-form">
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>First Name</Form.Label>
                             <Form.Control
-                                name={name}
-                                value={formData[name]}
+                                className="custom-placeholder"
+                                name="first_name"
+                                value={formData.first_name}
                                 onChange={handleChange}
-                                placeholder={placeholder}
+                                placeholder="Enter Customer First Name"
                                 size="sm"
-                                isInvalid={!!errors[name]}
-                                style={getInputStyle(name)}
+                                isInvalid={!!errors.first_name}
+                                style={getInputStyle("first_name")}
                             />
                             <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors[name]}
+                                {errors.first_name}
                             </Form.Control.Feedback>
                         </div>
-                    ))}
-
-                    <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                                color: "#393C3AE5",
-                                width: "325px",
-                                fontFamily: "Product Sans, sans-serif",
-                                fontWeight: 400,
-                            }}
-                        >
-                            State
-                        </Form.Label>
-                        <Select
-                            name="state"
-                            value={stateOptions.find(option => option.value === formData.state)}
-                            onChange={(selectedOption) => handleChange(selectedOption, "state")}
-                            options={stateOptions}
-                            placeholder="Select State"
-                            isClearable={true}
-                            styles={customSelectStyles}
-                            components={{ Option: SimpleOption }}
-                            classNamePrefix="react-select"
-                        />
-                        {errors.state && <div style={errorStyle}>{errors.state}</div>}
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Last Name</Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="last_name"
+                                value={formData.last_name}
+                                onChange={handleChange}
+                                placeholder="Enter Customer Last Name"
+                                size="sm"
+                                isInvalid={!!errors.last_name}
+                                style={getInputStyle("last_name")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.last_name}
+                            </Form.Control.Feedback>
+                        </div>
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Gender</Form.Label>
+                            <Select
+                                name="gender"
+                                value={genderOptions.find(option => option.value === formData.gender) || null}
+                                onChange={(selectedOption) => handleChange(selectedOption, "gender")}
+                                options={genderOptions}
+                                placeholder="Select Gender"
+                                isClearable={true}
+                                styles={customSelectStyles}
+                                components={{ Option: SimpleOption }}
+                                classNamePrefix="react-select"
+                            />
+                            {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
+                        </div>
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Date of Birth</Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                type="date"
+                                name="dob"
+                                value={formData.dob}
+                                onChange={handleChange}
+                                size="sm"
+                                isInvalid={!!errors.dob}
+                                style={getInputStyle("dob")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.dob}
+                            </Form.Control.Feedback>
+                        </div>
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Mobile No.</Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="mobile"
+                                value={formData.mobile}
+                                onChange={handleChange}
+                                placeholder="Enter Mobile No."
+                                size="sm"
+                                isInvalid={!!errors.mobile}
+                                style={getInputStyle("mobile")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.mobile}
+                            </Form.Control.Feedback>
+                        </div>
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Alternative Mobile</Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="altMobile"
+                                value={formData.altMobile}
+                                onChange={handleChange}
+                                placeholder="Enter Alternative Mobile No."
+                                size="sm"
+                                isInvalid={!!errors.altMobile}
+                                style={getInputStyle("altMobile")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.altMobile}
+                            </Form.Control.Feedback>
+                        </div>
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Email</Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="Enter Email"
+                                size="sm"
+                                isInvalid={!!errors.email}
+                                style={getInputStyle("email")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.email}
+                            </Form.Control.Feedback>
+                        </div>
                     </div>
-
-                    <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                                color: "#393C3AE5",
-                                width: "325px",
-                                fontFamily: "Product Sans, sans-serif",
-                                fontWeight: 400,
-                            }}
-                        >
-                            District
-                        </Form.Label>
-                        <Select
-                            name="district"
-                            value={districtOptions.find(option => option.value === formData.district)}
-                            onChange={(selectedOption) => handleChange(selectedOption, "district")}
-                            options={districtOptions}
-                            placeholder="Select District"
-                            isClearable={true}
-                            styles={customSelectStyles}
-                            components={{ Option: SimpleOption }}
-                            classNamePrefix="react-select"
-                        />
-                        {errors.district && <div style={errorStyle}>{errors.district}</div>}
-                    </div>
-                </div>
-
-                <div className="d-flex justify-content-end mt-4">
-                    <Button
-                        variant="success"
-                        onClick={handleSubmit}
+                    <h6
+                        className="fw-bold mb-1 mt-2"
                         style={{
-                            width: "179px",
-                            height: "50px",
-                            fontSize: "16px",
-                            borderRadius: "6px",
+                            fontFamily: "Product Sans, sans-serif",
+                            fontWeight: 700,
+                            fontSize: "20px",
+                            color: "#141414",
+                            lineHeight: "1",
+                            letterSpacing: "0",
                         }}
                     >
-                        {isEditing ? "Update Customer" : "Save"}
-                    </Button>
-                </div>
+                        Other Information
+                    </h6>
+                    <hr className="mt-1 mb-2" />
+                    <div className="row gx-4">
+                        {[
+                            { name: "company_name", label: "Company Name", placeholder: "Enter Company Name" },
+                            { name: "address", label: "Address", placeholder: "Enter Address" },
+                            { name: "city", label: "City", placeholder: "Enter City" },
+                            { name: "pincode", label: "Pincode", placeholder: "Enter Pincode" },
+                        ].map(({ name, label, placeholder }) => (
+                            <div className="col-6 mb-2" key={name}>
+                                <Form.Label className="mb-1" style={{
+                                    color: "#393C3AE5", width: "325px",
+                                    fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                                }}>{label}</Form.Label>
+                                <Form.Control
+                                    name={name}
+                                    value={formData[name]}
+                                    onChange={handleChange}
+                                    placeholder={placeholder}
+                                    size="sm"
+                                    isInvalid={!!errors[name]}
+                                    style={getInputStyle(name)}
+                                />
+                                <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                    {errors[name]}
+                                </Form.Control.Feedback>
+                            </div>
+                        ))}
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>State</Form.Label>
+                            <Select
+                                name="state"
+                                value={stateOptions.find(option => option.value === formData.state) || null}
+                                onChange={(selectedOption) => handleChange(selectedOption, "state")}
+                                options={stateOptions}
+                                placeholder="Select State"
+                                isClearable={true}
+                                styles={customSelectStyles}
+                                components={{ Option: SimpleOption }}
+                                classNamePrefix="react-select"
+                            />
+                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
+                        </div>
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>District</Form.Label>
+                            <Select
+                                name="district"
+                                value={districtOptions.find(option => option.value === formData.district) || null}
+                                onChange={(selectedOption) => handleChange(selectedOption, "district")}
+                                options={districtOptions}
+                                placeholder="Select District"
+                                isClearable={true}
+                                styles={customSelectStyles}
+                                components={{ Option: SimpleOption }}
+                                classNamePrefix="react-select"
+                            />
+                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
+                        </div>
+                    </div>
+                    <div className="d-flex justify-content-end mt-4">
+                        <Button
+                            variant="success"
+                            type="submit"
+                            style={{
+                                width: "179px",
+                                height: "50px",
+                                fontSize: "16px",
+                                borderRadius: "6px",
+                            }}
+                        >
+                            {isEditing ? "Update Customer" : "Save"}
+                        </Button>
+                    </div>
+                </form>
             </div>
+            <style>{`
+                .customer-form-slide {
+                    box-shadow: 0 0 24px rgba(0,0,0,0.08);
+                }
+                .custom-table th, .custom-table td {
+                    font-family: 'Product Sans', sans-serif;
+                    font-weight: 400;
+                    font-size: 16px;
+                    color: #212529;
+                }
+                .custom-placeholder::placeholder {
+                    font-family: 'Product Sans', sans-serif;
+                    font-weight: 400;
+                    color: #828282;
+                }
+            `}</style>
         </div>
     );
 }

@@ -73,9 +73,9 @@ export default function Vendor() {
             .then((res) => {
                 setVendors(res.data.data || res.data);
             })
-            .catch(() => {
-                toast.error("Failed to fetch vendors.", { autoClose: 3000 });
-            })
+            // .catch(() => {
+            //     toast.error("Failed to fetch vendors.", { autoClose: 3000 });
+            // })
             .finally(() => {
                 setLoading(false);
             });
@@ -151,7 +151,7 @@ export default function Vendor() {
             ? axios.put(`/api/vendors/${formData.id}`, payload)
             : axios.post("/api/vendors", payload);
 
-          request
+        request
             .then(() => {
                 localStorage.setItem("vendor_refresh", "true");
                 window.location.reload();
@@ -182,6 +182,24 @@ export default function Vendor() {
                 }
             });
     };
+
+    // --- FIXED: always use String for .value and for formData.state/formData.district ---
+    const stateOptions = states.map(state => ({
+        value: String(state.id),
+        label: state.states || state.name,
+    }));
+
+    const districtOptions = districts.map(district => ({
+        value: String(district.id),
+        label: district.districts || district.name,
+    }));
+
+    const genderOptions = [
+        { value: "Male", label: "Male" },
+        { value: "Female", label: "Female" },
+        { value: "Other", label: "Other" },
+    ];
+
     const handleEdit = (vendor) => {
         setFormData({
             id: vendor.id,
@@ -194,8 +212,9 @@ export default function Vendor() {
             company_name: vendor.company_name || "",
             address: vendor.address || "",
             city: vendor.city || "",
-            state: vendor.state_id || "",
-            district: vendor.district_id || "",
+            // Make sure these are always strings:
+            state: vendor.state_id ? String(vendor.state_id) : "",
+            district: vendor.district_id ? String(vendor.district_id) : "",
             pincode: vendor.pincode || "",
             gst: vendor.gst_no || "",
             dob: vendor.date_of_birth || "",
@@ -218,22 +237,6 @@ export default function Vendor() {
         setShowForm(false);
         setErrors({});
     };
-
-    const genderOptions = [
-        { value: "Male", label: "Male" },
-        { value: "Female", label: "Female" },
-        { value: "Other", label: "Other" },
-    ];
-
-    const stateOptions = states.map(state => ({
-        value: state.id,
-        label: state.states,
-    }));
-
-    const districtOptions = districts.map(district => ({
-        value: district.id,
-        label: district.districts,
-    }));
 
     const errorStyle = {
         color: "#dc3545",
@@ -478,17 +481,10 @@ export default function Vendor() {
                 <form onSubmit={handleSubmit}>
                     <div className="row gx-4 personal-form">
                         <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                First Name
-                            </Form.Label>
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>First Name</Form.Label>
                             <Form.Control
                                 className="custom-placeholder"
                                 name="first_name"
@@ -503,19 +499,11 @@ export default function Vendor() {
                                 {errors.first_name}
                             </Form.Control.Feedback>
                         </div>
-
                         <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                Last Name
-                            </Form.Label>
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Last Name</Form.Label>
                             <Form.Control
                                 className="custom-placeholder"
                                 name="last_name"
@@ -530,22 +518,14 @@ export default function Vendor() {
                                 {errors.last_name}
                             </Form.Control.Feedback>
                         </div>
-
                         <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                Gender
-                            </Form.Label>
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Gender</Form.Label>
                             <Select
                                 name="gender"
-                                value={genderOptions.find(option => option.value === formData.gender)}
+                                value={genderOptions.find(option => option.value === formData.gender) || null}
                                 onChange={(selectedOption) => handleChange(selectedOption, "gender")}
                                 options={genderOptions}
                                 placeholder="Select Gender"
@@ -556,19 +536,11 @@ export default function Vendor() {
                             />
                             {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
                         </div>
-
                         <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                Date of Birth
-                            </Form.Label>
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Date of Birth</Form.Label>
                             <Form.Control
                                 className="custom-placeholder"
                                 type="date"
@@ -583,19 +555,11 @@ export default function Vendor() {
                                 {errors.dob}
                             </Form.Control.Feedback>
                         </div>
-
                         <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                Mobile No.
-                            </Form.Label>
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Mobile No.</Form.Label>
                             <Form.Control
                                 className="custom-placeholder"
                                 name="mobile"
@@ -610,19 +574,11 @@ export default function Vendor() {
                                 {errors.mobile}
                             </Form.Control.Feedback>
                         </div>
-
                         <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                Alternative Mobile
-                            </Form.Label>
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Alternative Mobile</Form.Label>
                             <Form.Control
                                 className="custom-placeholder"
                                 name="altMobile"
@@ -637,19 +593,11 @@ export default function Vendor() {
                                 {errors.altMobile}
                             </Form.Control.Feedback>
                         </div>
-
                         <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                Email
-                            </Form.Label>
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Email</Form.Label>
                             <Form.Control
                                 className="custom-placeholder"
                                 name="email"
@@ -665,7 +613,6 @@ export default function Vendor() {
                             </Form.Control.Feedback>
                         </div>
                     </div>
-
                     <h6
                         className="fw-bold mb-1 mt-2"
                         style={{
@@ -680,7 +627,6 @@ export default function Vendor() {
                         Other Information
                     </h6>
                     <hr className="mt-1 mb-2" />
-
                     <div className="row gx-4">
                         {[
                             { name: "company_name", label: "Company Name", placeholder: "Enter Company Name" },
@@ -690,17 +636,10 @@ export default function Vendor() {
                             { name: "gst", label: "GST No.", placeholder: "Enter GST Number" },
                         ].map(({ name, label, placeholder }) => (
                             <div className="col-6 mb-2" key={name}>
-                                <Form.Label
-                                    className="mb-1"
-                                    style={{
-                                        color: "#393C3AE5",
-                                        width: "325px",
-                                        fontFamily: "Product Sans, sans-serif",
-                                        fontWeight: 400,
-                                    }}
-                                >
-                                    {label}
-                                </Form.Label>
+                                <Form.Label className="mb-1" style={{
+                                    color: "#393C3AE5", width: "325px",
+                                    fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                                }}>{label}</Form.Label>
                                 <Form.Control
                                     name={name}
                                     value={formData[name]}
@@ -715,22 +654,14 @@ export default function Vendor() {
                                 </Form.Control.Feedback>
                             </div>
                         ))}
-
                         <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                State
-                            </Form.Label>
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>State</Form.Label>
                             <Select
                                 name="state"
-                                value={stateOptions.find(option => option.value === formData.state)}
+                                value={stateOptions.find(option => option.value === formData.state) || null}
                                 onChange={(selectedOption) => handleChange(selectedOption, "state")}
                                 options={stateOptions}
                                 placeholder="Select State"
@@ -741,22 +672,14 @@ export default function Vendor() {
                             />
                             {errors.state && <div style={errorStyle}>{errors.state}</div>}
                         </div>
-
                         <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
-                            >
-                                District
-                            </Form.Label>
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>District</Form.Label>
                             <Select
                                 name="district"
-                                value={districtOptions.find(option => option.value === formData.district)}
+                                value={districtOptions.find(option => option.value === formData.district) || null}
                                 onChange={(selectedOption) => handleChange(selectedOption, "district")}
                                 options={districtOptions}
                                 placeholder="Select District"
@@ -768,7 +691,6 @@ export default function Vendor() {
                             {errors.district && <div style={errorStyle}>{errors.district}</div>}
                         </div>
                     </div>
-
                     <div className="d-flex justify-content-end mt-4">
                         <Button
                             variant="success"

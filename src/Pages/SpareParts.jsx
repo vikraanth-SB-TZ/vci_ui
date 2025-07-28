@@ -20,7 +20,7 @@ export default function App() {
   function initialFormState() {
     return {
       name: "",
-      quantityPerVCI: "",
+      quantity_per_vci: "",
       notes: "",
       quantity: "",
     };
@@ -28,22 +28,23 @@ export default function App() {
 
   useEffect(() => {
     fetchSpareparts();
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
-    // Destroy DataTable before re-initializing
     if ($.fn.DataTable.isDataTable(tableRef.current)) {
       $(tableRef.current).DataTable().destroy();
     }
-    // Initialize DataTable only if data is loaded and available
     if (!loading && spareparts.length > 0) {
-      $(tableRef.current).DataTable({
-        ordering: true,
-        paging: true,
-        searching: true,
-        lengthChange: true,
-        columnDefs: [{ targets: 0, className: "text-center" }],
-      });
+      setTimeout(() => {
+        $(tableRef.current).DataTable({
+          ordering: true,
+          paging: true,
+          searching: true,
+          lengthChange: true,
+          columnDefs: [{ targets: 0, className: "text-center" }],
+        });
+      }, 0);
     }
   }, [spareparts, loading]);
 
@@ -56,19 +57,11 @@ export default function App() {
       return fetchedData;
     } catch (error) {
       console.error("Error fetching spareparts:", error);
-      toast.error("Failed to fetch spare parts.");
+      if (showForm) toast.error("Failed to fetch spare parts.", { toastId: "fetch-fail" });
       return [];
     } finally {
       setLoading(false);
     }
-  };
-
-  // Refresh logic: disables button, shows spinner, reloads data
-  const handleRefresh = async () => {
-    setLoading(true);
-    await fetchSpareparts();
-    setLoading(false);
-    toast.success("Spare parts list refreshed!");
   };
 
   const handleChange = (e) => {
@@ -84,37 +77,45 @@ export default function App() {
     if (!formData.name.trim()) {
       newErrors.name = "Spare Part Name is required.";
     }
-    if (!formData.quantityPerVCI || isNaN(formData.quantityPerVCI) || parseInt(formData.quantityPerVCI, 10) <= 0) {
-      newErrors.quantityPerVCI = "Quantity per VCI must be a positive number.";
+    if (!formData.quantity_per_vci || isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) <= 0) {
+      newErrors.quantity_per_vci = "Quantity per VCI must be a positive number.";
     }
     if (!formData.quantity || isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0) {
       newErrors.quantity = "Current Quantity must be a non-negative number.";
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) {
-      toast.error("Please fill in all required fields correctly.");
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      toast.error("Please fill in all required fields correctly.", { toastId: "form-validation" });
       return;
     }
     const payload = {
       name: formData.name,
-      quantityPerVCI: parseInt(formData.quantityPerVCI, 10),
+      quantity_per_vci: parseInt(formData.quantity_per_vci, 10),
       notes: formData.notes,
       quantity: parseInt(formData.quantity, 10),
     };
     try {
       if (editingPart) {
         await axios.put(`http://localhost:8000/api/spareparts/${editingPart.id}`, payload);
+        setSpareparts((prev) =>
+          prev.map((part) =>
+            part.id === editingPart.id
+              ? { ...part, ...payload }
+              : part
+          )
+        );
       } else {
-        await axios.post("http://localhost:8000/api/spareparts", payload);
+        const res = await axios.post("http://localhost:8000/api/spareparts", payload);
+        setSpareparts((prev) => [...prev, res.data.data]);
       }
-      await fetchSpareparts();
-      closeForm(); // Close the form after successful submission
-      toast.success(`Spare part ${editingPart ? "updated" : "added"} successfully!`);
+      closeForm();
+      toast.success(`Spare part ${editingPart ? "updated" : "added"} successfully!`, { toastId: "save-success" });
     } catch (error) {
       console.error("Error saving sparepart:", error);
       if (error.response && error.response.data) {
@@ -125,20 +126,20 @@ export default function App() {
             const fieldErrors = backendErrors[field];
             if (Array.isArray(fieldErrors)) {
               newErrors[field] = fieldErrors[0];
-              fieldErrors.forEach(msg => toast.error(msg));
+              fieldErrors.forEach(msg => toast.error(msg, { toastId: `err-${field}-${msg}` }));
             } else {
               newErrors[field] = fieldErrors;
-              toast.error(fieldErrors);
+              toast.error(fieldErrors, { toastId: `err-${field}-${fieldErrors}` });
             }
           });
         } else if (message) {
-          toast.error(`Failed to save spare part: ${message}`);
+          toast.error(`Failed to save spare part: ${message}`, { toastId: "save-fail" });
         } else {
-          toast.error("Failed to save spare part. Please try again.");
+          toast.error("Failed to save spare part. Please try again.", { toastId: "save-fail2" });
         }
         setErrors(newErrors);
       } else {
-        toast.error("Failed to save spare part. Please check your network connection.");
+        toast.error("Failed to save spare part. Please check your network connection.", { toastId: "network-fail" });
       }
     }
   };
@@ -146,18 +147,36 @@ export default function App() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:8000/api/spareparts/${id}`);
-      setSpareparts(spareparts.filter((p) => p.id !== id));
-      toast.success("Spare part deleted successfully!");
-      // If the deleted part was being edited, close the form
+      // Remove the deleted part from the local state
+      setSpareparts((prev) => {
+        const updated = prev.filter((part) => part.id !== id);
+        // Re-initialize DataTable after state update
+        setTimeout(() => {
+          if ($.fn.DataTable.isDataTable(tableRef.current)) {
+            $(tableRef.current).DataTable().destroy();
+          }
+          if (updated.length > 0) {
+            $(tableRef.current).DataTable({
+              ordering: true,
+              paging: true,
+              searching: true,
+              lengthChange: true,
+              columnDefs: [{ targets: 0, className: "text-center" }],
+            });
+          }
+        }, 0);
+        return updated;
+      });
+      toast.success("Spare part deleted successfully!", { toastId: "delete-success" });
       if (editingPart && editingPart.id === id) {
         closeForm();
       }
     } catch (error) {
       console.error("Error deleting:", error);
       if (error.response && error.response.data && error.response.data.message) {
-        toast.error(`Failed to delete spare part: ${error.response.data.message}`);
+        toast.error(`Failed to delete spare part: ${error.response.data.message}`, { toastId: "delete-fail" });
       } else {
-        toast.error("Failed to delete spare part.");
+        toast.error("Failed to delete spare part.", { toastId: "delete-fail2" });
       }
     }
   };
@@ -166,7 +185,7 @@ export default function App() {
     setEditingPart(part);
     setFormData({
       name: part.name || "",
-      quantityPerVCI: part.quantityPerVCI || "",
+      quantity_per_vci: part.quantity_per_vci || "",
       notes: part.notes || "",
       quantity: part.quantity || "",
     });
@@ -223,12 +242,12 @@ export default function App() {
   const handleQuantityPerVCIBlur = async (e) => {
     const quantityToDeduct = parseInt(e.target.value, 10);
     if (!editingPart || isNaN(quantityToDeduct) || quantityToDeduct <= 0) return;
-    if (editingPart.quantityPerVCI === quantityToDeduct && formData.quantityPerVCI === String(quantityToDeduct)) {
+    if (editingPart.quantity_per_vci === quantityToDeduct && formData.quantity_per_vci === String(quantityToDeduct)) {
       return;
     }
     toast.info(`Attempting to deduct ${quantityToDeduct} from "${editingPart.name}"...`, {
       autoClose: 2000,
-      toastId: 'deductionInfo'
+      toastId: `deductionInfo-${editingPart.id}`
     });
     try {
       const used_on = new Date().toISOString().split("T")[0];
@@ -237,24 +256,28 @@ export default function App() {
         quantity_used: quantityToDeduct,
         used_on,
       });
-      toast.success(res.data.message || "Stock updated successfully!");
-      const latestSpareparts = await fetchSpareparts();
-      const updatedPartInList = latestSpareparts.find(p => p.id === editingPart.id);
-      if (updatedPartInList) {
-        setFormData(prev => ({
-          ...prev,
-          quantity: updatedPartInList.quantity
-        }));
-        setEditingPart(updatedPartInList);
-      } else {
-        console.warn("Updated part not found in fetched list after deduction.");
-      }
+      toast.success(res.data.message || "Stock updated successfully!", { toastId: `deduct-success-${editingPart.id}` });
+      setSpareparts((prev) =>
+        prev.map((part) =>
+          part.id === editingPart.id
+            ? { ...part, quantity: part.quantity - quantityToDeduct }
+            : part
+        )
+      );
+      setFormData(prev => ({
+        ...prev,
+        quantity: editingPart.quantity - quantityToDeduct
+      }));
+      setEditingPart(prev => ({
+        ...prev,
+        quantity: editingPart.quantity - quantityToDeduct
+      }));
     } catch (err) {
       console.error("Error using sparepart:", err);
       if (err.response && err.response.data && err.response.data.message) {
-        toast.error(err.response.data.message);
+        toast.error(err.response.data.message, { toastId: `deduct-fail-${editingPart.id}` });
       } else {
-        toast.error("Error using spare part.");
+        toast.error("Error using spare part.", { toastId: `deduct-fail2-${editingPart.id}` });
       }
     }
   };
@@ -262,251 +285,244 @@ export default function App() {
   const drawerClass = showForm ? "slide-in" : "slide-out";
 
   return (
-    <div className="vh-80 d-flex flex-column position-relative bg-light">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-      <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-        <h5 className="mb-0 fw-bold">Spare parts ({spareparts.length})</h5>
-        <div>
-          <Button
-            variant="outline-secondary"
-            size="sm"
-            className="me-2"
-            onClick={handleRefresh}
-            disabled={loading}
-          >
-            {loading ? (
-              <Spinner animation="border" size="sm" />
-            ) : (
-              <i className="bi bi-arrow-clockwise"></i>
-            )}
-          </Button>
-          <Button variant="success" size="sm" onClick={openForm}>
-            + Add New
-          </Button>
-        </div>
-      </div>
-      <div className="flex-grow-1 px-4 py-3" style={{ overflowX: "auto", overflowY: "auto" }}>
-        <div style={{ minWidth: "700px" }}>
-          <table ref={tableRef} className="table custom-table" style={{ minWidth: "700px", width: "100%" }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
-                <th style={{ width: "auto" }}>Spare Part Name</th>
-                <th style={{ width: "150px" }}>Current Qty</th>
-                <th style={{ width: "120px" }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="4" className="text-center py-4">
-                    <Spinner animation="border" />
-                  </td>
-                </tr>
-              ) : spareparts.length === 0 ? (
-                <tr>
-                  <td colSpan="4" className="text-center py-4 text-muted">
-                    No spare parts found.
-                  </td>
-                </tr>
-              ) : (
-                spareparts.map((part, index) => (
-                  <tr key={part.id}>
-                    <td style={{ textAlign: "center" }}>{index + 1}</td>
-                    <td style={{ wordBreak: "break-word" }}>{part.name}</td>
-                    <td>{part.quantity}</td>
-                    <td>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-1"
-                        onClick={() => handleEdit(part)}
-                      >
-                        <i className="bi bi-pencil-square me-1"></i>
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(part.id)}
-                      >
-                        <i className="bi bi-trash"></i>
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {showForm && (
-        <div className={drawerClass} style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          width: "600px",
-          height: "100vh",
-          backgroundColor: "#fff",
-          boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
-          zIndex: 2000,
-          padding: "30px",
-          overflowY: "auto",
-          borderLeft: "1px solid #dee2e6"
-        }}>
-          <div className="d-flex justify-content-between align-items-start mb-4">
-            <h5 className="fw-bold mb-0">{editingPart ? "Edit Spare Part" : "Add New Spare Part"}</h5>
-            <Button
-              variant="light"
-              onClick={closeForm}
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#DBDBDB73",
-                border: "none",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "24px",
-                fontWeight: "bold",
-                cursor: "pointer",
-                lineHeight: "1",
-                padding: 0
-              }}
-              tabIndex={0}
-            >
-              &times;
+    <>
+      <div className="vh-80 d-flex flex-column position-relative bg-light">
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+        <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
+          <h5 className="mb-0 fw-bold">Spare parts ({spareparts.length})</h5>
+          <div>
+            <Button variant="success" size="sm" onClick={openForm}>
+              + Add New
             </Button>
           </div>
-          <form onSubmit={handleFormSubmit}>
-            <div className="row">
-              <div className="mb-3 col-6">
-                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Spare Part Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="custom-placeholder"
-                  placeholder="Enter Name"
-                  isInvalid={!!errors.name}
-                  style={getInputStyle("name")}
-                />
-                <Form.Control.Feedback type="invalid" style={errorStyle}>
-                  {errors.name}
-                </Form.Control.Feedback>
-              </div>
-              <div className="mb-3 col-6">
-                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Quantity per VCI</Form.Label>
-                <Form.Control
-                  type="number"
-                  name="quantityPerVCI"
-                  value={formData.quantityPerVCI}
-                  onChange={handleChange}
-                  className="custom-placeholder"
-                  placeholder="Enter quantity per VCI"
-                  isInvalid={!!errors.quantityPerVCI}
-                  style={getInputStyle("quantityPerVCI")}
-                  onBlur={handleQuantityPerVCIBlur}
-                />
-                <Form.Control.Feedback type="invalid" style={errorStyle}>
-                  {errors.quantityPerVCI}
-                </Form.Control.Feedback>
-              </div>
-              <div className="mb-3 col-12">
-                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Notes</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleChange}
-                  className="custom-placeholder"
-                  rows="4"
-                  placeholder="Enter any notes"
-                  isInvalid={!!errors.notes}
-                  style={getTextAreaStyle("notes")}
-                />
-                <Form.Control.Feedback type="invalid" style={errorStyle}>
-                  {errors.notes}
-                </Form.Control.Feedback>
-              </div>
-              <div className="mb-3 col-6">
-                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                  {editingPart ? "Current Quantity" : "Opening Stock"}
-                </Form.Label>
-                <Form.Control
-                  type="number"
-                  name="quantity"
-                  value={formData.quantity}
-                  onChange={handleChange}
-                  className="custom-placeholder"
-                  placeholder={editingPart ? "Current Quantity" : "Enter Opening Quantity"}
-                  isInvalid={!!errors.quantity}
-                  style={getInputStyle("quantity")}
-                  readOnly={editingPart ? true : false}
-                />
-                <Form.Control.Feedback type="invalid" style={errorStyle}>
-                  {errors.quantity}
-                </Form.Control.Feedback>
-              </div>
-            </div>
-            <div style={{ position: "absolute", bottom: "20px", right: "30px" }}>
+        </div>
+        <div className="flex-grow-1 px-4 py-3" style={{ overflowX: "auto", overflowY: "auto" }}>
+          <div style={{ minWidth: "900px" }}>
+            <table ref={tableRef} className="table custom-table" style={{ minWidth: "900px", width: "100%" }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
+                  <th>Spare Part Name</th>
+                  <th style={{ width: "150px" }}>Current Qty</th>
+                  <th style={{ width: "150px" }}>Quantity per VCI</th>
+                  <th style={{ width: "250px" }}>Notes</th>
+                  <th style={{ width: "120px" }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4">
+                      <Spinner animation="border" />
+                    </td>
+                  </tr>
+                ) : spareparts.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4 text-muted">
+                      No spare parts found.
+                    </td>
+                  </tr>
+                ) : (
+                  spareparts.map((part, index) => (
+                    <tr key={part.id}>
+                      <td style={{ textAlign: "center" }}>{index + 1}</td>
+                      <td style={{ wordBreak: "break-word" }}>{part.name}</td>
+                      <td>{part.quantity}</td>
+                      <td>{part.quantity_per_vci}</td>
+                      <td>{part.notes || "-"}</td>
+                      <td>
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          className="me-1"
+                          onClick={() => handleEdit(part)}
+                        >
+                          <i className="bi bi-pencil-square me-1"></i>
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleDelete(part.id)}
+                        >
+                          <i className="bi bi-trash"></i>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {showForm && (
+          <div className={drawerClass} style={{
+            position: "fixed",
+            top: "63px",
+            right: 0,
+            width: "600px",
+            height: "100vh",
+            backgroundColor: "#fff",
+            boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
+            zIndex: 2000,
+            padding: "30px",
+            overflowY: "auto",
+            borderLeft: "1px solid #dee2e6"
+          }}>
+            <div className="d-flex justify-content-between align-items-start mb-4">
+              <h5 className="fw-bold mb-0">{editingPart ? "Edit Spare Part" : "Add New Spare Part"}</h5>
               <Button
-                type="submit"
-                variant="success"
-                style={{ width: "179px", height: "50px", borderRadius: "6px" }}
+                variant="light"
+                onClick={closeForm}
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  backgroundColor: "#DBDBDB73",
+                  border: "none",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "24px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  lineHeight: "1",
+                  padding: 0
+                }}
+                tabIndex={0}
               >
-                {editingPart ? "Update" : "Save"}
+                &times;
               </Button>
             </div>
-          </form>
-        </div>
-      )}
-      <style>{`
-        .slide-in {
-          position: fixed;
-          top: 0;
-          right: 0;
-          width: 600px;
-          height: 100vh;
-          transition: right 0.4s ease-in-out;
-          z-index: 2000;
-        }
-        .slide-out {
-          position: fixed;
-          top: 0;
-          right: -600px;
-          width: 600px;
-          height: 100vh;
-          transition: right 0.4s ease-in-out;
-          z-index: 2000;
-        }
-        .custom-table th, .custom-table td {
-          font-weight: 400;
-          font-size: 16px;
-          color: #212529;
-          white-space: normal;
-        }
-        .flex-grow-1 {
-          overflow-x: auto !important;
-        }
-        .custom-placeholder::placeholder {
-          font-family: 'Product Sans', sans-serif;
-          font-weight: 400;
-          color: #828282;
-        }
-        .form-control:focus {
-          border-color: #CED4DA !important;
-          box-shadow: none !important;
-        }
-        .form-control:valid {
-          border-color: #CED4DA !important;
-          box-shadow: none !important;
-        }
-        .form-control.is-invalid ~ .invalid-feedback {
-          display: block;
-        }
-      `}</style>
-    </div>
+            <form onSubmit={handleFormSubmit}>
+              <div className="row">
+                <div className="mb-3 col-6">
+                  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Spare Part Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="custom-placeholder"
+                    placeholder="Enter Name"
+                    isInvalid={!!errors.name}
+                    style={getInputStyle("name")}
+                  />
+                  <Form.Control.Feedback type="invalid" style={errorStyle}>
+                    {errors.name}
+                  </Form.Control.Feedback>
+                </div>
+                <div className="mb-3 col-6">
+                  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Quantity per VCI</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="quantity_per_vci"
+                    value={formData.quantity_per_vci}
+                    onChange={handleChange}
+                    className="custom-placeholder"
+                    placeholder="Enter quantity per VCI"
+                    isInvalid={!!errors.quantity_per_vci}
+                    style={getInputStyle("quantity_per_vci")}
+                    onBlur={handleQuantityPerVCIBlur}
+                  />
+                  <Form.Control.Feedback type="invalid" style={errorStyle}>
+                    {errors.quantity_per_vci}
+                  </Form.Control.Feedback>
+                </div>
+                <div className="mb-3 col-12">
+                  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Notes</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    className="custom-placeholder"
+                    rows="4"
+                    placeholder="Enter any notes"
+                    isInvalid={!!errors.notes}
+                    style={getTextAreaStyle("notes")}
+                  />
+                  <Form.Control.Feedback type="invalid" style={errorStyle}>
+                    {errors.notes}
+                  </Form.Control.Feedback>
+                </div>
+                <div className="mb-3 col-6">
+                  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
+                    {editingPart ? "Current Quantity" : "Opening Stock"}
+                  </Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="quantity"
+                    value={formData.quantity}
+                    onChange={handleChange}
+                    className="custom-placeholder"
+                    placeholder={editingPart ? "Current Quantity" : "Enter Opening Quantity"}
+                    isInvalid={!!errors.quantity}
+                    style={getInputStyle("quantity")}
+                    readOnly={editingPart ? true : false}
+                  />
+                  <Form.Control.Feedback type="invalid" style={errorStyle}>
+                    {errors.quantity}
+                  </Form.Control.Feedback>
+                </div>
+              </div>
+              <div style={{ position: "absolute", bottom: "90px", right: "30px" }}>
+                <Button
+                  type="submit"
+                  variant="success"
+                  style={{ width: "179px", height: "50px", borderRadius: "6px" }}
+                >
+                  {editingPart ? "Update" : "Save"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+        <style>{`
+          .slide-in {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 600px;
+            height: 100vh;
+            transition: right 0.4s ease-in-out;
+            z-index: 2000;
+          }
+          .slide-out {
+            position: fixed;
+            top: 0;
+            right: -600px;
+            width: 600px;
+            height: 100vh;
+            transition: right 0.4s ease-in-out;
+            z-index: 2000;
+          }
+          .custom-table th, .custom-table td {
+            font-weight: 400;
+            font-size: 16px;
+            color: #212529;
+            white-space: normal;
+          }
+          .flex-grow-1 {
+            overflow-x: auto !important;
+          }
+          .custom-placeholder::placeholder {
+            font-family: 'Product Sans', sans-serif;
+            font-weight: 400;
+            color: #828282;
+          }
+          .form-control:focus {
+            border-color: #CED4DA !important;
+            box-shadow: none !important;
+          }
+          .form-control:valid {
+            border-color: #CED4DA !important;
+            box-shadow: none !important;
+          }
+          .form-control.is-invalid ~ .invalid-feedback {
+            display: block;
+          }
+        `}</style>
+      </div>
+    </>
   );
 }
