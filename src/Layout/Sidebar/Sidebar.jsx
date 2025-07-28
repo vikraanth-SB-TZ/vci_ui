@@ -425,6 +425,46 @@ export default function Sidebar({ collapsed }) {
               </span>
             )}
           </a>
+
+          
+   <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleLinkClick("purchaseReturn");
+            }}
+            className={linkClass("purchaseReturn")}
+          >
+            <img
+              src={
+                isActive("purchaseReturn")
+                
+                  ? "/Purchase_Order_G.png"
+                  : "/Purchase Order 1.png"
+              }
+              alt="Purchase Order"
+              style={{
+                width: "18px",
+                filter: isActive("purchaseReturn")
+                  ? "none"
+                  : "brightness(0) invert(1)",
+              }}
+            />
+            {!collapsed && (
+              <span
+                style={{
+                  color: isActive("purchaseReturn") ? "#28a745" : "white",
+                }}
+              >
+                Purchase Return
+              </span>
+            )}
+          </a>
+
+
+
+
+
         </div>
 
         {/* Sales */}

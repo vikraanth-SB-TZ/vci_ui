@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // import SalesList from './Pages/SalesList';
 import LoginPage from './LoginPage';
 import AppLayout from './Layout/AppLayout';
-import BatchPage from './Pages/BatchPages';
+// import BatchPage from './Pages/BatchPages';
 import StatePage from './Pages/StatePage';
  
 import CountryPage from './pages/CountryPage';
@@ -21,6 +21,11 @@ import ViewSalePage from './Pages/ViewSalePage';
 import SaleReturnPage from './Pages/SaleReturnPage';
 import SaleInvoice from './Pages/SaleInvoice';
 // import PcbPurchaseList from './Pages/PcbPurchaseList';
+
+import EditPurchasePage from './Pages/EditPurchasePage';
+
+import PcbPurchaseReturn from './Pages/PcbPurchaseReturn';
+
 import Overview from './Pages/Overview/Overview';
  import SalesList from './Pages/SalesList';
 import SparepartsPage from "./Pages/SpareParts";
@@ -31,7 +36,7 @@ import Vendor from './Pages/Vendor';
 
 
  
-//  const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
+ const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
@@ -102,6 +107,10 @@ export default function App() {
  
           {/* <Route path="purchaseOrder" element={<PcbPurchaseList />} /> */}
           <Route path="overview" element={<Overview />} />
+
+          <Route path="/purchase/:id/edit" element={<EditPurchasePage />} />
+
+            <Route path="purchaseReturn" element={<PcbPurchaseReturn />} /> 
  
  
  
