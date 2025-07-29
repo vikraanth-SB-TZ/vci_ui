@@ -72,6 +72,15 @@ export default function BatchPage() {
       return;
     }
 
+    // --- Client-side duplicate check ---
+    const duplicate = batches.some(
+      (b) => b.batch.toLowerCase() === batchName.trim().toLowerCase() && b.id !== editingBatchId
+    );
+    if (duplicate) {
+      toast.error("Batch already exists!");
+      return;
+    }
+
     const payload = { batch: batchName.trim() };
 
     try {
@@ -91,8 +100,14 @@ export default function BatchPage() {
       handleModalClose();
     } catch (error) {
       if (error.response?.status === 422) {
-        const errors = error.response.data.errors;
-        Object.values(errors).forEach((msg) => toast.error(msg[0]));
+        if (error.response.data.message) {
+          toast.error(error.response.data.message); // custom message from backend
+        } else if (error.response.data.errors) {
+          const errors = error.response.data.errors;
+          Object.values(errors).forEach((msg) => toast.error(msg[0]));
+        } else {
+          toast.error("Validation failed!");
+        }
       } else {
         toast.error("Failed to save batch!");
       }
@@ -185,9 +200,7 @@ export default function BatchPage() {
       <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
         <Modal.Body className="p-4">
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-semibold mb-0">
-              {editingBatchId ? "Edit Batch" : "Add New Batch"}
-            </h5>
+            <h5 className="fw-semibold mb-0">{editingBatchId ? "Edit Batch" : "Add New Batch"}</h5>
             <Button
               variant="outline-secondary"
               onClick={handleModalClose}

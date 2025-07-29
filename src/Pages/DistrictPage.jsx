@@ -42,9 +42,9 @@ export default function DistrictPage() {
   const fetchCountries = async () => {
     try {
       const res = await axios.get(`${apiBase}/countries`);
-      setCountries(res.data);
+      setCountries(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error fetching countries:", error);
+      toast.error("Failed to fetch countries!");
     }
   };
 
@@ -55,9 +55,9 @@ export default function DistrictPage() {
         $(tableRef.current).DataTable().destroy();
       }
       const res = await axios.get(`${apiBase}/districts`);
-      setDistricts(res.data);
+      setDistricts(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error fetching districts:", error);
+      toast.error("Failed to fetch districts!");
     } finally {
       setLoading(false);
     }
@@ -70,9 +70,9 @@ export default function DistrictPage() {
     }
     try {
       const res = await axios.get(`${apiBase}/states/country/${countryId}`);
-      setModalStates(res.data);
+      setModalStates(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
-      console.error("Error fetching states:", error);
+      toast.error("Failed to fetch states!");
     }
   };
 
@@ -104,6 +104,31 @@ export default function DistrictPage() {
   };
 
   const handleSave = async () => {
+    if (!modalCountryId) {
+      toast.warning("Country is required!");
+      return;
+    }
+    if (!modalStateId) {
+      toast.warning("State is required!");
+      return;
+    }
+    if (!newDistrictName.trim()) {
+      toast.warning("District name is required!");
+      return;
+    }
+
+    // --- Client-side duplicate check ---
+    const duplicate = districts.some(
+      (d) =>
+        d.district.toLowerCase() === newDistrictName.trim().toLowerCase() &&
+        d.state_id === parseInt(modalStateId) &&
+        d.id !== editId
+    );
+    if (duplicate) {
+      toast.error("District already exists in this state!");
+      return;
+    }
+
     const payload = { district: newDistrictName.trim(), state_id: parseInt(modalStateId) };
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
@@ -119,17 +144,17 @@ export default function DistrictPage() {
       await fetchDistricts();
       handleModalClose();
     } catch (error) {
-      if (error.response && error.response.status === 422) {
-        const errors = error.response.data.errors;
-        if (errors) {
-          const firstError = Object.values(errors)[0][0];
-          toast.error(firstError);
+      if (error.response?.status === 422) {
+        if (error.response.data.message) {
+          toast.error(error.response.data.message);
+        } else if (error.response.data.errors) {
+          const errors = error.response.data.errors;
+          Object.values(errors).forEach((msg) => toast.error(msg[0]));
         } else {
-          toast.error("Validation failed");
+          toast.error("Validation failed!");
         }
       } else {
-        console.error("Error saving district:", error);
-        toast.error("Something went wrong while saving!");
+        toast.error("Failed to save district!");
       }
     }
   };
@@ -146,7 +171,6 @@ export default function DistrictPage() {
       toast.info("District deleted!");
       await fetchDistricts();
     } catch (error) {
-      console.error("Error deleting district:", error);
       toast.error("Delete failed!");
     }
   };
@@ -282,7 +306,11 @@ export default function DistrictPage() {
             <Button variant="light" onClick={handleModalClose}>
               Cancel
             </Button>
-            <Button variant="success" onClick={handleSave}>
+            <Button
+              variant="success"
+              onClick={handleSave}
+              disabled={!modalCountryId || !modalStateId || !newDistrictName.trim()}
+            >
               {editId ? "Update" : "Save"}
             </Button>
           </div>

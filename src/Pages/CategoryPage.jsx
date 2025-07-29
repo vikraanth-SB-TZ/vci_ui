@@ -72,6 +72,15 @@ export default function CategoryPage() {
       return;
     }
 
+    // --- Client-side duplicate check ---
+    const duplicate = categories.some(
+      (c) => c.category.toLowerCase() === categoryName.trim().toLowerCase() && c.id !== editingCategoryId
+    );
+    if (duplicate) {
+      toast.error("Category already exists!");
+      return;
+    }
+
     const payload = { category: categoryName.trim() };
 
     try {
@@ -91,8 +100,14 @@ export default function CategoryPage() {
       handleModalClose();
     } catch (error) {
       if (error.response?.status === 422) {
-        const errors = error.response.data.errors;
-        Object.values(errors).forEach((msg) => toast.error(msg[0]));
+        if (error.response.data.message) {
+          toast.error(error.response.data.message); // backend custom duplicate msg
+        } else if (error.response.data.errors) {
+          const errors = error.response.data.errors;
+          Object.values(errors).forEach((msg) => toast.error(msg[0]));
+        } else {
+          toast.error("Validation failed!");
+        }
       } else {
         toast.error("Failed to save category!");
       }
@@ -119,11 +134,8 @@ export default function CategoryPage() {
     <div className="p-4">
       <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
 
-      {/* Header */}
       <div className="d-flex justify-content-between mb-3">
-        <h5 className="fw-bold">
-          Categories ({categories.length.toString().padStart(2, "0")})
-        </h5>
+        <h5 className="fw-bold">Categories ({categories.length.toString().padStart(2, "0")})</h5>
         <div>
           <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchCategories}>
             <i className="bi bi-arrow-clockwise"></i>
@@ -185,7 +197,6 @@ export default function CategoryPage() {
         </table>
       </div>
 
-      {/* Modal */}
       <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
         <Modal.Body className="p-4">
           <div className="d-flex justify-content-between align-items-center mb-3">
