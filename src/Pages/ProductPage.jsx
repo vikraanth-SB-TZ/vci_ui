@@ -5,8 +5,10 @@ import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 
 
 export default function ProductPage() {
@@ -116,19 +118,34 @@ export default function ProductPage() {
     setShowModal(true);
   };
 
+  const MySwal = withReactContent(Swal);
+
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to delete this product?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
+
       await axios.delete(`${apiBase}/products/${id}`);
-      toast.info("Product deleted!");
+      toast.success('Product deleted!');
       await fetchProducts();
     } catch (error) {
-      toast.error("Failed to delete product!");
+      toast.error('Failed to delete product!');
     }
   };
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -207,7 +224,6 @@ export default function ProductPage() {
 
   return (
     <div className="p-4">
-      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
 
       {/* Header */}
       <div className="d-flex justify-content-between mb-3">
@@ -260,7 +276,7 @@ export default function ProductPage() {
                   <td>{p.serial_no || "—"}</td>
                   <td>{p.manufacture_no || "—"}</td>
                   <td>{p.firmware_version || "—"}</td>
-                  <td style={{textAlign: "center" }} >{p.hsn_code || "—"}</td>
+                  <td style={{ textAlign: "center" }} >{p.hsn_code || "—"}</td>
                   <td>{p.test || "—"}</td>
                   <td>{p.sale_status || "—"}</td>
                   <td>
@@ -379,7 +395,7 @@ export default function ProductPage() {
                 <option value="Sold">Sold</option>
                 <option value="Reserved">Reserved</option>
               </Form.Select>
-            </Form.Group>            
+            </Form.Group>
           </Form>
 
           <div className="d-flex justify-content-end mt-4">
