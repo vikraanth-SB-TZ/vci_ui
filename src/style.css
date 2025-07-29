@@ -1,0 +1,17 @@
+table.dataTable th.dt-type-numeric div.dt-column-header, table.dataTable th.dt-type-numeric div.dt-column-footer, table.dataTable th.dt-type-date div.dt-column-header, table.dataTable th.dt-type-date div.dt-column-footer, table.dataTable td.dt-type-numeric div.dt-column-header, table.dataTable td.dt-type-numeric div.dt-column-footer, table.dataTable td.dt-type-date div.dt-column-header, table.dataTable td.dt-type-date div.dt-column-footer{
+        flex-direction: row !important;
+}
+
+div.dt-container select.dt-input {
+    padding: 4px;
+    margin-right: 5px;
+}
+.form-select:focus,
+.form-control:focus  {
+    border-color: #dee2e6 !important;
+    outline: 0;
+    box-shadow: 0 0 0 .25rem rgb(255 255 255 / 25%) !important;
+}
+.form-select{
+    border-radius: 0 !important;
+}

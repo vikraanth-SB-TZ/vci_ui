@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 
 export default function DistrictPage() {
   const [countries, setCountries] = useState([]);
@@ -159,25 +161,37 @@ export default function DistrictPage() {
     }
   };
 
+  const MySwal = withReactContent(Swal);
+
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this district?");
-    if (!confirmDelete) return;
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to delete this district?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
+
       await axios.delete(`${apiBase}/districts/${id}`);
-      toast.info("District deleted!");
+      toast.success('District deleted!');
       await fetchDistricts();
     } catch (error) {
-      toast.error("Delete failed!");
+      toast.error('Delete failed!');
     }
   };
 
   return (
     <div className="p-4">
-      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
+      {/* <ToastContainer position="top-right" autoClose={2000} hideProgressBar /> */}
 
       <div className="d-flex justify-content-between mb-3">
         <h5 className="fw-bold">Districts ({districts.length.toString().padStart(2, "0")})</h5>
@@ -195,7 +209,7 @@ export default function DistrictPage() {
         <table ref={tableRef} className="table custom-table">
           <thead>
             <tr>
-              <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
+              <th>S.No</th>
               <th>Country</th>
               <th>State</th>
               <th>District</th>
