@@ -91,6 +91,18 @@ export default function StatePage() {
       return;
     }
 
+    // --- Client-side duplicate check ---
+    const duplicate = states.some(
+      (s) =>
+        s.state.toLowerCase() === newStateName.trim().toLowerCase() &&
+        s.country_id === parseInt(countryId) &&
+        s.id !== editingStateId
+    );
+    if (duplicate) {
+      toast.error("State already exists in this country!");
+      return;
+    }
+
     const payload = { state: newStateName.trim(), country_id: parseInt(countryId) };
 
     try {
@@ -109,8 +121,14 @@ export default function StatePage() {
       handleModalClose();
     } catch (error) {
       if (error.response?.status === 422) {
-        const errors = error.response.data.errors;
-        Object.values(errors).forEach((msg) => toast.error(msg[0]));
+        if (error.response.data.message) {
+          toast.error(error.response.data.message);
+        } else if (error.response.data.errors) {
+          const errors = error.response.data.errors;
+          Object.values(errors).forEach((msg) => toast.error(msg[0]));
+        } else {
+          toast.error("Validation failed!");
+        }
       } else {
         toast.error("Failed to save state!");
       }
@@ -204,7 +222,9 @@ export default function StatePage() {
       <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
         <Modal.Body className="p-4">
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-semibold mb-0">{editingStateId ? "Edit State" : "Add New State"}</h5>
+            <h5 className="fw-semibold mb-0">
+              {editingStateId ? "Edit State" : "Add New State"}
+            </h5>
             <Button
               variant="outline-secondary"
               onClick={handleModalClose}
@@ -234,7 +254,7 @@ export default function StatePage() {
               onChange={(e) => setNewStateName(e.target.value)}
             />
           </Form.Group>
-          
+
           <div className="d-flex justify-content-end gap-2 mt-3">
             <Button variant="light" onClick={handleModalClose}>
               Cancel

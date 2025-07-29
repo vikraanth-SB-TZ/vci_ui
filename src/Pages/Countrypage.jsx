@@ -72,6 +72,15 @@ export default function CountryPage() {
       return;
     }
 
+    // --- Client-side duplicate check ---
+    const duplicate = countries.some(
+      (c) => c.country.toLowerCase() === countryName.trim().toLowerCase() && c.id !== editingCountryId
+    );
+    if (duplicate) {
+      toast.error("Country already exists!");
+      return;
+    }
+
     const payload = { country: countryName.trim() };
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
@@ -90,8 +99,14 @@ export default function CountryPage() {
       handleModalClose();
     } catch (error) {
       if (error.response?.status === 422) {
-        const errors = error.response.data.errors;
-        Object.values(errors).forEach((msg) => toast.error(msg[0]));
+        if (error.response.data.message) {
+          toast.error(error.response.data.message); // Custom duplicate error
+        } else if (error.response.data.errors) {
+          const errors = error.response.data.errors;
+          Object.values(errors).forEach((msg) => toast.error(msg[0]));
+        } else {
+          toast.error("Validation failed!");
+        }
       } else {
         toast.error("Failed to save country!");
       }
