@@ -5,9 +5,31 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
+import { FaRegCalendarAlt } from "react-icons/fa";
+
+function initialForm() {
+    return {
+        id: null,
+        first_name: "",
+        last_name: "",
+        gender: "",
+        mobile: "",
+        altMobile: "",
+        email: "",
+        company_name: "",
+        address: "",
+        city: "",
+        state: "", 
+        district: "", 
+        pincode: "",
+        gst: "",
+        dob: "",
+    };
+}
 
 export default function VciCustomer() {
     const [customers, setCustomers] = useState([]);
@@ -18,34 +40,11 @@ export default function VciCustomer() {
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [errors, setErrors] = useState({});
+      const [selectedDate, setSelectedDate] = useState(null);
+
     const tableRef = useRef(null);
-
-    function initialForm() {
-        return {
-            id: null,
-            first_name: "",
-            last_name: "",
-            gender: "",
-            mobile: "",
-            altMobile: "",
-            email: "",
-            company_name: "",
-            address: "",
-            city: "",
-            state: "",
-            district: "",
-            pincode: "",
-            gst: "",
-            dob: "",
-        };
-    }
-
-    useEffect(() => {
-        if (localStorage.getItem("customer_refresh") === "true") {
-            fetchCustomers();
-            localStorage.removeItem("customer_refresh");
-        }
-    }, []);
+    
+    const apiBase = "http://127.0.0.1:8000/api";
 
     useEffect(() => {
         fetchCustomers();
@@ -54,57 +53,64 @@ export default function VciCustomer() {
     }, []);
 
     useEffect(() => {
-        if ($.fn.DataTable.isDataTable(tableRef.current)) {
-            $(tableRef.current).DataTable().destroy();
-        }
         if (!loading && customers.length > 0) {
             $(tableRef.current).DataTable({
-                ordering: true,
+                ordering: true,      
                 paging: true,
-                searching: true,
-                lengthChange: true,
-                columnDefs: [{ targets: 0, className: "text-center" }],
+                searching: true,   
+                lengthChange: true,  
+                columnDefs: [{ targets: 0, className: "text-center" }], 
             });
         }
+        return () => {
+            if ($.fn.DataTable.isDataTable(tableRef.current)) {
+                $(tableRef.current).DataTable().destroy();
+            }
+        };
     }, [customers, loading]);
 
     const fetchCustomers = () => {
-        setLoading(true);
+        setLoading(true); 
         axios
-            .get("/api/customers")
+            .get(`${apiBase}/customers`) // GET request to the customers endpoint.
             .then((res) => {
-                setCustomers(res.data.data || res.data);
+                setCustomers(Array.isArray(res.data.data) ? res.data.data : res.data);
+                 toast.success("Customers loaded successfully!", { toastId: 'customers-loaded', autoClose: 1500 });
             })
-            // .catch(() => {
-            //     toast.error("Failed to fetch customers.", { autoClose: 3000 });
-            // })
+          
             .finally(() => {
                 setLoading(false);
             });
     };
 
     const fetchStates = () => {
-        axios.get("/api/states")
-            .then((res) => setStates(res.data))
-            // .catch(() => toast.error("Failed to fetch states.", { autoClose: 3000 }));
+        axios.get(`${apiBase}/states`) // GET request to the states endpoint.
+            .then((res) => {
+                console.log("States API response:", res.data); // Log response for debugging.
+                setStates(Array.isArray(res.data) ? res.data : []); // Ensure response is an array.
+            })
+
     };
 
+    // Function to fetch district data from the API.
     const fetchDistricts = () => {
-        axios.get("/api/districts")
-            .then((res) => setDistricts(res.data))
-            // .catch(() => toast.error("Failed to fetch districts.", { autoClose: 3000 }));
+        axios.get(`${apiBase}/districts`) // GET request to the districts endpoint.
+            .then((res) => {
+                console.log("Districts API response:", res.data); // Log response for debugging.
+                setDistricts(Array.isArray(res.data) ? res.data : []); // Ensure response is an array.
+            })
+    
     };
-
     const handleChange = (e, selectName = null) => {
         let name, value;
         if (selectName) {
             name = selectName;
-            value = e ? e.value : "";
+            value = e ? e.value : ""; // Extract the 'value' from the selected option.
         } else {
             name = e.target.name;
             value = e.target.value;
         }
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        setFormData((prev) => ({ ...prev, [name]: value })); // Update formData state.
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
@@ -115,6 +121,8 @@ export default function VciCustomer() {
         if (!formData.email.trim()) newErrors.email = "Email is required.";
         else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email address is invalid.";
         if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
+        else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
+        if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) newErrors.altMobile = "Alternative mobile number must be 10 digits.";
         if (!formData.gender) newErrors.gender = "Gender is required.";
         if (!formData.dob) newErrors.dob = "Date of Birth is required.";
         if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
@@ -123,16 +131,19 @@ export default function VciCustomer() {
         if (!formData.state) newErrors.state = "State is required.";
         if (!formData.district) newErrors.district = "District is required.";
         if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
+        
+        setErrors(newErrors); // Update errors state.
+        return Object.keys(newErrors).length === 0; // Return true if no errors, false otherwise.
     };
 
     const handleSubmit = (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevent default form submission behavior.
         if (!validateForm()) {
-            toast.error("Please fill in all required fields correctly.", { autoClose: 3000 });
-            return;
+            // toast.error("Please fill in all required fields correctly.", { close: 500 });
+            return; // Stop submission if validation fails.
         }
+
         const payload = {
             first_name: formData.first_name,
             last_name: formData.last_name,
@@ -143,15 +154,18 @@ export default function VciCustomer() {
             company_name: formData.company_name,
             address: formData.address,
             city: formData.city,
-            state_id: formData.state,
-            district_id: formData.district,
+            state_id: formData.state ? parseInt(formData.state, 10) : null,
+            district_id: formData.district ? parseInt(formData.district, 10) : null,
             pincode: formData.pincode,
-            gst_no: formData.gst, // Corrected to match backend expectation if any
+            gst_no: formData.gst,
             date_of_birth: formData.dob,
         };
+
+        console.log("Submitting payload:", payload); // Debugging: log payload before sending.
+
         const request = isEditing
-            ? axios.put(`/api/customers/${formData.id}`, payload)
-            : axios.post("/api/customers", payload);
+            ? axios.put(`${apiBase}/customers/${formData.id}`, payload)
+            : axios.post(`${apiBase}/customers`, payload);
 
         request
             .then(() => {
@@ -167,61 +181,70 @@ export default function VciCustomer() {
                             const fieldErrors = backendErrors[field];
                             if (Array.isArray(fieldErrors)) {
                                 newErrors[field] = fieldErrors[0];
-                                toast.error(fieldErrors[0], { autoClose: 3000 });
+                                toast.error(fieldErrors[0], { autoClose: 1000 });
                             } else {
                                 newErrors[field] = fieldErrors;
-                                toast.error(fieldErrors, { autoClose: 3000 });
+                                toast.error(fieldErrors, { autoClose: 1000 });
                             }
                         });
                     } else if (message) {
-                        toast.error(`Failed to save customer: ${message}`, { autoClose: 3000 });
+                        // If a general message is returned, display it.
+                        toast.error(`Failed to save customer: ${message}`, { autoClose: 1000 });
                     } else {
-                        toast.error("Failed to save customer. Please try again.", { autoClose: 3000 });
+                        // Generic error message.
+                        toast.error("Failed to save customer. Please try again.", { autoClose: 1000 });
                     }
-                    setErrors(newErrors);
+                    setErrors(newErrors); // Update errors state with backend errors.
                 } else {
-                    toast.error("Failed to save customer. Please check your network connection.", { autoClose: 3000 });
+                    toast.error("Failed to save customer.", { autoClose: 1000 });
                 }
             });
     };
 
-    // Function to handle PDF download
+    // Function to handle PDF download.
     const handleDownloadPdf = async () => {
         try {
-            const response = await axios.get("/api/pdf", {
-                responseType: "blob", // Important: tells Axios to expect a binary response
+            // Make a GET request to the PDF endpoint, expecting a binary response (blob).
+            const response = await axios.get(`${apiBase}/pdf`, {
+                responseType: "blob",
             });
 
             if (response.status === 200 && response.data) {
+                // Create a Blob from the response data.
                 const blob = new Blob([response.data], { type: response.headers['content-type'] || "application/pdf" });
+                // Create a URL for the Blob.
                 const url = window.URL.createObjectURL(blob);
+                // Create a temporary anchor element to trigger download.
                 const link = document.createElement("a");
                 link.href = url;
-                link.setAttribute("download", "customers.pdf");
+                link.setAttribute("download", "customers.pdf"); // Set download filename.
                 document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-                toast.success("PDF downloaded successfully.", { autoClose: 2000 });
+                link.click(); // Programmatically click the link to start download.
+                document.body.removeChild(link); // Clean up the temporary link.
+                window.URL.revokeObjectURL(url); // Release the object URL.
+                toast.success("PDF downloaded successfully.", { autoClose: 1000 });
             } else {
-                toast.error("No PDF data received from server.", { autoClose: 3000 });
+                toast.error("No PDF data received from server.", { autoClose: 1000 });
             }
         } catch (error) {
             console.error("PDF download error:", error);
-            toast.error("Failed to download PDF. Please check your network or contact support.", { autoClose: 3000 });
+            toast.error("Failed to download PDF. Please check your network or contact support.", { autoClose: 1000
+             });
         }
     };
 
-    const stateOptions = states.map(state => ({
+    // Options for state dropdown, mapping API response to { value, label } format.
+   const stateOptions = states.map(state => ({
         value: String(state.id),
-        label: state.states || state.name,
+        label: state.state, // Correctly using 'state' column from DB schema
     }));
 
+    // Options for district dropdown, mapping API response to { value, label } format.
     const districtOptions = districts.map(district => ({
         value: String(district.id),
-        label: district.districts || district.name,
+        label: district.district, // Correctly using 'district' column from DB schema
     }));
-
+    // Static options for gender dropdown.
     const genderOptions = [
         { value: "Male", label: "Male" },
         { value: "Female", label: "Female" },
@@ -235,35 +258,34 @@ export default function VciCustomer() {
             last_name: customer.last_name || "",
             gender: customer.gender || "",
             mobile: customer.mobile || "",
-            altMobile: customer.alter_mobile || "",
+            altMobile: customer.alter_mobile || "", // Note: backend sends 'alter_mobile'
             email: customer.email || "",
             company_name: customer.company_name || "",
             address: customer.address || "",
             city: customer.city || "",
-            // Make sure these are always strings:
             state: customer.state_id ? String(customer.state_id) : "",
             district: customer.district_id ? String(customer.district_id) : "",
             pincode: customer.pincode || "",
-            gst: customer.gst_no || "",
-            dob: customer.date_of_birth || "",
+            gst: customer.gst_no || "", // Note: backend sends 'gst_no'
+            dob: customer.date_of_birth || "", // Note: backend sends 'date_of_birth'
         });
-        setIsEditing(true);
-        setShowForm(true);
-        setErrors({});
+        setIsEditing(true); // Set editing mode to true.
+        setShowForm(true); // Show the form.
+        setErrors({}); // Clear any previous errors.
     };
 
     const openForm = () => {
-        setFormData(initialForm());
-        setIsEditing(false);
-        setShowForm(true);
-        setErrors({});
+        setFormData(initialForm()); // Reset form data to initial empty state.
+        setIsEditing(false); // Set editing mode to false.
+        setShowForm(true); // Show the form.
+        setErrors({}); // Clear any previous errors.
     };
 
     const closeForm = () => {
-        setFormData(initialForm());
-        setIsEditing(false);
-        setShowForm(false);
-        setErrors({});
+        setFormData(initialForm()); // Clear form data.
+        setIsEditing(false); // Reset editing status.
+        setShowForm(false); // Hide the form.
+        setErrors({}); // Clear errors.
     };
 
     const errorStyle = {
@@ -272,6 +294,7 @@ export default function VciCustomer() {
         marginTop: "4px",
     };
 
+    // Function to generate dynamic input styles based on validation errors.
     const getInputStyle = (fieldName) => ({
         width: "270px",
         height: "50px",
@@ -279,88 +302,112 @@ export default function VciCustomer() {
         fontWeight: 400,
         fontSize: "16px",
         borderRadius: "4px",
-        border: `1px solid ${errors[fieldName] ? "#dc3545" : "#D3DBD5"}`,
+        border: `1px solid ${errors[fieldName] ? "#dc3545" : "#D3DBD5"}`, // Red border for errors.
         backgroundColor: "#FFFFFF",
         color: "#212529",
     });
 
-    const SimpleOption = ({ innerProps, label }) => (
-        <div {...innerProps} className="simple-option">
-            {label}
-        </div>
-    );
+const SimpleOption = ({ innerRef, innerProps, data }) => (
+  <div ref={innerRef} {...innerProps} className="simple-option" style={{ padding: "10px 15px" }}>
+    {data.label}
+  </div>
+);
 
-    const customSelectStyles = {
-        control: (provided, state) => ({
-            ...provided,
-            width: "270px",
-            height: "50px",
-            minHeight: "50px",
-            fontFamily: "Product Sans, sans-serif",
-            fontWeight: 400,
-            fontSize: "16px",
-            borderRadius: "4px",
-            border: `1px solid ${state.selectProps.name && errors[state.selectProps.name] ? "#dc3545" : "#D3DBD5"}`,
-            boxShadow: "none",
-            "&:hover": {
-                borderColor: "#D3DBD5",
-            },
-            display: 'flex',
-            alignItems: 'center',
-            paddingLeft: '8px',
-            paddingRight: '8px',
-            cursor: 'pointer',
-        }),
-        singleValue: (provided) => ({
-            ...provided,
-            color: "#212529",
-        }),
-        placeholder: (provided) => ({
-            ...provided,
-            fontFamily: 'Product Sans, sans-serif',
-            fontWeight: 400,
-            color: "#828282",
-        }),
-        indicatorSeparator: () => ({
-            display: 'none',
-        }),
-        dropdownIndicator: (provided, state) => ({
-            ...provided,
-            color: '#000',
-            transition: 'transform 0.2s ease-in-out',
-            transform: state.isFocused ? 'rotate(180deg)' : null,
-        }),
-        menu: (provided) => ({
-            ...provided,
-            fontFamily: "Product Sans, sans-serif",
-            fontWeight: 400,
-            fontSize: "16px",
-            borderRadius: "4px",
-            border: "1px solid #D3DBD5",
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-            marginTop: '4px',
-            zIndex: 1000,
-        }),
-        option: (provided, state) => ({
-            ...provided,
-            backgroundColor: state.isFocused ? "#F0F0F0" : "white",
-            color: "#212529",
-            padding: "10px 15px",
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            cursor: 'pointer',
-            "&:active": {
-                backgroundColor: "#E0E0E0",
-            },
-        }),
+
+    // Custom styles for react-select components.
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    width: "270px",
+    height: "50px",
+    minHeight: "50px",
+    fontFamily: "Product Sans, sans-serif",
+    fontWeight: 400,
+    fontSize: "16px",
+    borderRadius: "4px",
+    border: `1px solid ${
+      state.selectProps.name && state.selectProps.errors?.[state.selectProps.name]
+        ? "#dc3545"
+        : "#D3DBD5"
+    }`,
+    boxShadow: "none",
+    "&:hover": {
+      borderColor: "#D3DBD5",
+    },
+    display: "flex",
+    alignItems: "center",
+    paddingLeft: "8px",
+    paddingRight: "8px",
+    cursor: "pointer",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#212529",
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    fontFamily: "Product Sans, sans-serif",
+    fontWeight: 400,
+    color: "#828282",
+  }),
+  indicatorSeparator: () => ({
+    display: "none",
+  }),
+  dropdownIndicator: (provided, state) => ({
+    ...provided,
+    color: "#000",
+    transition: "transform 0.2s ease-in-out",
+    transform: state.isFocused ? "rotate(180deg)" : null,
+  }),
+  menu: (provided) => ({
+    ...provided,
+    fontFamily: "Product Sans, sans-serif",
+    fontWeight: 400,
+    fontSize: "16px",
+    borderRadius: "4px",
+    border: "1px solid #D3DBD5",
+    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+    marginTop: "4px",
+    zIndex: 1000,
+    paddingTop: "4px",
+    paddingBottom: "4px",
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? "#F0F0F0" : "white",
+    color: "#212529",
+    padding: "12px 18px",
+    margin: "2px 8px",
+    borderRadius: "4px",
+    display: "flex",
+    alignItems: "center",
+    cursor: "pointer",
+    "&:active": {
+      backgroundColor: "#E0E0E0",
+    },
+  }),
+};
+
+
+
+
+    const getStateNameById = (stateId) => {
+        const state = states.find(s => String(s.id) === String(stateId));
+        return state ? state.state : ''; // Directly use 'state' field as per DB schema
     };
+
+    const getDistrictNameById = (districtId) => {
+        const district = districts.find(d => String(d.id) === String(districtId));
+        return district ? district.district : ''; // Directly use 'district' field as per DB schema
+    };
+
 
     return (
         <div className="vh-80 d-flex flex-column position-relative bg-light">
+            {/* ToastContainer for displaying notifications */}
             <ToastContainer
                 position="top-right"
-                autoClose={3000}
+                autoClose={1000}
                 hideProgressBar={false}
                 newestOnTop={false}
                 closeOnClick
@@ -370,21 +417,23 @@ export default function VciCustomer() {
                 pauseOnHover
                 limit={1}
             />
+
+            {/* Header section with title and action buttons */}
             <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
                 <h5 className="mb-0 fw-bold">Customers ({customers.length})</h5>
                 <div>
-                    <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchCustomers}>
-                        <i className="bi bi-arrow-clockwise"></i>
-                    </Button>
+                    {/* Download PDF button */}
                     <Button variant="info" size="sm" className="me-2" onClick={handleDownloadPdf}>
                         <i className="bi bi-file-earmark-pdf me-1"></i> Download PDF
                     </Button>
+                    {/* Add New Customer button */}
                     <Button variant="success" size="sm" onClick={openForm}>
                         + Add New
                     </Button>
                 </div>
             </div>
 
+            {/* Main content area: Customer table */}
             <div className="flex-grow-1 overflow-auto px-4 py-3">
                 <div className="table-responsive">
                     <table ref={tableRef} className="table custom-table">
@@ -397,23 +446,27 @@ export default function VciCustomer() {
                                 <th>Gender</th>
                                 <th>Company</th>
                                 <th>Address</th>
+                                <th>State</th>
+                                <th>District</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {/* Conditional rendering based on loading state and customer data */}
                             {loading ? (
                                 <tr>
-                                    <td colSpan="8" className="text-center py-4">
-                                        <Spinner animation="border" />
+                                    <td colSpan="10" className="text-center py-4">
+                                        <Spinner animation="border" /> {/* Loading spinner */}
                                     </td>
                                 </tr>
                             ) : customers.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" className="text-center py-4 text-muted">
-                                        No customers found.
+                                    <td colSpan="10" className="text-center py-4 text-muted">
+                                        No customers found. {/* Message when no customers */}
                                     </td>
                                 </tr>
                             ) : (
+                                // Map over customers array to render table rows
                                 customers.map((customer, index) => (
                                     <tr key={customer.id}>
                                         <td style={{ textAlign: "center" }}>{index + 1}</td>
@@ -423,7 +476,11 @@ export default function VciCustomer() {
                                         <td>{customer.gender}</td>
                                         <td>{customer.company_name}</td>
                                         <td>{customer.address}</td>
+                                        {/* Display state and district names using helper functions */}
+                                        <td>{getStateNameById(customer.state_id)}</td>
+                                        <td>{getDistrictNameById(customer.district_id)}</td>
                                         <td>
+                                            {/* Edit button */}
                                             <Button
                                                 variant="outline-primary"
                                                 size="sm"
@@ -441,13 +498,14 @@ export default function VciCustomer() {
                 </div>
             </div>
 
+            {/* Customer Add/Edit Form (slides in from the right) */}
             <div
                 className={`position-fixed bg-white shadow-lg px-3 pt-2 pb-2 customer-form-slide`}
                 style={{
                     width: "600px",
                     height: "calc(100vh - 58px)",
                     top: "58px",
-                    right: showForm ? "0" : "-800px",
+                    right: showForm ? "0" : "-800px", // Controls slide-in/out animation
                     transition: "right 0.4s ease-in-out",
                     overflowY: "auto",
                     overflowX: "hidden",
@@ -457,6 +515,7 @@ export default function VciCustomer() {
                     zIndex: 1050,
                 }}
             >
+                {/* Form header with title and close button */}
                 <div
                     className="d-flex justify-content-between align-items-center"
                     style={{ marginBottom: "30px" }}
@@ -474,6 +533,7 @@ export default function VciCustomer() {
                     >
                         {isEditing ? "Edit Customer" : "Add New Customer"}
                     </h5>
+                    {/* Close form button */}
                     <button
                         onClick={closeForm}
                         style={{
@@ -495,6 +555,7 @@ export default function VciCustomer() {
                     </button>
                 </div>
 
+                {/* Personal Information Section */}
                 <h6
                     className="mb-1"
                     style={{
@@ -511,6 +572,7 @@ export default function VciCustomer() {
                 <hr className="mt-1 mb-2" />
                 <form onSubmit={handleSubmit}>
                     <div className="row gx-4 personal-form">
+                        {/* First Name */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
@@ -530,6 +592,7 @@ export default function VciCustomer() {
                                 {errors.first_name}
                             </Form.Control.Feedback>
                         </div>
+                        {/* Last Name */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
@@ -549,6 +612,7 @@ export default function VciCustomer() {
                                 {errors.last_name}
                             </Form.Control.Feedback>
                         </div>
+                        {/* Gender Select */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
@@ -567,6 +631,7 @@ export default function VciCustomer() {
                             />
                             {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
                         </div>
+                        {/* Date of Birth */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
@@ -586,6 +651,7 @@ export default function VciCustomer() {
                                 {errors.dob}
                             </Form.Control.Feedback>
                         </div>
+                        {/* Mobile No. */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
@@ -605,6 +671,7 @@ export default function VciCustomer() {
                                 {errors.mobile}
                             </Form.Control.Feedback>
                         </div>
+                        {/* Alternative Mobile */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
@@ -624,6 +691,7 @@ export default function VciCustomer() {
                                 {errors.altMobile}
                             </Form.Control.Feedback>
                         </div>
+                        {/* Email */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
@@ -644,6 +712,8 @@ export default function VciCustomer() {
                             </Form.Control.Feedback>
                         </div>
                     </div>
+
+                    {/* Other Information Section */}
                     <h6
                         className="fw-bold mb-1 mt-2"
                         style={{
@@ -655,73 +725,154 @@ export default function VciCustomer() {
                             letterSpacing: "0",
                         }}
                     >
-                        Other Information
+                        Company & Address Details
                     </h6>
                     <hr className="mt-1 mb-2" />
                     <div className="row gx-4">
-                        {[
-                            { name: "company_name", label: "Company Name", placeholder: "Enter Company Name" },
-                            { name: "address", label: "Address", placeholder: "Enter Address" },
-                            { name: "city", label: "City", placeholder: "Enter City" },
-                            { name: "pincode", label: "Pincode", placeholder: "Enter Pincode" },
-                        ].map(({ name, label, placeholder }) => (
-                            <div className="col-6 mb-2" key={name}>
-                                <Form.Label className="mb-1" style={{
-                                    color: "#393C3AE5", width: "325px",
-                                    fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                                }}>{label}</Form.Label>
-                                <Form.Control
-                                    name={name}
-                                    value={formData[name]}
-                                    onChange={handleChange}
-                                    placeholder={placeholder}
-                                    size="sm"
-                                    isInvalid={!!errors[name]}
-                                    style={getInputStyle(name)}
-                                />
-                                <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                    {errors[name]}
-                                </Form.Control.Feedback>
-                            </div>
-                        ))}
+                        {/* Company Name */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
                                 fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>State</Form.Label>
-                            <Select
-                                name="state"
-                                value={stateOptions.find(option => option.value === formData.state) || null}
-                                onChange={(selectedOption) => handleChange(selectedOption, "state")}
-                                options={stateOptions}
-                                placeholder="Select State"
-                                isClearable={true}
-                                styles={customSelectStyles}
-                                components={{ Option: SimpleOption }}
-                                classNamePrefix="react-select"
+                            }}>Company Name</Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="company_name"
+                                value={formData.company_name}
+                                onChange={handleChange}
+                                placeholder="Enter Company Name"
+                                size="sm"
+                                isInvalid={!!errors.company_name}
+                                style={getInputStyle("company_name")}
                             />
-                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.company_name}
+                            </Form.Control.Feedback>
                         </div>
+                        {/* Address */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
                                 fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>District</Form.Label>
-                            <Select
-                                name="district"
-                                value={districtOptions.find(option => option.value === formData.district) || null}
-                                onChange={(selectedOption) => handleChange(selectedOption, "district")}
-                                options={districtOptions}
-                                placeholder="Select District"
-                                isClearable={true}
-                                styles={customSelectStyles}
-                                components={{ Option: SimpleOption }}
-                                classNamePrefix="react-select"
+                            }}>Address</Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="address"
+                                value={formData.address}
+                                onChange={handleChange}
+                                placeholder="Enter Address"
+                                size="sm"
+                                isInvalid={!!errors.address}
+                                style={getInputStyle("address")}
                             />
-                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.address}
+                            </Form.Control.Feedback>
                         </div>
+                        {/* City */}
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>City</Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="city"
+                                value={formData.city}
+                                onChange={handleChange}
+                                placeholder="Enter City"
+                                size="sm"
+                                isInvalid={!!errors.city}
+                                style={getInputStyle("city")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.city}
+                            </Form.Control.Feedback>
+                        </div>
+                        {/* State Select */}
+ <div className="row">
+      {/* State Select */}
+      <div className="col-6 mb-2">
+        <Form.Label
+          className="mb-1"
+          style={{
+            color: "#393C3AE5",
+            width: "325px",
+            fontFamily: "Product Sans, sans-serif",
+            fontWeight: 400,
+          }}
+        >
+          State
+        </Form.Label>
+        <Select
+          name="state"
+          value={stateOptions.find((option) => option.value === formData.state) || null}
+          onChange={(selectedOption) => handleChange(selectedOption, "state")}
+          options={stateOptions}
+          placeholder="Select State"
+          isClearable={true}
+          styles={{ ...customSelectStyles, errors }}
+          components={{ Option: SimpleOption }}
+          classNamePrefix="react-select"
+        />
+        {errors.state && <div style={errorStyle}>{errors.state}</div>}
+      </div>
+
+      {/* District Select */}
+      <div className="col-6 mb-2">
+        <Form.Label
+          className="mb-1"
+          style={{
+            color: "#393C3AE5",
+            width: "325px",
+            fontFamily: "Product Sans, sans-serif",
+            fontWeight: 400,
+          }}
+        >
+          District
+        </Form.Label>
+        <Select
+          name="district"
+          value={districtOptions.find((option) => option.value === formData.district) || null}
+          onChange={(selectedOption) => handleChange(selectedOption, "district")}
+          options={districtOptions}
+          placeholder="Select District"
+          isClearable={true}
+          styles={{ ...customSelectStyles, errors }}
+          components={{ Option: SimpleOption }}
+          classNamePrefix="react-select"
+        />
+        {errors.district && <div style={errorStyle}>{errors.district}</div>}
+      </div>
+    </div>
+
+                        
+                        {/* Pincode */}
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}>Pincode</Form.Label>
+                            <Form.Control
+                                className="custom-placeholder"
+                                name="pincode"
+                                value={formData.pincode}
+                                onChange={handleChange}
+                                placeholder="Enter Pincode"
+                                size="sm"
+                                isInvalid={!!errors.pincode}
+                                style={getInputStyle("pincode")}
+                            />
+                            <Form.Control.Feedback type="invalid" style={errorStyle}>
+                                {errors.pincode}
+                            </Form.Control.Feedback>
+                        </div>
+                        {/* GST No. */}
                     </div>
-                    <div className="d-flex justify-content-end mt-4">
+
+                    {/* Form action buttons */}
+
+                          <div className="d-flex justify-content-end mt-4">
                         <Button
                             variant="success"
                             type="submit"
@@ -740,17 +891,6 @@ export default function VciCustomer() {
             <style>{`
                 .customer-form-slide {
                     box-shadow: 0 0 24px rgba(0,0,0,0.08);
-                }
-                .custom-table th, .custom-table td {
-                    font-family: 'Product Sans', sans-serif;
-                    font-weight: 400;
-                    font-size: 16px;
-                    color: #212529;
-                }
-                .custom-placeholder::placeholder {
-                    font-family: 'Product Sans', sans-serif;
-                    font-weight: 400;
-                    color: #828282;
                 }
             `}</style>
         </div>

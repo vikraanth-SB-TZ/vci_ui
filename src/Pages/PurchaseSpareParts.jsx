@@ -8,7 +8,7 @@ import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 
-const API_BASE = import.meta?.env?.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
+const API_BASE =  "http://127.0.0.1:8000";
 
 export default function PurchaseSparepartsPage() {
   const [vendors, setVendors] = useState([]);
@@ -81,7 +81,6 @@ export default function PurchaseSparepartsPage() {
       setVendors(rows);
     } catch (err) {
       console.error("Error loading vendors:", err);
-      // toast.error("Failed to load vendors."); // Optionally show toast for fetch errors
     }
   }, []);
 
@@ -92,7 +91,6 @@ export default function PurchaseSparepartsPage() {
       setBatches(rows);
     } catch (err) {
       console.error("Error loading batches:", err);
-      // toast.error("Failed to load batches."); // Optionally show toast for fetch errors
     }
   }, []);
 
@@ -129,15 +127,12 @@ export default function PurchaseSparepartsPage() {
   }, [fetchVendors, fetchBatches, fetchAvailableSpareparts, fetchPurchases]);
 
   useEffect(() => {
-    // Destroy DataTable if an instance exists
     if (dataTableInstance.current) {
       dataTableInstance.current.destroy();
       dataTableInstance.current = null;
     }
 
-    // Only re-init if there is data and not loading
     if (!loading && spareparts.length > 0 && tableRef.current) {
-      // Use setTimeout to ensure DOM is updated before DataTables initializes
       setTimeout(() => {
         dataTableInstance.current = $(tableRef.current).DataTable({
           ordering: true,
@@ -145,7 +140,6 @@ export default function PurchaseSparepartsPage() {
           searching: true,
           lengthChange: true,
           columnDefs: [{ targets: 0, className: "text-center" }],
-          // Ensure DataTables is re-drawn when data changes
           destroy: true, // This allows re-initialization
         });
       }, 0);
@@ -212,9 +206,8 @@ export default function PurchaseSparepartsPage() {
         if (!item.sparepart_id) {
           errors[`sparepart-${index}`] = "Spare part is required.";
         }
-        // Ensure quantity is a positive number, allowing 0 if that's valid in your context, otherwise enforce > 0
-        if (!item.quantity || parseInt(item.quantity, 10) <= 0 || isNaN(parseInt(item.quantity, 10))) {
-          errors[`quantity-${index}`] = "Quantity must be a positive number.";
+        if (!item.quantity || parseInt(item.quantity, 10) < 0 || isNaN(parseInt(item.quantity, 10))) {
+          errors[`quantity-${index}`] = "Quantity must be a non-negative number.";
         }
       });
     }
@@ -284,9 +277,6 @@ export default function PurchaseSparepartsPage() {
         data = resp.data;
         if (data?.success) {
           toast.success("Purchase added successfully!");
-          // Add the new purchase to the state directly
-          // Assuming the API returns the newly created purchase with its ID,
-          // update 'id: data.purchase_id' to match your API response key
           setSpareparts(prev => [...prev, { ...payload, id: data.purchase_id || Date.now(), items: items }]);
         } else {
           toast.error(data?.message || "Failed to add purchase.");
@@ -375,7 +365,6 @@ export default function PurchaseSparepartsPage() {
     setEditingPurchase(purchase);
     setFormErrors({}); // Clear errors when opening form
     if (purchase) {
-      // Ensure sparepart_id and quantity are strings for select/input value consistency
       setSparePartsRows(
         purchase.items && purchase.items.length > 0
           ? purchase.items.map((item) => ({

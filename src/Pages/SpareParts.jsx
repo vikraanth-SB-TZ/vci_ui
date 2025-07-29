@@ -77,11 +77,24 @@ export default function App() {
     if (!formData.name.trim()) {
       newErrors.name = "Spare Part Name is required.";
     }
-    if (!formData.quantity_per_vci || isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) <= 0) {
-      newErrors.quantity_per_vci = "Quantity per VCI must be a positive number.";
-    }
-    if (!formData.quantity || isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0) {
-      newErrors.quantity = "Current Quantity must be a non-negative number.";
+
+    // Validation for new component creation
+    if (!editingPart) {
+      if (!formData.quantity || isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0) {
+        newErrors.quantity = "Opening Stock must be a non-negative number.";
+      }
+      if (!formData.quantity_per_vci || isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) <= 0) {
+        newErrors.quantity_per_vci = "Quantity per VCI must be a positive number.";
+      }
+    } else {
+      // Validation for updating an existing component
+      if (formData.quantity && (isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0)) {
+        newErrors.quantity = "Quantity to add must be a non-negative number.";
+      }
+      if (formData.quantity_per_vci && (isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) < 0)) {
+        // If quantity_per_vci is present, it must be non-negative
+        newErrors.quantity_per_vci = "Quantity per VCI must be a non-negative number.";
+      }
     }
     return newErrors;
   };
@@ -94,19 +107,38 @@ export default function App() {
       toast.error("Please fill in all required fields correctly.", { toastId: "form-validation" });
       return;
     }
-    const payload = {
+
+    let payload = {
       name: formData.name,
-      quantity_per_vci: parseInt(formData.quantity_per_vci, 10),
       notes: formData.notes,
-      quantity: parseInt(formData.quantity, 10),
     };
+
+    if (editingPart) {
+      // For editing, 'quantity' means 'add stock', and 'quantity_per_vci' means 'subtract'
+      // Only send if the value is provided
+      if (formData.quantity) {
+        payload.quantity = parseInt(formData.quantity, 10);
+      }
+      if (formData.quantity_per_vci) {
+        payload.quantity_per_vci = parseInt(formData.quantity_per_vci, 10);
+      }
+    } else {
+      // For new creation, 'quantity' is 'opening stock' and 'quantity_per_vci' is the initial value
+      payload.quantity = parseInt(formData.quantity, 10);
+      payload.quantity_per_vci = parseInt(formData.quantity_per_vci, 10);
+    }
+
     try {
       if (editingPart) {
-        await axios.put(`http://localhost:8000/api/spareparts/${editingPart.id}`, payload);
+        const res = await axios.put(`http://localhost:8000/api/spareparts/${editingPart.id}`, payload);
+        // The backend `update` method updates the quantity by *subtracting* quantity_per_vci
+        // and does not directly add 'quantity'.
+        // So, we need to manually update the local state to reflect the expected change
+        // based on the updated object returned from the backend.
         setSpareparts((prev) =>
           prev.map((part) =>
             part.id === editingPart.id
-              ? { ...part, ...payload }
+              ? { ...part, ...res.data.data } // Use the data from the response to update
               : part
           )
         );
@@ -139,7 +171,7 @@ export default function App() {
         }
         setErrors(newErrors);
       } else {
-        toast.error("Failed to save spare part. Please check your network connection.", { toastId: "network-fail" });
+        toast.error("Failed to save spare part.", { toastId: "network-fail" });
       }
     }
   };
@@ -147,10 +179,8 @@ export default function App() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:8000/api/spareparts/${id}`);
-      // Remove the deleted part from the local state
       setSpareparts((prev) => {
         const updated = prev.filter((part) => part.id !== id);
-        // Re-initialize DataTable after state update
         setTimeout(() => {
           if ($.fn.DataTable.isDataTable(tableRef.current)) {
             $(tableRef.current).DataTable().destroy();
@@ -187,7 +217,7 @@ export default function App() {
       name: part.name || "",
       quantity_per_vci: part.quantity_per_vci || "",
       notes: part.notes || "",
-      quantity: part.quantity || "",
+      quantity: "", // This will be the "Add Stock" field, so it starts empty
     });
     setShowForm(true);
     setErrors({});
@@ -238,49 +268,6 @@ export default function App() {
     color: "#212529",
     padding: "10px",
   });
-
-  const handleQuantityPerVCIBlur = async (e) => {
-    const quantityToDeduct = parseInt(e.target.value, 10);
-    if (!editingPart || isNaN(quantityToDeduct) || quantityToDeduct <= 0) return;
-    if (editingPart.quantity_per_vci === quantityToDeduct && formData.quantity_per_vci === String(quantityToDeduct)) {
-      return;
-    }
-    toast.info(`Attempting to deduct ${quantityToDeduct} from "${editingPart.name}"...`, {
-      autoClose: 2000,
-      toastId: `deductionInfo-${editingPart.id}`
-    });
-    try {
-      const used_on = new Date().toISOString().split("T")[0];
-      const res = await axios.post("http://localhost:8000/api/spareparts/use", {
-        sparepart_id: editingPart.id,
-        quantity_used: quantityToDeduct,
-        used_on,
-      });
-      toast.success(res.data.message || "Stock updated successfully!", { toastId: `deduct-success-${editingPart.id}` });
-      setSpareparts((prev) =>
-        prev.map((part) =>
-          part.id === editingPart.id
-            ? { ...part, quantity: part.quantity - quantityToDeduct }
-            : part
-        )
-      );
-      setFormData(prev => ({
-        ...prev,
-        quantity: editingPart.quantity - quantityToDeduct
-      }));
-      setEditingPart(prev => ({
-        ...prev,
-        quantity: editingPart.quantity - quantityToDeduct
-      }));
-    } catch (err) {
-      console.error("Error using sparepart:", err);
-      if (err.response && err.response.data && err.response.data.message) {
-        toast.error(err.response.data.message, { toastId: `deduct-fail-${editingPart.id}` });
-      } else {
-        toast.error("Error using spare part.", { toastId: `deduct-fail2-${editingPart.id}` });
-      }
-    }
-  };
 
   const drawerClass = showForm ? "slide-in" : "slide-out";
 
@@ -422,7 +409,6 @@ export default function App() {
                     placeholder="Enter quantity per VCI"
                     isInvalid={!!errors.quantity_per_vci}
                     style={getInputStyle("quantity_per_vci")}
-                    onBlur={handleQuantityPerVCIBlur}
                   />
                   <Form.Control.Feedback type="invalid" style={errorStyle}>
                     {errors.quantity_per_vci}
@@ -447,7 +433,7 @@ export default function App() {
                 </div>
                 <div className="mb-3 col-6">
                   <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                    {editingPart ? "Current Quantity" : "Opening Stock"}
+                    {editingPart ? "Add Stock" : "Opening Stock"}
                   </Form.Label>
                   <Form.Control
                     type="number"
@@ -455,10 +441,9 @@ export default function App() {
                     value={formData.quantity}
                     onChange={handleChange}
                     className="custom-placeholder"
-                    placeholder={editingPart ? "Current Quantity" : "Enter Opening Quantity"}
+                    placeholder={editingPart ? "Enter quantity to add" : "Enter Opening Quantity"}
                     isInvalid={!!errors.quantity}
                     style={getInputStyle("quantity")}
-                    readOnly={editingPart ? true : false}
                   />
                   <Form.Control.Feedback type="invalid" style={errorStyle}>
                     {errors.quantity}
