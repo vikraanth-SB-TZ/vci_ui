@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 
 export default function CountryPage() {
   const [countries, setCountries] = useState([]);
@@ -113,21 +115,34 @@ export default function CountryPage() {
     }
   };
 
+  const MySwal = withReactContent(Swal);
+
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this country?");
-    if (!confirmDelete) return;
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to delete this country?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    });
+
+    if (!result.isConfirmed) return;
 
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
+
       await axios.delete(`${apiBase}/countries/${id}`);
       await fetchCountries();
-      toast.info("Country deleted!");
+      toast.success('Country deleted!');
     } catch (error) {
-      toast.error("Failed to delete country!");
+      toast.error('Failed to delete country!');
     }
   };
+
 
   return (
     <div className="p-4">
