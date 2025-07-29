@@ -169,7 +169,6 @@ export default function StatePage() {
 
   return (
     <div className="p-4">
-      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
 
       <div className="d-flex justify-content-between mb-3">
         <h5 className="fw-bold">States ({states.length.toString().padStart(2, "0")})</h5>

@@ -136,26 +136,28 @@ export default function DistrictPage() {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
+
       if (editId) {
         await axios.put(`${apiBase}/districts/${editId}`, payload);
-        toast.success("District updated successfully!");
       } else {
         await axios.post(`${apiBase}/districts`, payload);
-        toast.success("District added successfully!");
       }
-      await fetchDistricts();
+
+      await fetchDistricts(); // wait for refresh
       handleModalClose();
+
+      toast.success(editId ? "District updated successfully!" : "District added successfully!");
     } catch (error) {
       if (error.response?.status === 422) {
         if (error.response.data.message) {
           toast.error(error.response.data.message);
         } else if (error.response.data.errors) {
-          const errors = error.response.data.errors;
-          Object.values(errors).forEach((msg) => toast.error(msg[0]));
+          Object.values(error.response.data.errors).forEach((msg) => toast.error(msg[0]));
         } else {
           toast.error("Validation failed!");
         }
-      } else {
+      }
+      else {
         toast.error("Failed to save district!");
       }
     }
@@ -182,8 +184,9 @@ export default function DistrictPage() {
       }
 
       await axios.delete(`${apiBase}/districts/${id}`);
-      toast.success('District deleted!');
       await fetchDistricts();
+      toast.success('District deleted!');
+
     } catch (error) {
       toast.error('Delete failed!');
     }
@@ -191,7 +194,6 @@ export default function DistrictPage() {
 
   return (
     <div className="p-4">
-      {/* <ToastContainer position="top-right" autoClose={2000} hideProgressBar /> */}
 
       <div className="d-flex justify-content-between mb-3">
         <h5 className="fw-bold">Districts ({districts.length.toString().padStart(2, "0")})</h5>

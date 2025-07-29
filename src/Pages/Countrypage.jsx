@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Button, Spinner, Modal, Form } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
@@ -146,7 +146,6 @@ export default function CountryPage() {
 
   return (
     <div className="p-4">
-      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
 
       <div className="d-flex justify-content-between mb-3">
         <h5 className="fw-bold">
