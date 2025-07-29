@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 // import SalesList from './Pages/SalesList';
 import LoginPage from './LoginPage';
 import AppLayout from './Layout/AppLayout';
-// import BatchPage from './Pages/BatchPages';
+import BatchPage from './Pages/BatchPages';
 import StatePage from './Pages/StatePage';
  
 import CountryPage from './pages/CountryPage';
@@ -36,7 +36,7 @@ import Vendor from './Pages/Vendor';
 
 
  
- const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
+//  const BatchPage = () => <div style={{ padding: 20, color: '#333' }}>Welcome to Dashboard</div>;
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
