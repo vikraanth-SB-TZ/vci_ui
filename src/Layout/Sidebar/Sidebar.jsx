@@ -476,7 +476,15 @@ export default function Sidebar({ collapsed }) {
 
           <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("VciCustomer"); }} className={linkClass("VciCustomer")}>
             <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
-            {!collapsed && "Customer"}
+            {!collapsed && (
+              <span
+                style={{
+                  color: isActive("VciCustomer") ? "#28a745" : "white",
+                }}
+              >
+                Customer
+              </span>
+            )}
           </a>
 
           {/* Sales Order */}
