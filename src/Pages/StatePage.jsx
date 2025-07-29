@@ -6,6 +6,8 @@ import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 
 export default function StatePage() {
   const [states, setStates] = useState([]);
@@ -135,20 +137,35 @@ export default function StatePage() {
     }
   };
 
+
+  const MySwal = withReactContent(Swal);
+
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this state?");
-    if (!confirmDelete) return;
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to delete this state?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
+
       await axios.delete(`${apiBase}/states/${id}`);
+      toast.success('State deleted!');
       await fetchStates();
-      toast.info("State deleted!");
     } catch (error) {
-      toast.error("Failed to delete state!");
+      toast.error('Failed to delete state!');
     }
   };
+
 
   return (
     <div className="p-4">
