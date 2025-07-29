@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Button, Spinner, Modal, Form } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
 
 export default function CategoryPage() {
   const [categories, setCategories] = useState([]);
@@ -114,25 +116,37 @@ export default function CategoryPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this category?");
-    if (!confirmDelete) return;
+  const MySwal = withReactContent(Swal);
 
-    try {
-      if ($.fn.DataTable.isDataTable(tableRef.current)) {
-        $(tableRef.current).DataTable().destroy();
-      }
-      await axios.delete(`${apiBase}/categories/${id}`);
-      await fetchCategories();
-      toast.info("Category deleted!");
-    } catch (error) {
-      toast.error("Failed to delete category!");
+const handleDelete = async (id) => {
+  const result = await MySwal.fire({
+    title: 'Are you sure?',
+    text: 'Do you really want to delete this category?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete it!',
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    if ($.fn.DataTable.isDataTable(tableRef.current)) {
+      $(tableRef.current).DataTable().destroy();
     }
-  };
+
+    await axios.delete(`${apiBase}/categories/${id}`);
+    toast.success('Category deleted!');
+    await fetchCategories();
+  } catch (error) {
+    toast.error('Failed to delete category!');
+  }
+};
+
 
   return (
     <div className="p-4">
-      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
 
       <div className="d-flex justify-content-between mb-3">
         <h5 className="fw-bold">Categories ({categories.length.toString().padStart(2, "0")})</h5>
