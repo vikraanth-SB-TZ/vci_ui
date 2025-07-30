@@ -31,22 +31,27 @@ export default function AddNewSalePage() {
 
   const validateForm = () => {
   const newErrors = {};
+  const messagesShown = new Set();
 
-  if (!formData.customer_id) newErrors.customer_id = "This field is required";
-  if (!formData.batch_id) newErrors.batch_id = "Batch is required";
-  if (!formData.category_id) newErrors.category_id = "Category is required";
-  if (!formData.quantity) newErrors.quantity = "Quantity is required";
+  if (!formData.customer_id) newErrors.customer_id = "Customer field is required";
+  if (!formData.batch_id) newErrors.batch_id = "Batch field is required";
+  if (!formData.category_id) newErrors.category_id = "Category field is required";
+  if (!formData.quantity) newErrors.quantity = "Quantity field is required";
   if (!formData.shipment_name) newErrors.shipment_name = "Shipment Name is required";
   if (formData.serial_numbers.length === 0) newErrors.serial_numbers = "Serial numbers are required";
   if (!formData.shipment_date) newErrors.shipment_date = "Shipment Date is required";
   if (!formData.delivery_date) newErrors.delivery_date = "Delivery Date is required";
   if (!formData.tracking_no) newErrors.tracking_no = "Tracking No is required";
 
-  setErrors(newErrors);
+  Object.values(newErrors).forEach(msg => {
+    if (!messagesShown.has(msg)) {
+      toast.error(msg);
+      messagesShown.add(msg);
+    }
+  });
+
   return Object.keys(newErrors).length === 0;
 };
-
-
 
 
 useEffect(() => {
@@ -100,7 +105,7 @@ const handleChange = async (e) => {
 
       } catch (err) {
         console.error('Error fetching serials:', err);
-        setSerialError("Failed to load serial numbers.");
+        setSerialError("No serial numbers found.");
         setFormData(prev => ({ ...prev, serial_numbers: [] }));
       }
     }
@@ -120,37 +125,55 @@ const handleChange = async (e) => {
     setFormData(prev => ({ ...prev, serial_numbers: updatedSerials }));
   };
 
-  const handleSubmit = (e) => {
+ const handleSubmit = (e) => {
   e.preventDefault();
   if (!validateForm()) return;
 
   axios.post('http://localhost:8000/api/saleStore', formData)
     .then(() => {
       toast.success('Sale added successfully!');
-      navigate('/salesOrder'); // or remove if you want to stay on the same page
+      navigate('/salesOrder');
     })
     .catch(err => {
       console.error('Error posting sale:', err);
-      toast.error('Failed to save sale.');
 
+      if (err.response && err.response.status === 422) {
+        const res = err.response.data;
 
-if (err.response && err.response.status === 422) {
-    const res = err.response.data;
+        // Laravel-style validation errors
+        if (res.errors) {
+          const messagesShown = new Set();
+          const newErrors = {};
 
-    // Option 1: If it's a validation object (typical Laravel format)
-    if (res.errors) {
-      setErrors(res.errors); // { quantity: ['message here'] }
-    } 
-    // Option 2: If it's a custom message like your case
-    else if (res.message) {
-      setErrors(prev => ({
-        ...prev,
-           quantity: `Only ${res.available} items available, but ${res.required} requested.`,
-      }));
-    }
-  } else {
-    console.error("Other error:", err);
-  }
+          Object.entries(res.errors).forEach(([field, messages]) => {
+            if (Array.isArray(messages)) {
+              newErrors[field] = messages[0]; // set first message for the field
+              messages.forEach(msg => {
+                if (!messagesShown.has(msg)) {
+                  toast.error(msg);
+                  messagesShown.add(msg);
+                }
+              });
+            }
+          });
+
+          setErrors(newErrors);
+        }
+
+        // Custom structured error like:
+        // { message: "...", available: 2, required: 5 }
+        else if (res.message && res.available && res.required) {
+          const customMsg = `Only ${res.available} items available, but ${res.required} requested.`;
+          toast.error(customMsg);
+
+          setErrors(prev => ({
+            ...prev,
+            quantity: customMsg
+          }));
+        }
+      } else {
+        toast.error('Failed to save sale.');
+      }
     });
 };
 
@@ -226,7 +249,7 @@ if (err.response && err.response.status === 422) {
     })
   }}
 />
-  {errors.customer_id && <div className="text-danger small mt-1">{errors.customer_id}</div>}
+  {/* {errors.customer_id && <div className="text-danger small mt-1">{errors.customer_id}</div>} */}
 
 
             </Form.Group>
@@ -243,7 +266,7 @@ if (err.response && err.response.status === 422) {
 
 
             </Form.Select>
-                {errors.batch_id && <div className="text-danger small mt-1">{errors.batch_id}</div>}
+                {/* {errors.batch_id && <div className="text-danger small mt-1">{errors.batch_id}</div>} */}
           </Col>
 
           <Col md={4}>
@@ -254,7 +277,7 @@ if (err.response && err.response.status === 422) {
                 <option key={c.id} value={c.id}>{c.category}</option>
               ))}
             </Form.Select>
-            {errors.category_id && <div className="text-danger small mt-1">{errors.category_id}</div>}
+            {/* {errors.category_id && <div className="text-danger small mt-1">{errors.category_id}</div>} */}
 
           </Col>
         </Row>
@@ -274,7 +297,7 @@ if (err.response && err.response.status === 422) {
           <Col md={4} sm={6} xs={12}>
             <Form.Label>Shipment Name</Form.Label>
             <Form.Control size="sm" name="shipment_name" value={formData.shipment_name} onChange={handleChange} placeholder="Enter Shipment Name" style={{ boxShadow: 'none', borderColor: '#ced4da' }}/>
-    {errors.shipment_name && <div className="text-danger small mt-1">{errors.shipment_name}</div>}
+    {/* {errors.shipment_name && <div className="text-danger small mt-1">{errors.shipment_name}</div>} */}
 
           </Col>
         </Row>
@@ -312,19 +335,19 @@ if (err.response && err.response.status === 422) {
           <Col md={4}>
             <Form.Label>Shipment Date</Form.Label>
             <Form.Control size="sm" type="date" name="shipment_date" value={formData.shipment_date} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}/>
-         {errors.shipment_date && <div className="text-danger small mt-1">{errors.shipment_date}</div>}
+         {/* {errors.shipment_date && <div className="text-danger small mt-1">{errors.shipment_date}</div>} */}
 
           </Col>
           <Col md={4}>
             <Form.Label>Delivery Date</Form.Label>
             <Form.Control size="sm" type="date" name="delivery_date" value={formData.delivery_date} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}/>
-         {errors.delivery_date && <div className="text-danger small mt-1">{errors.delivery_date}</div>}
+         {/* {errors.delivery_date && <div className="text-danger small mt-1">{errors.delivery_date}</div>} */}
 
           </Col>
           <Col md={4}>
             <Form.Label>Tracking No.</Form.Label>
             <Form.Control size="sm" name="tracking_no" value={formData.tracking_no} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}/>
-          {errors.tracking_no && <div className="text-danger small mt-1">{errors.tracking_no}</div>}
+          {/* {errors.tracking_no && <div className="text-danger small mt-1">{errors.tracking_no}</div>} */}
 
           </Col>
         </Row>

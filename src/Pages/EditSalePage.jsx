@@ -6,7 +6,6 @@ import Select, { components } from 'react-select';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
 export default function EditSalePage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -15,9 +14,8 @@ export default function EditSalePage() {
   const [batches, setBatches] = useState([]);
   const [categories, setCategories] = useState([]);
   const [originalSerials, setOriginalSerials] = useState([]);
-const [availableSerials, setAvailableSerials] = useState([]);
+  const [availableSerials, setAvailableSerials] = useState([]);
   const [formData, setFormData] = useState({
-
     customer_id: '',
     batch_id: '',
     category_id: '',
@@ -43,114 +41,110 @@ const [availableSerials, setAvailableSerials] = useState([]);
     }));
   };
 
-  
-const fetchSerialNumbers = async () => {
-  const { batch_id, category_id, quantity, from_serial } = formData;
+  const fetchSerialNumbers = async () => {
+    const { batch_id, category_id, quantity, from_serial } = formData;
+    if (!batch_id || !category_id || !quantity) return;
 
-  if (!batch_id || !category_id || !quantity) return;
+    try {
+      const response = await axios.post('http://localhost:8000/api/available-serials', {
+        batch_id,
+        category_id,
+        from_serial,
+        quantity: parseInt(quantity, 10),
+  include_serials: originalSerials.map(p => p.serial_no),
 
-  try {
-    const response = await axios.post('http://localhost:8000/api/available-serials', {
-      batch_id,
-      category_id,
-      from_serial,
-      quantity: parseInt(quantity, 10),
-       include_serials: originalSerials, // Include currently sold serials
-    });
-
-    console.log('Available Serials:', response.data.available_serials);
-    // setAvailableSerials(response.data.available_serials);
-
-    const uniqueAvailable = response.data.available_serials.filter(
-  sn => !originalSerials.includes(sn)
-);
-setAvailableSerials(uniqueAvailable);
-
-
-  } catch (error) {
-    console.error('Serial fetch failed:', error);
-  }
-};
-
-useEffect(() => {
-  axios.get('http://localhost:8000/api/form-dropdowns')
-    .then(res => {
-      const { customers, batches, categories } = res.data.data;
-      setCustomers(customers);
-      setBatches(batches);
-      setCategories(categories);
-    })
-    .catch(err => console.error('Dropdown fetch error:', err));
-
-  axios.get(`http://localhost:8000/api/sales/${id}/edit`)
-    .then(res => {
-      const sale = res.data.sale;
-       const currentSerials = res.data.current_serials || [];
-      const serialList = sale.serials || [];
-
-      setFormData({
-        customer_id: sale.customer_id,
-        batch_id: sale.batch_id,
-        category_id: sale.category_id,
-        quantity: sale.quantity,
-        shipment_name: sale.shipment_name,
-        shipment_date: sale.shipment_date,
-        delivery_date: sale.delivery_date,
-        tracking_no: sale.tracking_no || '',
-        from_serial: sale.from_serial || '',
-        serial_numbers: currentSerials,
-        notes: sale.notes || '',
       });
+const uniqueAvailable = response.data.available_serials.filter(
+  sn => !originalSerials.some(p => p.serial_no === sn.serial_no)
+);
 
-      // setOriginalSerials(serialList);
+      setAvailableSerials(uniqueAvailable);
+    } catch (error) {
+      console.error('Serial fetch failed:', error);
+    }
+  };
+
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/form-dropdowns')
+      .then(res => {
+        const { customers, batches, categories } = res.data.data;
+        setCustomers(customers);
+        setBatches(batches);
+        setCategories(categories);
+      })
+      .catch(err => console.error('Dropdown fetch error:', err));
+
+    axios.get(`http://localhost:8000/api/sales/${id}/edit`)
+      .then(res => {
+        const sale = res.data.sale;
+        const currentSerials = res.data.current_product_ids || [];
+
+        setFormData({
+          customer_id: sale.customer_id,
+          batch_id: sale.batch_id,
+          category_id: sale.category_id,
+          quantity: sale.quantity,
+          shipment_name: sale.shipment_name,
+          shipment_date: sale.shipment_date,
+          delivery_date: sale.delivery_date,
+          tracking_no: sale.tracking_no || '',
+          from_serial: sale.from_serial || '',
+          serial_numbers: currentSerials,
+          notes: sale.notes || '',
+        });
+
         setOriginalSerials(currentSerials);
-       setAvailableSerials(availableSerials);
-    //  setAvailableSerials(res.data.available_serials);
+        setAvailableSerials(res.data.available_products || []);
+      })
+      .catch(err => console.error('Error loading sale data:', err));
+  }, [id]);
 
-    })
-    .catch(err => console.error('Error loading sale data:', err));
-}, [id]);
-
-useEffect(() => {
-  if (
-    formData.batch_id &&
-    formData.category_id &&
-    formData.from_serial &&
-    formData.quantity
-  ) {
-    fetchSerialNumbers();
-  }
-}, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
-
+  useEffect(() => {
+    if (formData.batch_id && formData.category_id && formData.from_serial && formData.quantity) {
+      fetchSerialNumbers();
+    }
+  }, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
 const handleSubmit = (e) => {
   e.preventDefault();
 
- // const allSerials = [...formData.serial_numbers, ...availableSerials];
+  const requiredQty = parseInt(formData.quantity || 0, 10);
+  const currentSerials = formData.serial_numbers || [];
+  const available = availableSerials || [];
 
-   const requiredQty = parseInt(formData.quantity || 0, 10);
-  const allSerials = [...formData.serial_numbers, ...availableSerials].slice(0, requiredQty);
+  // Remove duplicates based on serial_no
+  const merged = [...currentSerials, ...available];
+  const uniqueSerialsMap = {};
+  const uniqueSerials = [];
 
-  if (allSerials.length < requiredQty) {
-    alert(`Only ${allSerials.length} serials assigned. Please assign ${requiredQty}.`);
+  for (const item of merged) {
+    if (!uniqueSerialsMap[item.serial_no]) {
+      uniqueSerialsMap[item.serial_no] = true;
+      uniqueSerials.push(item);
+    }
+  }
+
+  const finalSerials = uniqueSerials.slice(0, requiredQty);
+
+  if (finalSerials.length < requiredQty) {
+    alert(`Only ${finalSerials.length} serials assigned. Please assign ${requiredQty}.`);
     return;
   }
 
   const updatedFormData = {
     ...formData,
-    selected_serials: allSerials, // Laravel expects this field
+    selected_serials: finalSerials.map(p => p.serial_no),
   };
 
   axios.put(`http://localhost:8000/api/salesUpdate/${id}`, updatedFormData)
-   .then(() => {
+    .then(() => {
       toast.success('Sale updated successfully!');
-      setTimeout(() => navigate('/salesOrder'), 1500); // Wait for toast before navigation
+      setTimeout(() => navigate('/salesOrder'), 1500);
     })
     .catch(err => {
       console.error('Error updating sale:', err);
       toast.error('Failed to update sale.');
     });
 };
-
 
   const customerOptions = customers.map(c => ({
     value: c.id,
@@ -166,7 +160,7 @@ const handleSubmit = (e) => {
           <i className="bi bi-arrow-left" /> Back
         </Button>
       </div>
-<ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
 
       <Form onSubmit={handleSubmit}>
         <Row className="mb-3">
@@ -182,30 +176,6 @@ const handleSubmit = (e) => {
                 components={{ SingleValue: CustomSingleValue, Option: CustomOption }}
                 className="form-control form-control-sm p-0"
                 classNamePrefix="react-select-sm"
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    minHeight: '30px',
-                    height: '30px',
-                    fontSize: '0.875rem',
-                    boxShadow: 'none',
-                    borderColor: '#ced4da',
-                  }),
-                  valueContainer: (base) => ({
-                    ...base,
-                    height: '30px',
-                    padding: '0 8px',
-                  }),
-                  indicatorsContainer: (base) => ({
-                    ...base,
-                    height: '30px',
-                  }),
-                  input: (base) => ({
-                    ...base,
-                    margin: 0,
-                    padding: 0,
-                  }),
-                }}
               />
             </Form.Group>
           </Col>
@@ -254,83 +224,49 @@ const handleSubmit = (e) => {
           </Col>
         </Row>
 
-       <Form.Label className="mb-2 text-dark fw-normal">Product Serial No. (Already Sold for this Sale)</Form.Label>
-<Table className="mb-3 border rounded-3 overflow-hidden">
-  <thead>
-    <tr>
-      <th className="py-2 px-3 text-dark fw-normal" style={{ backgroundColor: '#E9ECEF' }}>Count</th>
-      <th className="py-2 px-3 text-dark fw-normal" style={{ backgroundColor: '#E9ECEF' }}>Serial Number</th>
-    </tr>
-  </thead>
-  <tbody>
-    {Array.isArray(formData.serial_numbers) && formData.serial_numbers.length > 0 ? (
-      formData.serial_numbers.map((value, idx) => (
-        <tr key={idx}>
-          <td className="py-2 px-3 border-light align-middle">{idx + 1}</td>
-          <td className="py-0 px-3 border-light">
-       <Form.Control
-  type="text"
-  size="sm"
-  value={value}
-  onChange={(e) => {
-    const updatedSerials = [...formData.serial_numbers];
-    updatedSerials[idx] = e.target.value;
-    setFormData(prev => ({ ...prev, serial_numbers: updatedSerials }));
-  }}
-/>
+      <Form.Label className="mb-2 text-dark fw-normal">
+  Product Serial No. (Already Sold for this Sale)
+</Form.Label>
+<Row className="mb-3">
+  {formData.serial_numbers.length > 0 ? (
+    formData.serial_numbers.map((item, idx) => (
+      <Col key={idx} md={3} className="mb-2">
+        <Form.Control
+          type="text"
+          size="sm"
+          value={item.serial_no}
+          disabled
+          className="shadow-none bg-light border-0 text-muted"
+        />
+      </Col>
+    ))
+  ) : (
+    <Col>
+      <div className="text-muted text-center">No serials assigned</div>
+    </Col>
+  )}
+</Row>
 
-          </td>
-        </tr>
-      ))
-    ) : (
-      <tr>
-        <td colSpan="2" className="text-center text-muted">No serials assigned</td>
-      </tr>
-    )}
-  </tbody>
-</Table>
-
-
-{availableSerials.length > 0 && (
+{/* 
+       {availableSerials.length > 0 && (
   <>
     <Form.Label className="mb-2 text-dark fw-normal">Available Product Serials</Form.Label>
-    <Table className="mb-3 border rounded-3 overflow-hidden">
-      <thead>
-        <tr>
-          <th className="py-2 px-3 text-dark fw-normal" style={{ backgroundColor: '#E9ECEF' }}>Count</th>
-          <th className="py-2 px-3 text-dark fw-normal" style={{ backgroundColor: '#E9ECEF' }}>Serial Number</th>
-        </tr>
-      </thead>
-      <tbody>
-        {availableSerials.map((sn, idx) => (
-          <tr key={idx}>
-            <td className="py-2 px-3 border-light align-middle">{idx + 1}</td>
-            <td className="py-0 px-3 border-light">
-              <Form.Control
-                type="text"
-                size="sm"
-                value={sn}
-                disabled
-                className="shadow-none bg-transparent border-0 py-2 px-0"
-              />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </Table>
-  </>
-)}
-
-        {/* {availableSerials.length > 0 && (
-  <>
-    <h6 className="fw-semibold mt-4">Available Product Serials</h6>
-    <ul className="list-group mb-3">
+    <Row className="mb-3">
       {availableSerials.map((sn, idx) => (
-        <li key={idx} className="list-group-item py-1 px-2">{sn}</li>
+        <Col key={idx} md={3} className="mb-2">
+          <Form.Control
+            type="text"
+            size="sm"
+            value={sn.serial_no}
+            disabled
+            className="shadow-none bg-light border-0 text-muted"
+          />
+        </Col>
       ))}
-    </ul>
+    </Row>
   </>
 )} */}
+
 
         <Row className="mb-3">
           <Col md={4}>
