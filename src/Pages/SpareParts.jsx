@@ -17,14 +17,16 @@ export default function App() {
   const [errors, setErrors] = useState({});
   const tableRef = useRef(null);
 
-  function initialFormState() {
-    return {
-      name: "",
-      quantity_per_vci: "",
-      notes: "",
-      quantity: "",
-    };
-  }
+function initialFormState() {
+  return {
+    name: "",
+    quantity_per_vci: "",
+    notes: "",
+    quantity: "",
+is_active: "Enable", // ✅ sets default valid value
+  };
+}
+
 
   useEffect(() => {
     fetchSpareparts();
@@ -78,7 +80,6 @@ export default function App() {
       newErrors.name = "Spare Part Name is required.";
     }
 
-    // Validation for new component creation
     if (!editingPart) {
       if (!formData.quantity || isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0) {
         newErrors.quantity = "Opening Stock must be a non-negative number.";
@@ -86,13 +87,15 @@ export default function App() {
       if (!formData.quantity_per_vci || isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) <= 0) {
         newErrors.quantity_per_vci = "Quantity per VCI must be a positive number.";
       }
+      if (!formData.is_active || !["Enable", "Disable"].includes(formData.is_active)) {
+  newErrors.is_active = "Status must be Enable or Disable.";
+}
+
     } else {
-      // Validation for updating an existing component
       if (formData.quantity && (isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0)) {
         newErrors.quantity = "Quantity to add must be a non-negative number.";
       }
       if (formData.quantity_per_vci && (isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) < 0)) {
-        // If quantity_per_vci is present, it must be non-negative
         newErrors.quantity_per_vci = "Quantity per VCI must be a non-negative number.";
       }
     }
@@ -107,15 +110,15 @@ export default function App() {
       toast.error("Please fill in all required fields correctly.", { toastId: "form-validation" });
       return;
     }
+    
 
     let payload = {
       name: formData.name,
       notes: formData.notes,
+      is_active: formData.is_active
     };
 
     if (editingPart) {
-      // For editing, 'quantity' means 'add stock', and 'quantity_per_vci' means 'subtract'
-      // Only send if the value is provided
       if (formData.quantity) {
         payload.quantity = parseInt(formData.quantity, 10);
       }
@@ -123,7 +126,6 @@ export default function App() {
         payload.quantity_per_vci = parseInt(formData.quantity_per_vci, 10);
       }
     } else {
-      // For new creation, 'quantity' is 'opening stock' and 'quantity_per_vci' is the initial value
       payload.quantity = parseInt(formData.quantity, 10);
       payload.quantity_per_vci = parseInt(formData.quantity_per_vci, 10);
     }
@@ -131,10 +133,6 @@ export default function App() {
     try {
       if (editingPart) {
         const res = await axios.put(`http://localhost:8000/api/spareparts/${editingPart.id}`, payload);
-        // The backend `update` method updates the quantity by *subtracting* quantity_per_vci
-        // and does not directly add 'quantity'.
-        // So, we need to manually update the local state to reflect the expected change
-        // based on the updated object returned from the backend.
         setSpareparts((prev) =>
           prev.map((part) =>
             part.id === editingPart.id
@@ -167,7 +165,7 @@ export default function App() {
         } else if (message) {
           toast.error(`Failed to save spare part: ${message}`, { toastId: "save-fail" });
         } else {
-          toast.error("Failed to save spare part. Please try again.", { toastId: "save-fail2" });
+          toast.error("Failed to save spare part.", { toastId: "save-fail2" });
         }
         setErrors(newErrors);
       } else {
@@ -213,12 +211,13 @@ export default function App() {
 
   const handleEdit = (part) => {
     setEditingPart(part);
-    setFormData({
-      name: part.name || "",
-      quantity_per_vci: part.quantity_per_vci || "",
-      notes: part.notes || "",
-      quantity: "", // This will be the "Add Stock" field, so it starts empty
-    });
+   setFormData({
+  name: part.name || "",
+  quantity_per_vci: part.quantity_per_vci || "",
+  notes: part.notes || "",
+  quantity: "", // Reset on edit
+  is_active: part.is_active || "Enable"
+});
     setShowForm(true);
     setErrors({});
   };
@@ -274,7 +273,7 @@ export default function App() {
   return (
     <>
       <div className="vh-80 d-flex flex-column position-relative bg-light">
-        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+        {/* <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover /> */}
         <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
           <h5 className="mb-0 fw-bold">Spare parts ({spareparts.length})</h5>
           <div>
@@ -293,7 +292,9 @@ export default function App() {
                   <th style={{ width: "150px" }}>Current Qty</th>
                   <th style={{ width: "150px" }}>Quantity per VCI</th>
                   <th style={{ width: "250px" }}>Notes</th>
+                  <th style={{ width: "120px" }}>Status</th>
                   <th style={{ width: "120px" }}>Action</th>
+                  
                 </tr>
               </thead>
               <tbody>
@@ -316,11 +317,18 @@ export default function App() {
                       <td style={{ wordBreak: "break-word" }}>{part.name}</td>
                       <td>{part.quantity}</td>
                       <td>{part.quantity_per_vci}</td>
+                      
                       <td>{part.notes || "-"}</td>
+                        <td>
+        <span className={`badge ${part.is_active === 'Enable' ? 'bg-success' : 'bg-secondary'}`}>
+          {part.is_active}
+        </span>
+      </td>
                       <td>
                         <Button
                           variant="outline-primary"
                           size="sm"
+
                           className="me-1"
                           onClick={() => handleEdit(part)}
                         >
@@ -449,6 +457,24 @@ export default function App() {
                     {errors.quantity}
                   </Form.Control.Feedback>
                 </div>
+                <div className="mb-3 col-6">
+  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Status</Form.Label>
+<Form.Select
+  name="is_active"
+  value={formData.is_active}
+  onChange={handleChange}
+  isInvalid={!!errors.is_active}
+  style={getInputStyle("is_active")}
+>
+  <option value="Enable">Enable</option>
+  <option value="Disable">Disable</option>
+</Form.Select>
+
+  <Form.Control.Feedback type="invalid" style={errorStyle}>
+    {errors.is_active}
+  </Form.Control.Feedback>
+</div>
+
               </div>
               <div style={{ position: "absolute", bottom: "90px", right: "30px" }}>
                 <Button
