@@ -76,14 +76,14 @@ export default function SalesListPage() {
   }, [salesData, loading]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this sale?")) return;
+    // if (!window.confirm("Are you sure you want to delete this sale?")) return;
 
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
 
-      await axios.delete(`http://localhost:8000/api/sales/${id}`);
+      await axios.delete(`http://localhost:8000/api/sales/${id}/del`);
       toast.success("Sale deleted successfully.");
       fetchSales();
     } catch (err) {
