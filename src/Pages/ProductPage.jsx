@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import { API_BASE_URL } from "../api";
 
 
 export default function ProductPage() {
@@ -30,7 +31,6 @@ export default function ProductPage() {
     test: "",
   });
 
-  const apiBase = "http://localhost:8000/api";
   const tableRef = useRef(null);
 
   useEffect(() => {
@@ -47,7 +47,7 @@ export default function ProductPage() {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-      const res = await axios.get(`${apiBase}/products`);
+      const res = await axios.get(`${API_BASE_URL}/products`);
       setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       toast.error("Failed to fetch products!");
@@ -58,7 +58,7 @@ export default function ProductPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(`${apiBase}/categories`);
+      const res = await axios.get(`${API_BASE_URL}/categories`);
       setCategories(res.data);
     } catch (error) {
       toast.error("Failed to fetch categories!");
@@ -67,7 +67,7 @@ export default function ProductPage() {
 
   const fetchBatches = async () => {
     try {
-      const res = await axios.get(`${apiBase}/batches`);
+      const res = await axios.get(`${API_BASE_URL}/batches`);
       setBatches(res.data);
     } catch (error) {
       toast.error("Failed to fetch batches!");
@@ -138,7 +138,7 @@ export default function ProductPage() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      await axios.delete(`${apiBase}/products/${id}`);
+      await axios.delete(`${API_BASE_URL}/products/${id}`);
       toast.success('Product deleted!');
       await fetchProducts();
     } catch (error) {
@@ -203,10 +203,10 @@ export default function ProductPage() {
       }
 
       if (isEditing) {
-        await axios.put(`${apiBase}/products/${productData.id}`, productData);
+        await axios.put(`${API_BASE_URL}/products/${productData.id}`, productData);
         toast.success("Product updated successfully!");
       } else {
-        await axios.post(`${apiBase}/products`, productData);
+        await axios.post(`${API_BASE_URL}/products`, productData);
         toast.success("Product added successfully!");
       }
 

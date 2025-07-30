@@ -8,6 +8,7 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import { API_BASE_URL } from "../api";
 
 export default function DistrictPage() {
   const [countries, setCountries] = useState([]);
@@ -21,7 +22,6 @@ export default function DistrictPage() {
   const [newDistrictName, setNewDistrictName] = useState("");
   const [editId, setEditId] = useState(null);
 
-  const apiBase = "http://127.0.0.1:8000/api";
   const tableRef = useRef(null);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function DistrictPage() {
 
   const fetchCountries = async () => {
     try {
-      const res = await axios.get(`${apiBase}/countries`);
+      const res = await axios.get(`${API_BASE_URL}/countries`);
       setCountries(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       toast.error("Failed to fetch countries!");
@@ -56,7 +56,7 @@ export default function DistrictPage() {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-      const res = await axios.get(`${apiBase}/districts`);
+      const res = await axios.get(`${API_BASE_URL}/districts`);
       setDistricts(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       toast.error("Failed to fetch districts!");
@@ -71,7 +71,7 @@ export default function DistrictPage() {
       return;
     }
     try {
-      const res = await axios.get(`${apiBase}/states/country/${countryId}`);
+      const res = await axios.get(`${API_BASE_URL}/states/country/${countryId}`);
       setModalStates(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       toast.error("Failed to fetch states!");
@@ -138,9 +138,9 @@ export default function DistrictPage() {
       }
 
       if (editId) {
-        await axios.put(`${apiBase}/districts/${editId}`, payload);
+        await axios.put(`${API_BASE_URL}/districts/${editId}`, payload);
       } else {
-        await axios.post(`${apiBase}/districts`, payload);
+        await axios.post(`${API_BASE_URL}/districts`, payload);
       }
 
       await fetchDistricts(); // wait for refresh
@@ -183,7 +183,7 @@ export default function DistrictPage() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      await axios.delete(`${apiBase}/districts/${id}`);
+      await axios.delete(`${API_BASE_URL}/districts/${id}`);
       await fetchDistricts();
       toast.success('District deleted!');
 
