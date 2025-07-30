@@ -92,22 +92,14 @@ export default function SalesListPage() {
     }
   };
 
-  const handleViewInvoice = async (saleId) => {
-    try {
-      const res = await axios.get(`http://localhost:8000/api/sales/${saleId}/invoices`);
-      if (res.data.pdf_url) {
-        window.open(res.data.pdf_url, "_blank");
-      } else {
-        toast.warn("Invoice not generated.");
-      }
-    } catch (err) {
-      console.error("Failed to load invoice PDF:", err);
-      toast.error("Error generating invoice PDF.");
-    }
-  };
-
-
-
+const handleViewInvoice = (saleId) => {
+  try {
+    window.open(`http://localhost:8000/api/sales/${saleId}/invoices`, "_blank");
+  } catch (error) {
+    console.log(error);
+    
+  }
+};
 
   return (
     <div className="p-4 bg-white" style={{ minHeight: "100vh" }}>
