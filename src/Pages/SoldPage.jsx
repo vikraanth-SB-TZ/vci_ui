@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Button, Spinner } from "react-bootstrap";
+import { API_BASE_URL } from "../api";
 
 export default function SoldPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const apiBase = "http://127.0.0.1:8000/api";
 
   useEffect(() => {
     fetchSoldProducts();
@@ -15,7 +15,7 @@ export default function SoldPage() {
   const fetchSoldProducts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${apiBase}/products`);
+      const res = await axios.get(`${API_BASE_URL}/products`);
       const soldProducts = res.data.filter(
         (product) => product.sale_status?.toLowerCase() === "sold"
       );

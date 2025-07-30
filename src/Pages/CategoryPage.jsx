@@ -8,6 +8,7 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import { API_BASE_URL } from "../api";
 
 export default function CategoryPage() {
   const [categories, setCategories] = useState([]);
@@ -16,7 +17,7 @@ export default function CategoryPage() {
   const [categoryName, setCategoryName] = useState("");
   const [editingCategoryId, setEditingCategoryId] = useState(null);
 
-  const apiBase = "http://127.0.0.1:8000/api";
+
   const tableRef = useRef(null);
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function CategoryPage() {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-      const res = await axios.get(`${apiBase}/categories`);
+      const res = await axios.get(`${API_BASE_URL}/categories`);
       setCategories(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       toast.error("Failed to fetch categories!");
@@ -91,10 +92,10 @@ export default function CategoryPage() {
       }
 
       if (editingCategoryId) {
-        await axios.put(`${apiBase}/categories/${editingCategoryId}`, payload);
+        await axios.put(`${API_BASE_URL}/categories/${editingCategoryId}`, payload);
         toast.success("Category updated successfully!");
       } else {
-        await axios.post(`${apiBase}/categories`, payload);
+        await axios.post(`${API_BASE_URL}/categories`, payload);
         toast.success("Category added successfully!");
       }
 
@@ -136,7 +137,7 @@ const handleDelete = async (id) => {
       $(tableRef.current).DataTable().destroy();
     }
 
-    await axios.delete(`${apiBase}/categories/${id}`);
+    await axios.delete(`${API_BASE_URL}/categories/${id}`);
     toast.success('Category deleted!');
     await fetchCategories();
   } catch (error) {

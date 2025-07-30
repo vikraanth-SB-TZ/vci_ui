@@ -8,6 +8,7 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import { API_BASE_URL } from "../api";
 
 export default function CountryPage() {
   const [countries, setCountries] = useState([]);
@@ -16,7 +17,6 @@ export default function CountryPage() {
   const [countryName, setCountryName] = useState("");
   const [editingCountryId, setEditingCountryId] = useState(null);
 
-  const apiBase = "http://127.0.0.1:8000/api";
   const tableRef = useRef(null);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function CountryPage() {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-      const res = await axios.get(`${apiBase}/countries`);
+      const res = await axios.get(`${API_BASE_URL}/countries`);
       setCountries(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       toast.error("Failed to fetch countries!");
@@ -90,10 +90,10 @@ export default function CountryPage() {
       }
 
       if (editingCountryId) {
-        await axios.put(`${apiBase}/countries/${editingCountryId}`, payload);
+        await axios.put(`${API_BASE_URL}/countries/${editingCountryId}`, payload);
         toast.success("Country updated successfully!");
       } else {
-        await axios.post(`${apiBase}/countries`, payload);
+        await axios.post(`${API_BASE_URL}/countries`, payload);
         toast.success("Country added successfully!");
       }
 
@@ -135,7 +135,7 @@ export default function CountryPage() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      await axios.delete(`${apiBase}/countries/${id}`);
+      await axios.delete(`${API_BASE_URL}/countries/${id}`);
       await fetchCountries();
       toast.success('Country deleted!');
     } catch (error) {
