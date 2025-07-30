@@ -8,6 +8,7 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { API_BASE_URL } from "../api";
 
 export default function SalesListPage() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function SalesListPage() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      const res = await axios.get('http://localhost:8000/api/sales');
+      const res = await axios.get(`${API_BASE_URL}/sales`);
       if (res.data.success) {
         setSalesData(res.data.data);
       }
@@ -49,7 +50,7 @@ export default function SalesListPage() {
   useEffect(() => {
     fetchSales();
 
-    axios.get('http://localhost:8000/api/form-dropdowns')
+    axios.get(`${API_BASE_URL}/form-dropdowns`)
       .then(res => {
         const data = res.data?.data || {};
         setBatches(data.batches || []);
@@ -83,7 +84,7 @@ export default function SalesListPage() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      await axios.delete(`http://localhost:8000/api/sales/${id}/del`);
+      await axios.delete(`${API_BASE_URL}/sales/${id}/del`);
       toast.success("Sale deleted successfully.");
       fetchSales();
     } catch (err) {
@@ -94,7 +95,7 @@ export default function SalesListPage() {
 
 const handleViewInvoice = (saleId) => {
   try {
-    window.open(`http://localhost:8000/api/sales/${saleId}/invoices`, "_blank");
+    window.open(`${API_BASE_URL}/sales/${saleId}/invoices`, "_blank");
   } catch (error) {
     console.log(error);
     
