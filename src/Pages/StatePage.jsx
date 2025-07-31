@@ -8,6 +8,7 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import { API_BASE_URL } from "../api";
 
 export default function StatePage() {
   const [states, setStates] = useState([]);
@@ -18,7 +19,6 @@ export default function StatePage() {
   const [countryId, setCountryId] = useState("");
   const [editingStateId, setEditingStateId] = useState(null);
 
-  const apiBase = "http://127.0.0.1:8000/api";
   const tableRef = useRef(null);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function StatePage() {
 
   const fetchCountries = async () => {
     try {
-      const res = await axios.get(`${apiBase}/countries`);
+      const res = await axios.get(`${API_BASE_URL}/countries`);
       setCountries(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       toast.error("Failed to fetch countries!");
@@ -53,7 +53,7 @@ export default function StatePage() {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-      const res = await axios.get(`${apiBase}/states`);
+      const res = await axios.get(`${API_BASE_URL}/states`);
       setStates(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       toast.error("Failed to fetch states!");
@@ -113,10 +113,10 @@ export default function StatePage() {
       }
 
       if (editingStateId) {
-        await axios.put(`${apiBase}/states/${editingStateId}`, payload);
+        await axios.put(`${API_BASE_URL}/states/${editingStateId}`, payload);
         toast.success("State updated successfully!");
       } else {
-        await axios.post(`${apiBase}/states`, payload);
+        await axios.post(`${API_BASE_URL}/states`, payload);
         toast.success("State added successfully!");
       }
       await fetchStates();
@@ -158,7 +158,7 @@ export default function StatePage() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      await axios.delete(`${apiBase}/states/${id}`);
+      await axios.delete(`${API_BASE_URL}/states/${id}`);
       toast.success('State deleted!');
       await fetchStates();
     } catch (error) {

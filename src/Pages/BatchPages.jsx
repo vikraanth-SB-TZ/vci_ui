@@ -8,6 +8,7 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import { API_BASE_URL } from "../api";
 
 export default function BatchPage() {
   const [batches, setBatches] = useState([]);
@@ -16,7 +17,6 @@ export default function BatchPage() {
   const [batchName, setBatchName] = useState("");
   const [editingBatchId, setEditingBatchId] = useState(null);
 
-  const apiBase = "http://127.0.0.1:8000/api";
   const tableRef = useRef(null);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function BatchPage() {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
-      const res = await axios.get(`${apiBase}/batches`);
+      const res = await axios.get(`${API_BASE_URL}/batches`);
       setBatches(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       toast.error("Failed to fetch batches!");
@@ -91,10 +91,10 @@ export default function BatchPage() {
       }
 
       if (editingBatchId) {
-        await axios.put(`${apiBase}/batches/${editingBatchId}`, payload);
+        await axios.put(`${API_BASE_URL}/batches/${editingBatchId}`, payload);
         toast.success("Batch updated successfully!");
       } else {
-        await axios.post(`${apiBase}/batches`, payload);
+        await axios.post(`${API_BASE_URL}/batches`, payload);
         toast.success("Batch added successfully!");
       }
 
@@ -136,7 +136,7 @@ const handleDelete = async (id) => {
       $(tableRef.current).DataTable().destroy();
     }
 
-    await axios.delete(`${apiBase}/batches/${id}`);
+    await axios.delete(`${API_BASE_URL}/batches/${id}`);
     toast.success('Batch deleted!');
     await fetchBatches();
   } catch (error) {
