@@ -23,10 +23,12 @@ import SaleReturns from './Pages/SaleReturns';
 import SaleInvoice from './Pages/SaleInvoice';
 import PcbPurchaseList from './Pages/PcbPurchaseList';
 
+import AddPurchasePage from './Pages/AddPurchasePage';
 import EditPurchasePage from './Pages/EditPurchasePage';
 
 import PcbPurchaseReturn from './Pages/PcbPurchaseReturn';
 
+import AddPcbReturnPage from './Pages/AddPcbReturnPage';
 import Overview from './Pages/Overview/Overview';
  import SalesList from './Pages/SalesList';
 import SparepartsPage from "./Pages/SpareParts";
@@ -108,12 +110,14 @@ export default function App() {
           <Route path="pdf" element={<SaleInvoice />} />
           <Route path="purchaseOrder" element={<PcbPurchaseList />} />
           <Route path="overview" element={<Overview />} />
+         <Route path="/purchase/add" element={<AddPurchasePage />} />
 
           <Route path="/purchase/:id/edit" element={<EditPurchasePage />} />
 
             <Route path="purchaseReturn" element={<PcbPurchaseReturn />} /> 
  
- 
+            <Route path="/pcb-purchase-return/add" element={<AddPcbReturnPage />} />
+
  
           {/* new StatePage route */}
           {/* You can add more routes like <Route path="users" element={<UsersPage />} /> */}
