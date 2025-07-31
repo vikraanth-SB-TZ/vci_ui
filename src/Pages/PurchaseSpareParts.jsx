@@ -3,23 +3,26 @@ import { Button, Spinner, Form } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { ToastContainer, toast } from "react-toastify";
-// import 'react-toastify/dist/React-Toastify.css';
+import 'react-toastify/dist/ReactToastify.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 
-const API_BASE =  "http://127.0.0.1:8000";
+const API_BASE = "http://127.0.0.1:8000";
 
 export default function PurchaseSparepartsPage() {
   const [vendors, setVendors] = useState([]);
   const [batches, setBatches] = useState([]);
   const [availableSpareparts, setAvailableSpareparts] = useState([]);
-  const [spareparts, setSpareparts] = useState([]); // This holds the list of all purchases
+  const [spareparts, setSpareparts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [sparePartsRows, setSparePartsRows] = useState([{ sparepart_id: "", quantity: "" }]);
-  const [invoiceDate, setInvoiceDate] = useState(""); // Changed to string for direct input
-  const dateInputRef = useRef(); // Renamed ref for date input
+const [invoiceDate, setInvoiceDate] = useState(() => {
+  const today = new Date();
+  return today.toISOString().split("T")[0]; // format as "YYYY-MM-DD"
+});
+  const dateInputRef = useRef();
   const [editingPurchase, setEditingPurchase] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -31,10 +34,14 @@ export default function PurchaseSparepartsPage() {
 
   const [formErrors, setFormErrors] = useState({});
   const tableRef = useRef(null);
-  const dataTableInstance = useRef(null); 
+  const dataTableInstance = useRef(null);
 
   const getBlueBorderStyles = (value, isInvalid) => {
-    const baseStyle = {};
+    const baseStyle = {
+      fontFamily: 'Product Sans, sans-serif',
+      fontSize: '14px',
+      border: '1px solid #ced4da', // Add default border
+    };
     if (isInvalid) {
       return {
         ...baseStyle,
@@ -42,21 +49,21 @@ export default function PurchaseSparepartsPage() {
         boxShadow: '0 0 0 0.25rem rgba(220, 53, 69, 0.25)',
       };
     } else if (value) {
-      return {
-        ...baseStyle,
-        borderColor: '#ced4da',
-        boxShadow: 'none',
-      };
+      return baseStyle;
     }
     return baseStyle;
   };
 
   const getTableInputStyles = (value, isInvalid) => {
     const baseTableInputStyle = {
-      height: "38px",
+      height: "40px",
       backgroundColor: "transparent",
-      paddingLeft: "0",
+      padding: "0.375rem 0.75rem",
       border: "1px solid #ced4da",
+      fontFamily: 'Product Sans, sans-serif',
+      fontSize: '14px',
+      borderRadius: '0.25rem',
+      width: '100%',
     };
     if (isInvalid) {
       return {
@@ -67,11 +74,22 @@ export default function PurchaseSparepartsPage() {
     } else if (value) {
       return {
         ...baseTableInputStyle,
-        borderColor: '#ced4da',
-        boxShadow: 'none',
+        // Removed borderColor to only show the green box-shadow
+        boxShadow: '0 0 0 0.25rem rgba(39, 140, 88, 0.25)',
       };
     }
     return baseTableInputStyle;
+  };
+
+  const customSelectStyle = {
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 10px center",
+    backgroundSize: "16px 16px",
+    appearance: "none",
+    WebkitAppearance: "none",
+    MozAppearance: "none",
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E")`,
+    paddingRight: '2.5rem',
   };
 
   const fetchVendors = useCallback(async () => {
@@ -101,7 +119,6 @@ export default function PurchaseSparepartsPage() {
       setAvailableSpareparts(rows);
     } catch (err) {
       console.error("Error loading spareparts master list:", err);
-      // toast.error("Failed to load available spare parts."); // Optionally show toast for fetch errors
     }
   }, []);
 
@@ -126,25 +143,23 @@ export default function PurchaseSparepartsPage() {
     fetchPurchases();
   }, [fetchVendors, fetchBatches, fetchAvailableSpareparts, fetchPurchases]);
 
-  useEffect(() => {
-    if (dataTableInstance.current) {
-      dataTableInstance.current.destroy();
-      dataTableInstance.current = null;
-    }
+useEffect(() => {
+  if (dataTableInstance.current) {
+    dataTableInstance.current.destroy();
+    dataTableInstance.current = null;
+  }
 
-    if (!loading && spareparts.length > 0 && tableRef.current) {
-      setTimeout(() => {
-        dataTableInstance.current = $(tableRef.current).DataTable({
-          ordering: true,
-          paging: true,
-          searching: true,
-          lengthChange: true,
-          columnDefs: [{ targets: 0, className: "text-center" }],
-          destroy: true, // This allows re-initialization
-        });
-      }, 0);
-    }
-  }, [spareparts, loading]);
+  if (!loading && spareparts.length > 0 && tableRef.current) {
+    dataTableInstance.current = $(tableRef.current).DataTable({
+      ordering: true,
+      paging: true,
+      searching: true,
+      lengthChange: true,
+      columnDefs: [{ targets: 0, className: "text-center" }],
+    });
+  }
+}, [spareparts]);
+
 
   const handleAddRow = () => {
     setSparePartsRows((rows) => [...rows, { sparepart_id: "", quantity: "" }]);
@@ -225,24 +240,23 @@ export default function PurchaseSparepartsPage() {
     const batch_id = formData.batch_id;
     const invoice_no = formData.invoiceNo;
     const notes = formData.notes || null;
-    const invoice_date = invoiceDate; // Use directly from state
+    const invoice_date = invoiceDate;
 
-    // Filter out rows that are completely empty or have invalid quantities
     const items = sparePartsRows
       .map((row) => {
         const quantity = parseInt(row.quantity, 10);
         return { sparepart_id: row.sparepart_id, quantity: isNaN(quantity) ? 0 : quantity };
       })
-      .filter((i) => i.sparepart_id && i.quantity > 0); // Only include valid items
+      .filter((i) => i.sparepart_id && i.quantity > 0);
 
     const payload = { vendor_id, batch_id, invoice_no, invoice_date, notes, items };
 
-    if (!validateForm(payload, sparePartsRows)) { // Validate against sparePartsRows (raw input)
+    if (!validateForm(payload, sparePartsRows)) {
       return;
     }
 
     try {
-      setLoading(true); // Set loading state for form submission
+      setLoading(true);
       let data;
       if (editingPurchase) {
         const resp = await axios.put(
@@ -258,7 +272,6 @@ export default function PurchaseSparepartsPage() {
         data = resp.data;
         if (data?.success) {
           toast.success("Purchase updated successfully!");
-          // Update the specific row in the table instead of refetching all
           setSpareparts(prev => prev.map(p => p.id === editingPurchase.id ? { ...p, ...payload, items: items } : p));
         } else {
           toast.error(data?.message || "Failed to update purchase.");
@@ -283,11 +296,10 @@ export default function PurchaseSparepartsPage() {
         }
       }
 
-      // Reset form fields and close form
       setShowForm(false);
       setEditingPurchase(null);
-      setSparePartsRows([{ sparepart_id: "", quantity: "" }]); // Reset to one empty row
-      setInvoiceDate("");
+      setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+setInvoiceDate(new Date().toISOString().split("T")[0]);
       setFormErrors({});
       setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
 
@@ -297,13 +309,13 @@ export default function PurchaseSparepartsPage() {
         toast.error(`Server error (${error.response.status}): ${error.response.data?.message ?? "Please check form data or server logs."}`);
       } else if (error.request) {
         console.error("No response received:", error.request);
-        toast.error("No response from server. Please check your network connection or API base URL.");
+        toast.error("No response from server");
       } else {
         console.error("Request setup error:", error.message);
-        toast.error("An error occurred before sending the request. Please see console for details.");
+        toast.error("An error occurred before sending the request");
       }
     } finally {
-      setLoading(false); // Always stop loading, even on error
+      setLoading(false);
     }
   };
 
@@ -323,7 +335,7 @@ export default function PurchaseSparepartsPage() {
                     headers: { Accept: "application/json" },
                   });
                   if (data?.success) {
-                    setSpareparts((rows) => rows.filter((p) => String(p.id) !== String(id))); // Ensure ID comparison is robust
+                    setSpareparts((rows) => rows.filter((p) => String(p.id) !== String(id)));
                     toast.success("Purchase deleted successfully!");
                   } else {
                     toast.error(data?.message || "Failed to delete.");
@@ -352,18 +364,9 @@ export default function PurchaseSparepartsPage() {
     );
   };
 
-  const customSelectStyle = {
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center",
-    backgroundSize: "16px 16px",
-    appearance: "none",
-    WebkitAppearance: "none",
-    MozAppearance: "none",
-  };
-
   const handleShowForm = (purchase = null) => {
     setEditingPurchase(purchase);
-    setFormErrors({}); // Clear errors when opening form
+    setFormErrors({});
     if (purchase) {
       setSparePartsRows(
         purchase.items && purchase.items.length > 0
@@ -371,18 +374,18 @@ export default function PurchaseSparepartsPage() {
             sparepart_id: String(item.sparepart_id),
             quantity: String(item.quantity),
           }))
-          : [{ sparepart_id: "", quantity: "" }] // Always ensure at least one row for editing
+          : [{ sparepart_id: "", quantity: "" }]
       );
-      setInvoiceDate(purchase.invoice_date); // Set date directly from purchase data
+      setInvoiceDate(purchase.invoice_date);
       setFormData({
-        vendor_id: String(purchase.vendor_id), // Convert to string
-        batch_id: String(purchase.batch_id),   // Convert to string
+        vendor_id: String(purchase.vendor_id),
+        batch_id: String(purchase.batch_id),
         invoiceNo: purchase.invoice_no,
         notes: purchase.notes || ""
       });
     } else {
-      setSparePartsRows([{ sparepart_id: "", quantity: "" }]); // Clear for new form
-      setInvoiceDate(""); // Clear date for new form
+      setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+      setInvoiceDate("");
       setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
     }
     setShowForm(true);
@@ -390,7 +393,6 @@ export default function PurchaseSparepartsPage() {
 
   return (
     <div className="vh-80 d-flex flex-column position-relative bg-light">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover limit={1} />
       <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
         <h5 className="mb-0 fw-bold">Purchase Spare Parts ({spareparts.length})</h5>
         <div>
@@ -411,97 +413,62 @@ export default function PurchaseSparepartsPage() {
                 <th>Vendor Name</th>
                 <th>Invoice Date</th>
                 <th>Invoice No</th>
-                <th>Purchase ID</th>
-                <th>Sparepart Name</th>
-                <th>Quantity</th>
+                <th>Purchase No</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {loading && spareparts.length === 0 ? ( // Only show loading spinner if no data fetched yet
+              {loading && spareparts.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-4">
+                  <td colSpan="5" className="text-center py-4">
                     <Spinner animation="border" />
                   </td>
                 </tr>
               ) : spareparts.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-4 text-muted">
+                  <td colSpan="6" className="text-center py-4 text-muted">
                     No purchases found.
                   </td>
                 </tr>
               ) : (
-                spareparts.map((purchase, index) => {
-                  const items = purchase.items || [];
-                  return (
-                    <tr key={purchase.id}>
-                      <td style={{ textAlign: "center" }}>{index + 1}</td>
-                      <td>
-                        {(() => {
-                          const vendor = vendors.find((v) => String(v.id) === String(purchase.vendor_id));
-                          return vendor
-                            ? `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim()
-                            : `ID: ${purchase.vendor_id}`; // Fallback for missing vendor data
-                        })()}
-                      </td>
-                      <td>{new Date(purchase.invoice_date).toLocaleDateString("en-GB")}</td>
-                      <td>{purchase.invoice_no}</td>
-                      <td>{purchase.id}</td>
-                      <td>
-                        {items.length === 0
-                          ? <span className="text-muted">No items</span>
-                          : (
-                            <ul style={{ paddingLeft: 18, marginBottom: 0 }}>
-                              {items.map((item, idx) => {
-                                const sp = availableSpareparts.find(sp => String(sp.id) === String(item.sparepart_id));
-                                return (
-                                  <li key={idx}>
-                                    {sp ? sp.name : `ID: ${item.sparepart_id}`} {/* Fallback for missing sparepart data */}
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )
-                        }
-                      </td>
-                      <td>
-                        {items.length === 0
-                          ? <span className="text-muted">-</span>
-                          : (
-                            <ul style={{ paddingLeft: 18, marginBottom: 0 }}>
-                              {items.map((item, idx) => (
-                                <li key={idx}>{item.quantity}</li>
-                              ))}
-                            </ul>
-                          )
-                        }
-                      </td>
-                      <td>
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          className="me-1"
-                          onClick={() => handleShowForm(purchase)}
-                        >
-                          <i className="bi bi-pencil-square me-1"></i>
-                        </Button>
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => handleDelete(purchase.id)}
-                        >
-                          <i className="bi bi-trash me-1"></i>
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })
+                spareparts.map((purchase, index) => (
+                  <tr key={purchase.id}>
+                    <td style={{ textAlign: "center" }}>{index + 1}</td>
+                    <td>
+                      {(() => {
+                        const vendor = vendors.find((v) => String(v.id) === String(purchase.vendor_id));
+                        return vendor
+                          ? `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim()
+                          : `ID: ${purchase.vendor_id}`;
+                      })()}
+                    </td>
+                    <td>{new Date(purchase.invoice_date).toLocaleDateString("en-GB")}</td>
+                    <td>{purchase.invoice_no}</td>
+                    <td>{purchase.purchase_no || purchase.invoice_no || `ID: ${purchase.id}`}</td>
+                    <td>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-1"
+                        onClick={() => handleShowForm(purchase)}
+                      >
+                        <i className="bi bi-pencil-square me-1"></i>
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(purchase.id)}
+                      >
+                        <i className="bi bi-trash me-1"></i>
+                      </Button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       </div>
-      {/* Slide Form - UI updated only */}
       <div
         className={`position-fixed bg-white shadow-lg purchase-form-slide`}
         style={{
@@ -527,8 +494,8 @@ export default function PurchaseSparepartsPage() {
               setShowForm(false);
               setEditingPurchase(null);
               setFormErrors({});
-              setSparePartsRows([{ sparepart_id: "", quantity: "" }]); // Reset to one empty row
-              setInvoiceDate(""); // Clear date for new form
+              setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+              setInvoiceDate("");
               setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
             }}
             style={{
@@ -615,19 +582,19 @@ export default function PurchaseSparepartsPage() {
             <div className="col-6">
               <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Invoice Date <span className="text-danger">*</span></Form.Label>
               <div style={{ position: "relative" }}>
-                <Form.Control
-                  type="date" // Changed type to "date"
-                  ref={dateInputRef} // Using the renamed ref
-                  placeholder="DD/MM/YY"
-                  required
-                  value={invoiceDate} // Bind value to invoiceDate state
-                  onChange={handleDateChange} // Handle date change separately
-                  style={getBlueBorderStyles(invoiceDate, !!formErrors.invoice_date)}
-                  isInvalid={!!formErrors.invoice_date}
-                />
-                <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                  {formErrors.invoice_date}
-                </Form.Control.Feedback>
+               <Form.Control
+  type="date"
+  ref={dateInputRef}
+  placeholder="DD/MM/YY"
+  required
+  value={invoiceDate}
+  onChange={handleDateChange}
+  style={getBlueBorderStyles(invoiceDate, !!formErrors.invoice_date)}
+  isInvalid={!!formErrors.invoice_date}
+  min={new Date().toISOString().split("T")[0]}
+  max={new Date().toISOString().split("T")[0]}
+/>
+
               </div>
             </div>
           </div>
@@ -671,8 +638,8 @@ export default function PurchaseSparepartsPage() {
                 >
                   <thead>
                     <tr style={{ backgroundColor: "#E9ECEF", height: "40px", color: "#393C3A" }}>
-                      <th style={{ width: "50%", border: "1px solid #D3DBD5" }}>Sparepart Name <span className="text-danger">*</span></th>
-                      <th style={{ width: "auto", border: "1px solid #D3DBD5" }}>Quantity <span className="text-danger">*</span></th>
+                      <th style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>Spare Part Name</th>
+                      <th style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>Quantity</th>
                       <th style={{ width: "50px", border: "1px solid #D3DBD5", textAlign: "center" }}></th>
                     </tr>
                   </thead>
@@ -680,15 +647,18 @@ export default function PurchaseSparepartsPage() {
                     {sparePartsRows.length > 0 ? (
                       sparePartsRows.map((row, index) => (
                         <tr key={index} style={{ height: "52px" }}>
-                          <td style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>
+                          <td style={{ border: "1px solid #D3DBD5", padding: "4px 8px" }}>
                             <Form.Select
                               className="shadow-none"
                               name={`sparepart-${index}`}
                               required
-                              style={{ ...customSelectStyle, ...getTableInputStyles(row.sparepart_id, !!formErrors[`sparepart-${index}`]) }}
                               value={row.sparepart_id}
                               onChange={(e) => handleRowChange(index, "sparepart_id", e.target.value)}
                               isInvalid={!!formErrors[`sparepart-${index}`]}
+                              style={{
+                                ...customSelectStyle,
+                                ...getTableInputStyles(row.sparepart_id, !!formErrors[`sparepart-${index}`])
+                              }}
                             >
                               <option value="">Select Spare part</option>
                               {availableSpareparts.map((sparepart) => (
@@ -701,7 +671,7 @@ export default function PurchaseSparepartsPage() {
                               {formErrors[`sparepart-${index}`]}
                             </Form.Control.Feedback>
                           </td>
-                          <td style={{ border: "1px solid #D3DBD5", padding: "0 8px" }}>
+                          <td style={{ border: "1px solid #D3DBD5", padding: "4px 8px" }}>
                             <Form.Control
                               type="number"
                               name={`quantity-${index}`}
@@ -710,15 +680,15 @@ export default function PurchaseSparepartsPage() {
                               min="1"
                               value={row.quantity}
                               onChange={(e) => handleRowChange(index, "quantity", e.target.value)}
-                              style={getTableInputStyles(row.quantity, !!formErrors[`quantity-${index}`])}
                               isInvalid={!!formErrors[`quantity-${index}`]}
+                              style={getTableInputStyles(row.quantity, !!formErrors[`quantity-${index}`])}
                             />
                             <Form.Control.Feedback type="invalid" className="d-block mt-0">
                               {formErrors[`quantity-${index}`]}
                             </Form.Control.Feedback>
                           </td>
                           <td style={{ border: "1px solid #D3DBD5", textAlign: "center", width: "50px" }}>
-                            {sparePartsRows.length > 1 && (
+                            {sparePartsRows.length >= 1 && (
                               <Button
                                 variant="link"
                                 size="sm"
@@ -732,7 +702,6 @@ export default function PurchaseSparepartsPage() {
                                   height: "32px",
                                   fontSize: "20px",
                                   lineHeight: "1",
-                                  textAlign: "center",
                                   display: "inline-flex",
                                   alignItems: "center",
                                   justifyContent: "center"

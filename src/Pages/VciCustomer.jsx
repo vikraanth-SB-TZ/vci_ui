@@ -698,161 +698,147 @@ const customSelectStyles = {
                     </div>
 
                     {/* Other Information Section */}
-                    <h6
-                        className="fw-bold mb-1 mt-2"
-                        style={{
-                            fontFamily: "Product Sans, sans-serif",
-                            fontWeight: 700,
-                            fontSize: "20px",
-                            color: "#141414",
-                            lineHeight: "1",
-                            letterSpacing: "0",
-                        }}
-                    >
-                        Company & Address Details
-                    </h6>
-                    <hr className="mt-1 mb-2" />
-                    <div className="row gx-4">
-                        {/* Company Name */}
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={{
-                                color: "#393C3AE5", width: "325px",
-                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>Company Name</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="company_name"
-                                value={formData.company_name}
-                                onChange={handleChange}
-                                placeholder="Enter Company Name"
-                                size="sm"
-                                isInvalid={!!errors.company_name}
-                                style={getInputStyle("company_name")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.company_name}
-                            </Form.Control.Feedback>
-                        </div>
-                        {/* Address */}
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={{
-                                color: "#393C3AE5", width: "325px",
-                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>Address</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleChange}
-                                placeholder="Enter Address"
-                                size="sm"
-                                isInvalid={!!errors.address}
-                                style={getInputStyle("address")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.address}
-                            </Form.Control.Feedback>
-                        </div>
-                        {/* City */}
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={{
-                                color: "#393C3AE5", width: "325px",
-                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>City</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleChange}
-                                placeholder="Enter City"
-                                size="sm"
-                                isInvalid={!!errors.city}
-                                style={getInputStyle("city")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.city}
-                            </Form.Control.Feedback>
-                        </div>
-                        {/* State Select */}
- <div className="row">
-      {/* State Select */}
-      <div className="col-6 mb-2">
-        <Form.Label
-          className="mb-1"
-          style={{
-            color: "#393C3AE5",
-            width: "325px",
-            fontFamily: "Product Sans, sans-serif",
-            fontWeight: 400,
-          }}
-        >
-          State
-        </Form.Label>
-        <Select
-          name="state"
-          value={stateOptions.find((option) => option.value === formData.state) || null}
-          onChange={(selectedOption) => handleChange(selectedOption, "state")}
-          options={stateOptions}
-          placeholder="Select State"
-          isClearable={true}
-          styles={{ ...customSelectStyles, errors }}
-          components={{ Option: SimpleOption }}
-          classNamePrefix="react-select"
-        />
-        {errors.state && <div style={errorStyle}>{errors.state}</div>}
-      </div>
+             <h6
+    className="fw-bold mb-1 mt-2"
+    style={{
+        fontFamily: "Product Sans, sans-serif",
+        fontWeight: 700,
+        fontSize: "20px",
+        color: "#141414",
+        lineHeight: "1",
+        letterSpacing: "0",
+    }}
+>
+    Company & Address Details
+</h6>
+<hr className="mt-1 mb-2" />
 
-      {/* District Select */}
-      <div className="col-6 mb-2">
-        <Form.Label
-          className="mb-1"
-          style={{
-            color: "#393C3AE5",
-            width: "325px",
-            fontFamily: "Product Sans, sans-serif",
-            fontWeight: 400,
-          }}
-        >
-          District
-        </Form.Label>
-        <Select
-          name="district"
-          value={districtOptions.find((option) => option.value === formData.district) || null}
-          onChange={(selectedOption) => handleChange(selectedOption, "district")}
-          options={districtOptions}
-          placeholder="Select District"
-          isClearable={true}
-          styles={{ ...customSelectStyles, errors }}
-          components={{ Option: SimpleOption }}
-          classNamePrefix="react-select"
+<div className="row gx-4">
+    {/* Company Name */}
+    <div className="col-6 mb-2">
+        <Form.Label className="mb-1" style={{
+            color: "#393C3AE5", width: "325px",
+            fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+        }}>Company Name</Form.Label>
+        <Form.Control
+            className="custom-placeholder"
+            name="company_name"
+            value={formData.company_name}
+            onChange={handleChange}
+            placeholder="Enter Company Name"
+            size="sm"
+            isInvalid={!!errors.company_name}
+            style={getInputStyle("company_name")}
         />
-        {errors.district && <div style={errorStyle}>{errors.district}</div>}
-      </div>
+        <Form.Control.Feedback type="invalid" style={errorStyle}>
+            {errors.company_name}
+        </Form.Control.Feedback>
     </div>
 
-                        
-                        {/* Pincode */}
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={{
-                                color: "#393C3AE5", width: "325px",
-                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>Pincode</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="pincode"
-                                value={formData.pincode}
-                                onChange={handleChange}
-                                placeholder="Enter Pincode"
-                                size="sm"
-                                isInvalid={!!errors.pincode}
-                                style={getInputStyle("pincode")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.pincode}
-                            </Form.Control.Feedback>
-                        </div>
-                        {/* GST No. */}
-                    </div>
+    {/* Address */}
+    <div className="col-6 mb-2">
+        <Form.Label className="mb-1" style={{
+            color: "#393C3AE5", width: "325px",
+            fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+        }}>Address</Form.Label>
+        <Form.Control
+            className="custom-placeholder"
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            placeholder="Enter Address"
+            size="sm"
+            isInvalid={!!errors.address}
+            style={getInputStyle("address")}
+        />
+        <Form.Control.Feedback type="invalid" style={errorStyle}>
+            {errors.address}
+        </Form.Control.Feedback>
+    </div>
+
+    {/* City */}
+    <div className="col-6 mb-2">
+        <Form.Label className="mb-1" style={{
+            color: "#393C3AE5", width: "325px",
+            fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+        }}>City</Form.Label>
+        <Form.Control
+            className="custom-placeholder"
+            name="city"
+            value={formData.city}
+            onChange={handleChange}
+            placeholder="Enter City"
+            size="sm"
+            isInvalid={!!errors.city}
+            style={getInputStyle("city")}
+        />
+        <Form.Control.Feedback type="invalid" style={errorStyle}>
+            {errors.city}
+        </Form.Control.Feedback>
+    </div>
+
+    {/* State */}
+    <div className="col-6 mb-2">
+        <Form.Label className="mb-1" style={{
+            color: "#393C3AE5", width: "325px",
+            fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+        }}>State</Form.Label>
+        <Select
+            name="state"
+            value={stateOptions.find((option) => option.value === formData.state) || null}
+            onChange={(selectedOption) => handleChange(selectedOption, "state")}
+            options={stateOptions}
+            placeholder="Select State"
+            isClearable={true}
+            styles={{ ...customSelectStyles, errors }}
+            components={{ Option: SimpleOption }}
+            classNamePrefix="react-select"
+        />
+        {errors.state && <div style={errorStyle}>{errors.state}</div>}
+    </div>
+
+    {/* District */}
+    <div className="col-6 mb-2">
+        <Form.Label className="mb-1" style={{
+            color: "#393C3AE5", width: "325px",
+            fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+        }}>District</Form.Label>
+        <Select
+            name="district"
+            value={districtOptions.find((option) => option.value === formData.district) || null}
+            onChange={(selectedOption) => handleChange(selectedOption, "district")}
+            options={districtOptions}
+            placeholder="Select District"
+            isClearable={true}
+            styles={{ ...customSelectStyles, errors }}
+            components={{ Option: SimpleOption }}
+            classNamePrefix="react-select"
+        />
+        {errors.district && <div style={errorStyle}>{errors.district}</div>}
+    </div>
+
+    {/* Pincode */}
+    <div className="col-6 mb-2">
+        <Form.Label className="mb-1" style={{
+            color: "#393C3AE5", width: "325px",
+            fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+        }}>Pincode</Form.Label>
+        <Form.Control
+            className="custom-placeholder"
+            name="pincode"
+            value={formData.pincode}
+            onChange={handleChange}
+            placeholder="Enter Pincode"
+            size="sm"
+            isInvalid={!!errors.pincode}
+            style={getInputStyle("pincode")}
+        />
+        <Form.Control.Feedback type="invalid" style={errorStyle}>
+            {errors.pincode}
+        </Form.Control.Feedback>
+    </div>
+</div>
+
 
                     {/* Form action buttons */}
 

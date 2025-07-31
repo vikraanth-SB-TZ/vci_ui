@@ -35,7 +35,7 @@ import SparepartsPage from "./Pages/SpareParts";
 import PurchaseSparepartsPage from './Pages/PurchaseSpareParts'; // ✅ Ensure correct casing
 import VciCustomer from './Pages/VciCustomer';
 import ReturnSparePartsPage from './Pages/ReturnSpareParts';
-import Vendor from './Pages/Vendor';
+import Vendor from './Pages/vendor';
 
 
  

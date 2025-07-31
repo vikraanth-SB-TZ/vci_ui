@@ -127,6 +127,9 @@ export default function Vendor() {
         if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
         if (!formData.address.trim()) newErrors.address = "Address is required.";
         if (!formData.city.trim()) newErrors.city = "City is required.";
+        if (formData.gst.trim() && !/^[0-9A-Z]{15}$/.test(formData.gst)) {
+  newErrors.gst = "GST No. must be 15 alphanumeric characters.";
+}
         if (!formData.state) newErrors.state = "State is required.";
         if (!formData.district) newErrors.district = "District is required.";
         if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
@@ -725,20 +728,40 @@ const customSelectStyles = {
                                 color: "#393C3AE5", width: "325px",
                                 fontFamily: "Product Sans, sans-serif", fontWeight: 400,
                             }}>City</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleChange}
-                                placeholder="Enter City"
-                                size="sm"
-                                isInvalid={!!errors.city}
-                                style={getInputStyle("city")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.city}
-                            </Form.Control.Feedback>
+<Form.Control
+  className="custom-placeholder"
+  name="city"
+  value={formData.city}
+  onChange={handleChange}
+  placeholder="Enter City"
+  size="sm"
+  isInvalid={!!errors.city}
+  style={getInputStyle("city")}
+/>
+<Form.Control.Feedback type="invalid" style={errorStyle}>
+  {errors.city}
+</Form.Control.Feedback>
                         </div>
+                           <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={{
+                                color: "#393C3AE5", width: "325px",
+                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+                            }}></Form.Label>
+<Form.Control
+  className="custom-placeholder"
+  name="gst"
+  value={formData.gst}
+  onChange={handleChange}
+  placeholder="Enter GST No."
+  size="sm"
+  isInvalid={!!errors.gst}
+  style={getInputStyle("gst")}
+/>
+<Form.Control.Feedback type="invalid" style={errorStyle}>
+  {errors.gst}
+</Form.Control.Feedback>
+                        </div>
+
                         {/* State Select */}
  <div className="row">
       {/* State Select */}
@@ -795,8 +818,6 @@ const customSelectStyles = {
         {errors.district && <div style={errorStyle}>{errors.district}</div>}
       </div>
     </div>
-
-                        
                         {/* Pincode */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
