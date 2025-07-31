@@ -273,10 +273,23 @@ is_active: "Enable", // ✅ sets default valid value
   return (
     <>
       <div className="vh-80 d-flex flex-column position-relative bg-light">
-        {/* <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover /> */}
         <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
           <h5 className="mb-0 fw-bold">Spare parts ({spareparts.length})</h5>
           <div>
+<Button
+  variant="outline-secondary"
+  size="sm"
+  className="me-2"
+  onClick={() => {
+    if (!loading) fetchSpareparts();
+  }}
+>
+  {loading ? (
+    <Spinner animation="border" size="sm" />
+  ) : (
+    <i className="bi bi-arrow-clockwise"></i>
+  )}
+</Button>
             <Button variant="success" size="sm" onClick={openForm}>
               + Add New
             </Button>

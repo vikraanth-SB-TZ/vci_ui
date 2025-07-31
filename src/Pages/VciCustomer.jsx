@@ -92,7 +92,6 @@ export default function VciCustomer() {
 
     };
 
-    // Function to fetch district data from the API.
     const fetchDistricts = () => {
         axios.get(`${apiBase}/districts`) // GET request to the districts endpoint.
             .then((res) => {
@@ -294,7 +293,6 @@ export default function VciCustomer() {
         marginTop: "4px",
     };
 
-    // Function to generate dynamic input styles based on validation errors.
     const getInputStyle = (fieldName) => ({
         width: "270px",
         height: "50px",
@@ -314,7 +312,6 @@ const SimpleOption = ({ innerRef, innerProps, data }) => (
 );
 
 
-    // Custom styles for react-select components.
 const customSelectStyles = {
   control: (provided, state) => ({
     ...provided,
@@ -404,20 +401,7 @@ const customSelectStyles = {
 
     return (
         <div className="vh-80 d-flex flex-column position-relative bg-light">
-            {/* ToastContainer for displaying notifications */}
-            <ToastContainer
-                position="top-right"
-                autoClose={1000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                limit={1}
-            />
-
+       
             {/* Header section with title and action buttons */}
             <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
                 <h5 className="mb-0 fw-bold">Customers ({customers.length})</h5>

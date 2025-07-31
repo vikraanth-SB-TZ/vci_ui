@@ -9,6 +9,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
+import { FaRegCalendarAlt } from "react-icons/fa";
 
 function initialForm() {
     return {
@@ -39,7 +40,8 @@ export default function Vendor() {
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [errors, setErrors] = useState({});
-    
+      const [selectedDate, setSelectedDate] = useState(null);
+
     const tableRef = useRef(null);
     
     const apiBase = "http://127.0.0.1:8000/api";
@@ -119,18 +121,7 @@ export default function Vendor() {
         else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email address is invalid.";
         if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
         else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
-if (
-  formData.altMobile.trim() &&
-  formData.altMobile.length === 10 &&
-  !/^\d{10}$/.test(formData.altMobile)
-) {
-  newErrors.altMobile = "Alternative mobile number must be 10 digits.";
-} else if (
-  formData.altMobile.trim() &&
-  formData.altMobile.length !== 10
-) {
-  newErrors.altMobile = "Must be exactly 10 digits.";
-}
+        if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) newErrors.altMobile = "Alternative mobile number must be 10 digits.";
         if (!formData.gender) newErrors.gender = "Gender is required.";
         if (!formData.dob) newErrors.dob = "Date of Birth is required.";
         if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
@@ -210,7 +201,6 @@ if (
     };
 
 
-
     // Options for state dropdown, mapping API response to { value, label } format.
    const stateOptions = states.map(state => ({
         value: String(state.id),
@@ -229,7 +219,6 @@ if (
         { value: "Other", label: "Other" },
     ];
 
-    // Function to populate the form with vendor data for editing.
     const handleEdit = (vendor) => {
         setFormData({
             id: vendor.id,
@@ -242,7 +231,6 @@ if (
             company_name: vendor.company_name || "",
             address: vendor.address || "",
             city: vendor.city || "",
-            // Ensure state_id and district_id are converted to strings for react-select's value prop.
             state: vendor.state_id ? String(vendor.state_id) : "",
             district: vendor.district_id ? String(vendor.district_id) : "",
             pincode: vendor.pincode || "",
@@ -254,7 +242,6 @@ if (
         setErrors({}); // Clear any previous errors.
     };
 
-    // Function to open the form for adding a new customer.
     const openForm = () => {
         setFormData(initialForm()); // Reset form data to initial empty state.
         setIsEditing(false); // Set editing mode to false.
@@ -262,7 +249,6 @@ if (
         setErrors({}); // Clear any previous errors.
     };
 
-    // Function to close the form and reset its state.
     const closeForm = () => {
         setFormData(initialForm()); // Clear form data.
         setIsEditing(false); // Reset editing status.
@@ -270,14 +256,12 @@ if (
         setErrors({}); // Clear errors.
     };
 
-    // Inline style for displaying validation errors.
     const errorStyle = {
         color: "#dc3545",
         fontSize: "13px",
         marginTop: "4px",
     };
 
-    // Function to generate dynamic input styles based on validation errors.
     const getInputStyle = (fieldName) => ({
         width: "270px",
         height: "50px",
@@ -290,88 +274,94 @@ if (
         color: "#212529",
     });
 
-    // Custom component for react-select options, ensuring simple display.
-    const SimpleOption = ({ innerProps, label }) => (
-        <div {...innerProps} className="simple-option">
-            {label}
-        </div>
-    );
+const SimpleOption = ({ innerRef, innerProps, data }) => (
+  <div ref={innerRef} {...innerProps} className="simple-option" style={{ padding: "10px 15px" }}>
+    {data.label}
+  </div>
+);
 
-    // Custom styles for react-select components.
-    const customSelectStyles = {
-        control: (provided, state) => ({
-            ...provided,
-            width: "270px",
-            height: "50px",
-            minHeight: "50px",
-            fontFamily: "Product Sans, sans-serif",
-            fontWeight: 400,
-            fontSize: "16px",
-            borderRadius: "4px",
-            // Apply red border if there's an error for the specific select field.
-            border: `1px solid ${state.selectProps.name && errors[state.selectProps.name] ? "#dc3545" : "#D3DBD5"}`,
-            boxShadow: "none",
-            "&:hover": {
-                borderColor: "#D3DBD5",
-            },
-            display: 'flex',
-            alignItems: 'center',
-            paddingLeft: '8px',
-            paddingRight: '8px',
-            cursor: 'pointer',
-        }),
-        singleValue: (provided) => ({
-            ...provided,
-            color: "#212529",
-        }),
-        placeholder: (provided) => ({
-            ...provided,
-            fontFamily: 'Product Sans, sans-serif',
-            fontWeight: 400,
-            color: "#828282",
-        }),
-        indicatorSeparator: () => ({
-            display: 'none',
-        }),
-        dropdownIndicator: (provided, state) => ({
-            ...provided,
-            color: '#000',
-            transition: 'transform 0.2s ease-in-out',
-            transform: state.isFocused ? 'rotate(180deg)' : null, // Rotate arrow when focused.
-        }),
-        menu: (provided) => ({
-            ...provided,
-            fontFamily: "Product Sans, sans-serif",
-            fontWeight: 400,
-            fontSize: "16px",
-            borderRadius: "4px",
-            border: "1px solid #D3DBD5",
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-            marginTop: '4px',
-            zIndex: 1000, // Ensure dropdown menu appears above other elements.
-        }),
-        option: (provided, state) => ({
-            ...provided,
-            backgroundColor: state.isFocused ? "#F0F0F0" : "white", // Highlight on hover.
-            color: "#212529",
-            padding: "10px 15px",
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            cursor: 'pointer',
-            "&:active": {
-                backgroundColor: "#E0E0E0",
-            },
-        }),
-    };
 
-    // Helper function to get state name by ID for display in the table.
+const customSelectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    width: "270px",
+    height: "50px",
+    minHeight: "50px",
+    fontFamily: "Product Sans, sans-serif",
+    fontWeight: 400,
+    fontSize: "16px",
+    borderRadius: "4px",
+    border: `1px solid ${
+      state.selectProps.name && state.selectProps.errors?.[state.selectProps.name]
+        ? "#dc3545"
+        : "#D3DBD5"
+    }`,
+    boxShadow: "none",
+    "&:hover": {
+      borderColor: "#D3DBD5",
+    },
+    display: "flex",
+    alignItems: "center",
+    paddingLeft: "8px",
+    paddingRight: "8px",
+    cursor: "pointer",
+  }),
+  singleValue: (provided) => ({
+    ...provided,
+    color: "#212529",
+  }),
+  placeholder: (provided) => ({
+    ...provided,
+    fontFamily: "Product Sans, sans-serif",
+    fontWeight: 400,
+    color: "#828282",
+  }),
+  indicatorSeparator: () => ({
+    display: "none",
+  }),
+  dropdownIndicator: (provided, state) => ({
+    ...provided,
+    color: "#000",
+    transition: "transform 0.2s ease-in-out",
+    transform: state.isFocused ? "rotate(180deg)" : null,
+  }),
+  menu: (provided) => ({
+    ...provided,
+    fontFamily: "Product Sans, sans-serif",
+    fontWeight: 400,
+    fontSize: "16px",
+    borderRadius: "4px",
+    border: "1px solid #D3DBD5",
+    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+    marginTop: "4px",
+    zIndex: 1000,
+    paddingTop: "4px",
+    paddingBottom: "4px",
+  }),
+  option: (provided, state) => ({
+    ...provided,
+    backgroundColor: state.isFocused ? "#F0F0F0" : "white",
+    color: "#212529",
+    padding: "12px 18px",
+    margin: "2px 8px",
+    borderRadius: "4px",
+    display: "flex",
+    alignItems: "center",
+    cursor: "pointer",
+    "&:active": {
+      backgroundColor: "#E0E0E0",
+    },
+  }),
+};
+
+
+
+
     const getStateNameById = (stateId) => {
         const state = states.find(s => String(s.id) === String(stateId));
         return state ? state.state : ''; // Directly use 'state' field as per DB schema
     };
 
-    // Helper function to get district name by ID for display in the table.
     const getDistrictNameById = (districtId) => {
         const district = districts.find(d => String(d.id) === String(districtId));
         return district ? district.district : ''; // Directly use 'district' field as per DB schema
@@ -380,26 +370,12 @@ if (
 
     return (
         <div className="vh-80 d-flex flex-column position-relative bg-light">
-            {/* ToastContainer for displaying notifications */}
-            <ToastContainer
-                position="top-right"
-                autoClose={1000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-                limit={1}
-            />
-
+       
             {/* Header section with title and action buttons */}
             <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
                 <h5 className="mb-0 fw-bold">Vendors ({vendors.length})</h5>
                 <div>
                     {/* Download PDF button */}
-
                     {/* Add New Vendor button */}
                     <Button variant="success" size="sm" onClick={openForm}>
                         + Add New
@@ -764,43 +740,62 @@ if (
                             </Form.Control.Feedback>
                         </div>
                         {/* State Select */}
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={{
-                                color: "#393C3AE5", width: "325px",
-                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>State</Form.Label>
-                            <Select
-                                name="state"
-                                value={stateOptions.find(option => option.value === formData.state) || null}
-                                onChange={(selectedOption) => handleChange(selectedOption, "state")}
-                                options={stateOptions}
-                                placeholder="Select State"
-                                isClearable={true}
-                                styles={customSelectStyles}
-                                components={{ Option: SimpleOption }}
-                                classNamePrefix="react-select"
-                            />
-                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
-                        </div>
-                        {/* District Select */}
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={{
-                                color: "#393C3AE5", width: "325px",
-                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>District</Form.Label>
-                            <Select
-                                name="district"
-                                value={districtOptions.find(option => option.value === formData.district) || null}
-                                onChange={(selectedOption) => handleChange(selectedOption, "district")}
-                                options={districtOptions}
-                                placeholder="Select District"
-                                isClearable={true}
-                                styles={customSelectStyles}
-                                components={{ Option: SimpleOption }}
-                                classNamePrefix="react-select"
-                            />
-                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
-                        </div>
+ <div className="row">
+      {/* State Select */}
+      <div className="col-6 mb-2">
+        <Form.Label
+          className="mb-1"
+          style={{
+            color: "#393C3AE5",
+            width: "325px",
+            fontFamily: "Product Sans, sans-serif",
+            fontWeight: 400,
+          }}
+        >
+          State
+        </Form.Label>
+        <Select
+          name="state"
+          value={stateOptions.find((option) => option.value === formData.state) || null}
+          onChange={(selectedOption) => handleChange(selectedOption, "state")}
+          options={stateOptions}
+          placeholder="Select State"
+          isClearable={true}
+          styles={{ ...customSelectStyles, errors }}
+          components={{ Option: SimpleOption }}
+          classNamePrefix="react-select"
+        />
+        {errors.state && <div style={errorStyle}>{errors.state}</div>}
+      </div>
+
+      {/* District Select */}
+      <div className="col-6 mb-2">
+        <Form.Label
+          className="mb-1"
+          style={{
+            color: "#393C3AE5",
+            width: "325px",
+            fontFamily: "Product Sans, sans-serif",
+            fontWeight: 400,
+          }}
+        >
+          District
+        </Form.Label>
+        <Select
+          name="district"
+          value={districtOptions.find((option) => option.value === formData.district) || null}
+          onChange={(selectedOption) => handleChange(selectedOption, "district")}
+          options={districtOptions}
+          placeholder="Select District"
+          isClearable={true}
+          styles={{ ...customSelectStyles, errors }}
+          components={{ Option: SimpleOption }}
+          classNamePrefix="react-select"
+        />
+        {errors.district && <div style={errorStyle}>{errors.district}</div>}
+      </div>
+    </div>
+
                         
                         {/* Pincode */}
                         <div className="col-6 mb-2">
@@ -826,9 +821,18 @@ if (
                     </div>
 
                     {/* Form action buttons */}
-                    <div className="d-flex justify-content-end mt-4">
 
-                        <Button variant="Success" type="submit">
+                          <div className="d-flex justify-content-end mt-4">
+                        <Button
+                            variant="success"
+                            type="submit"
+                            style={{
+                                width: "179px",
+                                height: "50px",
+                                fontSize: "16px",
+                                borderRadius: "6px",
+                            }}
+                        >
                             {isEditing ? "Update Vendor" : "Save"}
                         </Button>
                     </div>
