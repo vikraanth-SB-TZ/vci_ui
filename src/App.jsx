@@ -19,6 +19,7 @@ import AddNewSalePage from './Pages/AddNewSalePage';
 import EditSalePage from './Pages/EditSalePage';
 import ViewSalePage from './Pages/ViewSalePage';
 import SaleReturnPage from './Pages/SaleReturnPage';
+import SaleReturns from './Pages/SaleReturns';
 import SaleInvoice from './Pages/SaleInvoice';
 import PcbPurchaseList from './Pages/PcbPurchaseList';
 
@@ -103,8 +104,8 @@ export default function App() {
  
           <Route path="/sales/view/:id" element={<ViewSalePage />} />
           <Route path="salesReturn" element={<SaleReturnPage />} />
+            <Route path="/returns/add" element={<SaleReturns />} />
           <Route path="pdf" element={<SaleInvoice />} />
- 
           <Route path="purchaseOrder" element={<PcbPurchaseList />} />
           <Route path="overview" element={<Overview />} />
 
