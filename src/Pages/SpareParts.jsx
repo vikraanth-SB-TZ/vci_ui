@@ -4,11 +4,11 @@ import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 
-// Custom Dropdown Component
 const CustomDropdown = ({ name, value, onChange, options, isInvalid, error }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -379,9 +379,10 @@ export default function App() {
                       <td>{part.quantity_per_vci}</td>
                       <td>{part.notes || "-"}</td>
                       <td>
-                        <span className={`badge ${part.is_active === 'Enable' ? 'bg-success' : 'bg-secondary'}`}>
-                          {part.is_active}
-                        </span>
+                       <span className={`badge ${part.is_active === 'Enable' ? 'bg-success' : 'bg-danger'}`}>
+  {part.is_active}
+</span>
+
                       </td>
                       <td>
                         <Button
@@ -450,6 +451,8 @@ export default function App() {
               <div className="row">
                 <div className="mb-3 col-6">
                   <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Spare Part Name</Form.Label>
+                    <span style={{ color: "red", marginLeft: "5px" }}>*</span>
+
                   <Form.Control
                     type="text"
                     name="name"
@@ -502,6 +505,8 @@ export default function App() {
                     {editingPart ? (
                       <>
                         <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
+                          <span style={{ color: "red", marginLeft: "5px" }}>*</span>
+
                           Current Stock
                         </Form.Label>
                         <Form.Control
@@ -518,7 +523,9 @@ export default function App() {
                     ) : (
                       <>
                         <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                          Opening Stock
+                        Opening Stock<span style={{ color: "red", marginLeft: "5px" }}>*</span>
+
+                          
                         </Form.Label>
                         <Form.Control
                           type="number"
@@ -539,7 +546,7 @@ export default function App() {
 
                   <div className="mb-3 col-6">
                     <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                      Status
+                      Status<span style={{ color: "red", marginLeft: "5px" }}>*</span>
                     </Form.Label>
                     <CustomDropdown
                       name="is_active"
@@ -552,19 +559,20 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              <div style={{ position: "absolute", bottom: "90px", right: "30px" }}>
-                <Button
-                  type="submit"
-                  variant="success"
-                  style={{ width: "179px", height: "50px", borderRadius: "6px" }}
-                >
-                  {editingPart ? "Update" : "Save"}
-                </Button>
-              </div>
+                    <div
+  className="save-button-footer"
+>
+  <Button
+    type="submit"
+    variant="success"
+    style={{ width: "20%", height: "50px", borderRadius: "6px", right: "0px", position: "sticky", bottom: "0" }}
+  >
+    {editingPart ? "Update" : "Save"}
+  </Button>
+</div>	
             </form>
           </div>
         )}
-        <ToastContainer />
         <style>{`
           .slide-in {
             position: fixed;

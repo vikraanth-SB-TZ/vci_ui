@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Button, Spinner, Form } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
@@ -306,10 +307,10 @@ setInvoiceDate(new Date().toISOString().split("T")[0]);
     } catch (error) {
       if (error.response) {
         console.error("Server responded with error:", error.response.status, error.response.data);
-        toast.error(`Server error (${error.response.status}): ${error.response.data?.message ?? "Please check form data or server logs."}`);
+        toast.error(`Server error (${error.response.status}): ${error.response.data?.message ?? "Please check form data"}`);
       } else if (error.request) {
         console.error("No response received:", error.request);
-        toast.error("No response from server");
+        toast.error("No response ");
       } else {
         console.error("Request setup error:", error.message);
         toast.error("An error occurred before sending the request");
@@ -729,11 +730,11 @@ setInvoiceDate(new Date().toISOString().split("T")[0]);
               )}
             </div>
           </div>
-          <div className="d-flex justify-content-end mt-4">
-            <Button variant="success" type="submit" style={{ width: "179px", height: "50px", borderRadius: "6px", bottom: "90px" }}>
-              {editingPurchase ? "Update Purchase" : "Save"}
-            </Button>
-          </div>
+      <div className="d-flex justify-content-end mt-4">
+  <Button variant="success" type="submit" style={{ width: "179px", height: "50px", borderRadius: "6px" }}>
+    {editingPurchase ? "Update Purchase" : "Save"}
+  </Button>
+</div>
         </Form>
       </div>
       <style>{`

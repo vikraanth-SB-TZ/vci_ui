@@ -84,7 +84,7 @@ export default function VciCustomer() {
     };
 
     const fetchStates = () => {
-        axios.get(`${apiBase}/states`) // GET request to the states endpoint.
+        axios.get(`${apiBase}/states`) 
             .then((res) => {
                 console.log("States API response:", res.data); // Log response for debugging.
                 setStates(Array.isArray(res.data) ? res.data : []); // Ensure response is an array.
@@ -123,8 +123,15 @@ export default function VciCustomer() {
         else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
         if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) newErrors.altMobile = "Alternative mobile number must be 10 digits.";
         if (!formData.gender) newErrors.gender = "Gender is required.";
-        if (!formData.dob) newErrors.dob = "Date of Birth is required.";
-        if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
+ const today = new Date().toISOString().slice(0, 10); // Get today's date in 'YYYY-MM-DD' format
+
+    // ... (existing validation rules)
+
+    if (!formData.dob) newErrors.dob = "Date of Birth is required.";
+    // New validation rule to check for future dates
+    else if (formData.dob > today) {
+        newErrors.dob = "Date of Birth cannot be in the future.";
+    }        if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
         if (!formData.address.trim()) newErrors.address = "Address is required.";
         if (!formData.city.trim()) newErrors.city = "City is required.";
         if (!formData.state) newErrors.state = "State is required.";
@@ -616,25 +623,27 @@ const customSelectStyles = {
                             {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
                         </div>
                         {/* Date of Birth */}
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={{
-                                color: "#393C3AE5", width: "325px",
-                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>Date of Birth</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                type="date"
-                                name="dob"
-                                value={formData.dob}
-                                onChange={handleChange}
-                                size="sm"
-                                isInvalid={!!errors.dob}
-                                style={getInputStyle("dob")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.dob}
-                            </Form.Control.Feedback>
-                        </div>
+                         <div className="col-6 mb-2">
+        <Form.Label className="mb-1" style={{
+            color: "#393C3AE5", width: "325px",
+            fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+        }}>Date of Birth</Form.Label>
+        <Form.Control
+            className="custom-placeholder"
+            type="date"
+            name="dob"
+            value={formData.dob}
+            onChange={handleChange}
+            size="sm"
+            isInvalid={!!errors.dob}
+            style={getInputStyle("dob")}
+            max={new Date().toISOString().slice(0, 10)} // Set max attribute to today's date
+        />
+        <Form.Control.Feedback type="invalid" style={errorStyle}>
+            {errors.dob}
+        </Form.Control.Feedback>
+    </div>
+
                         {/* Mobile No. */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{

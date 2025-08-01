@@ -139,7 +139,7 @@ export default function ReturnSparePartsPage() {
             setReturns(rows);
         } catch (err) {
             console.error("Error loading returns:", err);
-            toast.error("Failed to load returns.");
+            // toast.error("Failed to load returns.");
         } finally {
             setLoading(false);
         }
@@ -209,37 +209,55 @@ export default function ReturnSparePartsPage() {
         setReturnDate(value);
         setFormErrors((prev) => ({ ...prev, return_date: "" }));
     };
+const validateForm = (payload, items) => {
+    let errors = {};
 
-    const validateForm = (payload, items) => {
-        let errors = {};
-        if (!payload.vendor_id) {
-            errors.vendor_id = "Vendor is required.";
-        }
-        if (!payload.invoice_no) {
-            errors.invoice_no = "Invoice No. is required.";
-        }
-        if (!payload.return_date) {
-            errors.return_date = "Return Date is required.";
-        }
-        if (items.length === 0) {
-            errors.items = "Please add at least one spare part.";
-        } else {
-            items.forEach((item, index) => {
-                if (!item.sparepart_id) {
-                    errors[`sparepart-${index}`] = "Spare part is required.";
-                }
-                if (!item.quantity || parseInt(item.quantity, 10) < 1 || isNaN(parseInt(item.quantity, 10))) {
-                    errors[`quantity-${index}`] = "Quantity must be a positive number.";
-                }
-            });
-        }
-        setFormErrors(errors);
-        if (Object.keys(errors).length > 0) {
-            const firstErrorMsg = errors[Object.keys(errors)[0]];
-            toast.error(firstErrorMsg || "Please correct the errors in the form.");
-        }
-        return Object.keys(errors).length === 0;
-    };
+    if (!payload.vendor_id) {
+        errors.vendor_id = "Vendor is required.";
+    }
+
+    if (!payload.invoice_no) {
+        errors.invoice_no = "Invoice No. is required.";
+    }
+
+    if (!payload.return_date) {
+        errors.return_date = "Return Date is required.";
+    }
+
+    if (items.length === 0) {
+        errors.items = "Please add at least one spare part.";
+    } else {
+        items.forEach((item, index) => {
+            if (!item.sparepart_id) {
+                errors[`sparepart-${index}`] = "Spare part is required.";
+            }
+            if (!item.quantity || parseInt(item.quantity, 10) < 1 || isNaN(parseInt(item.quantity, 10))) {
+                errors[`quantity-${index}`] = "Quantity must be a positive number.";
+            }
+        });
+    }
+
+    // 🔍 Validate that all selected spare parts were in the selected invoice
+    const invoice = purchases.find(p => p.invoice_no === payload.invoice_no);
+    if (invoice && invoice.items) {
+        const purchasedIds = invoice.items.map(i => String(i.sparepart_id));
+        items.forEach((item, index) => {
+            if (!purchasedIds.includes(String(item.sparepart_id))) {
+                errors[`sparepart-${index}`] = "This spare part was not included in the selected invoice.";
+            }
+        });
+    }
+
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+        const firstErrorMsg = errors[Object.keys(errors)[0]];
+        toast.error(firstErrorMsg || "Please correct the errors in the form.");
+    }
+
+    return Object.keys(errors).length === 0;
+};
+
 
     const handleFormSubmit = async (e) => {
         e.preventDefault();

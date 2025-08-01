@@ -52,7 +52,7 @@ export default function Vendor() {
     useEffect(() => {
         fetchVendors();
         fetchStates();
-        fetchDistricts();
+        // fetchDistricts();
     }, []);
 
     useEffect(() => {
@@ -94,27 +94,47 @@ export default function Vendor() {
             })
 
     };
+const fetchDistricts = (stateId) => {
+    if (!stateId) {
+        console.warn("State ID is undefined or null. Skipping districts fetch.");
+        setDistricts([]);
+        return;
+    }
 
-    const fetchDistricts = () => {
-        axios.get(`${apiBase}/districts`) // GET request to the districts endpoint.
-            .then((res) => {
-                console.log("Districts API response:", res.data); // Log response for debugging.
-                setDistricts(Array.isArray(res.data) ? res.data : []); // Ensure response is an array.
-            })
-    
-    };
-    const handleChange = (e, selectName = null) => {
-        let name, value;
-        if (selectName) {
-            name = selectName;
-            value = e ? e.value : ""; // Extract the 'value' from the selected option.
-        } else {
-            name = e.target.name;
-            value = e.target.value;
-        }
-        setFormData((prev) => ({ ...prev, [name]: value })); // Update formData state.
-        if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
-    };
+    console.log("Fetching districts for stateId:", stateId); // ✅ log this
+
+    axios.get(`${apiBase}/districts/state/${stateId}`)
+        .then((res) => {
+            console.log("Districts API response:", res.data);
+            setDistricts(Array.isArray(res.data) ? res.data : []);
+        })
+        .catch((err) => {
+            console.error("Error fetching districts:", err);
+            setDistricts([]);
+        });
+};
+
+const handleChange = (e, selectName = null) => {
+  let name, value;
+  if (selectName) {
+    name = selectName;
+    value = e ? e.value : "";
+
+    if (selectName === "state") {
+      fetchDistricts(value); // This is where the API call is triggered
+      setFormData(prev => ({ ...prev, district: "" }));
+    }
+  } else {
+    name = e.target.name;
+    value = e.target.value;
+  }
+
+  setFormData(prev => ({ ...prev, [name]: value }));
+  if (errors[name]) {
+    setErrors(prev => ({ ...prev, [name]: "" }));
+  }
+};
+
 
     const validateForm = () => {
         const newErrors = {};
@@ -126,8 +146,11 @@ export default function Vendor() {
         else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
         if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) newErrors.altMobile = "Alternative mobile number must be 10 digits.";
         if (!formData.gender) newErrors.gender = "Gender is required.";
-        if (!formData.dob) newErrors.dob = "Date of Birth is required.";
-        if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
+ const today = new Date().toISOString().slice(0, 10); // Get today's date in 'YYYY-MM-DD' format
+    if (!formData.dob) newErrors.dob = "Date of Birth is required.";
+    else if (formData.dob > today) {
+        newErrors.dob = "Date of Birth cannot be in the future.";
+    }        if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
         if (!formData.address.trim()) newErrors.address = "Address is required.";
         if (!formData.city.trim()) newErrors.city = "City is required.";
         if (formData.gst.trim() && !/^[0-9A-Z]{15}$/.test(formData.gst)) {
@@ -145,7 +168,6 @@ export default function Vendor() {
     const handleSubmit = (e) => {
         e.preventDefault(); // Prevent default form submission behavior.
         if (!validateForm()) {
-            // toast.error("Please fill in all required fields correctly.", { close: 500 });
             return; // Stop submission if validation fails.
         }
 
@@ -207,17 +229,18 @@ export default function Vendor() {
     };
 
 
-    // Options for state dropdown, mapping API response to { value, label } format.
    const stateOptions = states.map(state => ({
         value: String(state.id),
         label: state.state, // Correctly using 'state' column from DB schema
     }));
 
-    // Options for district dropdown, mapping API response to { value, label } format.
-    const districtOptions = districts.map(district => ({
-        value: String(district.id),
-        label: district.district, // Correctly using 'district' column from DB schema
-    }));
+const districtOptions = districts
+  .filter(d => String(d.state_id) === String(formData.state))
+  .map(d => ({
+    value: String(d.id),
+    label: d.district,
+  }));
+
     // Static options for gender dropdown.
     const genderOptions = [
         { value: "Male", label: "Male" },
@@ -365,7 +388,7 @@ const customSelectStyles = {
 
     const getStateNameById = (stateId) => {
         const state = states.find(s => String(s.id) === String(stateId));
-        return state ? state.state : ''; // Directly use 'state' field as per DB schema
+        return state ? state.state : '';
     };
 
     const getDistrictNameById = (districtId) => {
@@ -588,51 +611,26 @@ const customSelectStyles = {
                             {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
                         </div>
                         {/* Date of Birth */}
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={{
-                                color: "#393C3AE5", width: "325px",
-                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-                            }}>Date of Birth</Form.Label>
-                            <div style={{ position: "relative" }}>
-                            <input
-                                type="text"
-                                readOnly
-                                className={`form-control custom-placeholder ${errors.dob ? "is-invalid" : ""}`}
-                                value={formData.dob ? new Date(formData.dob).toLocaleDateString("en-GB") : ""}
-                                placeholder="Select Date of Birth"
-                                onClick={() => setShowCalendar(prev => !prev)}  // Toggle calendar visibility
-                                style={{ cursor: "pointer" }}
-                            />
-                            {errors.dob && <div style={errorStyle}>{errors.dob}</div>}
-                            
-                            {showCalendar && (
-                                <div style={{
-                                position: "absolute",
-                                zIndex: 2000,
-                                top: "100%",
-                                left: 0,
-                                background: "white",
-                                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                                marginTop: "4px",
-                                borderRadius: "6px",
-                                }}>
-                                <MiniCalendar
-                                    selectedDate={formData.dob ? new Date(formData.dob) : null}
-                                    onDateChange={(date) => {
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        dob: date ? date.toISOString().split("T")[0] : "",
-                                    }));
-                                    setErrors(prev => ({ ...prev, dob: "" }));
-                                    setShowCalendar(false);  // Close calendar after selection
-                                    }}
-                                />
-                                </div>
-                            )}
-                            </div>
-
-                        </div>
-                        {/* Mobile No. */}
+ <div className="col-6 mb-2">
+        <Form.Label className="mb-1" style={{
+            color: "#393C3AE5", width: "325px",
+            fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+        }}>Date of Birth</Form.Label>
+        <Form.Control
+            className="custom-placeholder"
+            type="date"
+            name="dob"
+            value={formData.dob}
+            onChange={handleChange}
+            size="sm"
+            isInvalid={!!errors.dob}
+            style={getInputStyle("dob")}
+            max={new Date().toISOString().slice(0, 10)} // Set max attribute to today's date
+        />
+        <Form.Control.Feedback type="invalid" style={errorStyle}>
+            {errors.dob}
+        </Form.Control.Feedback>
+    </div>                        {/* Mobile No. */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
@@ -790,67 +788,54 @@ const customSelectStyles = {
 </Form.Control.Feedback>
                         </div>
 
-                        {/* State Select */}
- <div className="row">
-      {/* State Select */}
-      <div className="col-6 mb-2">
-        <Form.Label
-          className="mb-1"
-          style={{
-            color: "#393C3AE5",
-            width: "325px",
-            fontFamily: "Product Sans, sans-serif",
-            fontWeight: 400,
-          }}
-        >
-          State
-        </Form.Label>
-        <Select
-          name="state"
-          value={stateOptions.find((option) => option.value === formData.state) || null}
-          onChange={(selectedOption) => handleChange(selectedOption, "state")}
-          options={stateOptions}
-          placeholder="Select State"
-          isClearable={true}
-          styles={{ ...customSelectStyles, errors }}
-          components={{ Option: SimpleOption }}
-          classNamePrefix="react-select"
-        />
-        {errors.state && <div style={errorStyle}>{errors.state}</div>}
-      </div>
+             {/* State Select */}
+<div className="col-6 mb-2">
+    <Form.Label className="mb-1" style={{
+        color: "#393C3AE5", width: "325px",
+        fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+    }}>State</Form.Label>
+    <Select
+        name="state"
+        value={stateOptions.find(option => option.value === formData.state) || null}
+        onChange={(selectedOption) => handleChange(selectedOption, "state")}
+        options={stateOptions}
+        placeholder="Select State"
+        isClearable={true}
+        styles={customSelectStyles}
+        errors={errors} // Pass errors down to the component
+        components={{ Option: SimpleOption }}
+        classNamePrefix="react-select"
+    />
+    {errors.state && <div style={errorStyle}>{errors.state}</div>}
+</div>
 
-      {/* District Select */}
-      <div className="col-6 mb-2">
-        <Form.Label
-          className="mb-1"
-          style={{
-            color: "#393C3AE5",
-            width: "325px",
-            fontFamily: "Product Sans, sans-serif",
-            fontWeight: 400,
-          }}
-        >
-          District
-        </Form.Label>
-        <Select
-          name="district"
-          value={districtOptions.find((option) => option.value === formData.district) || null}
-          onChange={(selectedOption) => handleChange(selectedOption, "district")}
-          options={districtOptions}
-          placeholder="Select District"
-          isClearable={true}
-          styles={{ ...customSelectStyles, errors }}
-          components={{ Option: SimpleOption }}
-          classNamePrefix="react-select"
-        />
-        {errors.district && <div style={errorStyle}>{errors.district}</div>}
-      </div>
-    </div>
-                        {/* Pincode */}
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={{
-                                color: "#393C3AE5", width: "325px",
-                                fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+{/* District Select */}
+<div className="col-6 mb-2">
+    <Form.Label className="mb-1" style={{
+        color: "#393C3AE5", width: "325px",
+        fontFamily: "Product Sans, sans-serif", fontWeight: 400,
+    }}>District</Form.Label>
+    <Select
+        name="district"
+        value={districtOptions.find(option => option.value === formData.district) || null}
+        onChange={(selectedOption) => handleChange(selectedOption, "district")}
+        options={districtOptions}
+        placeholder="Select District"
+        isClearable={true}
+        styles={customSelectStyles}
+        errors={errors} // Pass errors down to the component
+        components={{ Option: SimpleOption }}
+        classNamePrefix="react-select"
+        isDisabled={!formData.state} // Disable the district dropdown if no state is selected
+    />
+    {errors.district && <div style={errorStyle}>{errors.district}</div>}
+</div>
+
+{/* Pincode */}
+<div className="col-6 mb-2">
+    <Form.Label className="mb-1" style={{
+        color: "#393C3AE5", width: "325px",
+        fontFamily: "Product Sans, sans-serif", fontWeight: 400,
                             }}>Pincode</Form.Label>
                             <Form.Control
                                 className="custom-placeholder"
