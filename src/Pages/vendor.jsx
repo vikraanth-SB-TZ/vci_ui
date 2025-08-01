@@ -9,6 +9,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
+import MiniCalendar from "./MiniCalendar";
 import { FaRegCalendarAlt } from "react-icons/fa";
 
 function initialForm() {
@@ -40,7 +41,9 @@ export default function Vendor() {
     const [states, setStates] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [errors, setErrors] = useState({});
-      const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [showCalendar, setShowCalendar] = useState(false);
+
 
     const tableRef = useRef(null);
     
@@ -590,19 +593,44 @@ const customSelectStyles = {
                                 color: "#393C3AE5", width: "325px",
                                 fontFamily: "Product Sans, sans-serif", fontWeight: 400,
                             }}>Date of Birth</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                type="date"
-                                name="dob"
-                                value={formData.dob}
-                                onChange={handleChange}
-                                size="sm"
-                                isInvalid={!!errors.dob}
-                                style={getInputStyle("dob")}
+                            <div style={{ position: "relative" }}>
+                            <input
+                                type="text"
+                                readOnly
+                                className={`form-control custom-placeholder ${errors.dob ? "is-invalid" : ""}`}
+                                value={formData.dob ? new Date(formData.dob).toLocaleDateString("en-GB") : ""}
+                                placeholder="Select Date of Birth"
+                                onClick={() => setShowCalendar(prev => !prev)}  // Toggle calendar visibility
+                                style={{ cursor: "pointer" }}
                             />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.dob}
-                            </Form.Control.Feedback>
+                            {errors.dob && <div style={errorStyle}>{errors.dob}</div>}
+                            
+                            {showCalendar && (
+                                <div style={{
+                                position: "absolute",
+                                zIndex: 2000,
+                                top: "100%",
+                                left: 0,
+                                background: "white",
+                                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                                marginTop: "4px",
+                                borderRadius: "6px",
+                                }}>
+                                <MiniCalendar
+                                    selectedDate={formData.dob ? new Date(formData.dob) : null}
+                                    onDateChange={(date) => {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        dob: date ? date.toISOString().split("T")[0] : "",
+                                    }));
+                                    setErrors(prev => ({ ...prev, dob: "" }));
+                                    setShowCalendar(false);  // Close calendar after selection
+                                    }}
+                                />
+                                </div>
+                            )}
+                            </div>
+
                         </div>
                         {/* Mobile No. */}
                         <div className="col-6 mb-2">

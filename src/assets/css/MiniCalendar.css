@@ -1,0 +1,162 @@
+/* MiniCalendar.css */
+.mini-calendar-outer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.mini-calendar-inner {
+  width: 216px;
+  height: 275px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+  padding: 8px;
+  box-sizing: border-box;
+  font-family: 'Product Sans','Segoe UI',Arial,sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+.calendar-header.small-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.nav-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+}
+.title {
+  font-weight: 600;
+  font-size: 12px;
+  color: #17582B;
+}
+.title-month,
+.title-year {
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}
+.title-month:hover,
+.title-year:hover {
+  color: #218239;
+}
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7,1fr);
+  grid-auto-rows:24px;
+  gap:2px;
+}
+.day-name {
+  font-size:9px;
+  font-weight:600;
+  color:#929292;
+  text-align:center;
+}
+.day {
+  font-size:11px;
+  text-align:center;
+  cursor:pointer;
+  border-radius:50%;
+}
+.day:hover {
+  background:#c8e6c7;
+  color:#118830;
+}
+.day.selected {
+  background:#24b153;
+  color:#fff;
+}
+.day.blank {
+  visibility:hidden;
+}
+.months-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-auto-rows:32px;
+  gap:4px;
+  overflow-y:auto;
+}
+.month {
+  font-size:11px;
+  text-align:center;
+  line-height:32px;
+  cursor:pointer;
+}
+.month:hover {
+  background:#f0f0f0;
+  border-radius:4px;
+}
+.years-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-auto-rows:32px;
+  gap:4px;
+  overflow-y:auto;
+  max-height:130px;
+}
+.year {
+  font-size:11px;
+  text-align:center;
+  line-height:32px;
+  cursor:pointer;
+}
+.year:hover {
+  background:#f0f0f0;
+  border-radius:4px;
+}
+.calendar-buttons.mini-buttons {
+  display:flex;
+  justify-content:flex-end;
+  gap:7px;
+  margin-top:auto;
+  padding-top:8px;
+}
+.close-btn,
+.submit-btn {
+  padding:6px 13px;
+  font-size:11px;
+  font-weight:600;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+}
+.close-btn {
+  background:#f8f8f8;
+  color:#444;
+}
+.close-btn:hover {
+  background:#e2f4e6;
+  color:#128243;
+}
+.submit-btn {
+  background:#24b153;
+  color:#fff;
+}
+.submit-btn:hover {
+  background:#198243;
+}
+input:focus,
+button:focus,
+select:focus {
+  outline:1.5px solid #24b153;
+}
+@media (max-width:340px) {
+  .mini-calendar-inner {
+    width:90vw;
+    max-width:98vw;
+    padding:7px 1vw;
+  }
+  .custom-calendar.mini-dp {
+    width:93vw;
+    min-width:85px;
+    max-width:98vw;
+  }
+}
