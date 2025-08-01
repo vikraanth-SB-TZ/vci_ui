@@ -611,26 +611,100 @@ const customSelectStyles = {
                             {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
                         </div>
                         {/* Date of Birth */}
- <div className="col-6 mb-2">
-        <Form.Label className="mb-1" style={{
-            color: "#393C3AE5", width: "325px",
-            fontFamily: "Product Sans, sans-serif", fontWeight: 400,
-        }}>Date of Birth</Form.Label>
-        <Form.Control
-            className="custom-placeholder"
-            type="date"
-            name="dob"
-            value={formData.dob}
-            onChange={handleChange}
-            size="sm"
-            isInvalid={!!errors.dob}
-            style={getInputStyle("dob")}
-            max={new Date().toISOString().slice(0, 10)} // Set max attribute to today's date
-        />
-        <Form.Control.Feedback type="invalid" style={errorStyle}>
-            {errors.dob}
-        </Form.Control.Feedback>
-    </div>                        {/* Mobile No. */}
+                        <div className="col-6 mb-2">
+                        <Form.Label
+                            className="mb-1"
+                            style={{
+                            color: "#393C3AE5",
+                            width: "325px",
+                            fontFamily: "Product Sans, sans-serif",
+                            fontWeight: 400,
+                            }}
+                        >
+                            Date of Birth
+                        </Form.Label>
+                        <div style={{ position: "relative" }}>
+                            <input
+                            type="text"
+                            readOnly
+                            className={`form-control custom-placeholder ${
+                                errors.dob ? "is-invalid" : ""
+                            }`}
+                            value={
+                                formData.dob
+                                ? new Date(formData.dob + "T00:00:00").toLocaleDateString("en-GB")
+                                : ""
+                            }
+                            placeholder="Select Date of Birth"
+                            onClick={() => setShowCalendar((prev) => !prev)} // Toggle calendar
+                            style={{ cursor: "pointer" }}
+                            />
+
+                            {/* Calendar icon */}
+                            <img
+                            src="/Calendar.png"
+                            alt="calendar icon"
+                            style={{
+                                position: "absolute",
+                                right: "10px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                width: "18px",
+                                height: "18px",
+                                pointerEvents: "none",
+                            }}
+                            />
+
+                            {/* Error */}
+                            {errors.dob && <div style={errorStyle}>{errors.dob}</div>}
+
+                            {/* Calendar dropdown */}
+                            {showCalendar && (
+                            <div
+                                style={{
+                                position: "absolute",
+                                zIndex: 2000,
+                                top: "100%",
+                                left: 0,
+                                background: "white",
+                                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                                marginTop: "4px",
+                                borderRadius: "6px",
+                                }}
+                            >
+                                <MiniCalendar
+                                selectedDate={formData.dob ? new Date(formData.dob) : null}
+                                onDateChange={(date) => {
+                                    if (!date) return;
+
+                                    const normalizedDate = new Date(
+                                    date.getFullYear(),
+                                    date.getMonth(),
+                                    date.getDate()
+                                    );
+
+                                    const localDateStr =
+                                    normalizedDate.getFullYear() +
+                                    "-" +
+                                    String(normalizedDate.getMonth() + 1).padStart(2, "0") +
+                                    "-" +
+                                    String(normalizedDate.getDate()).padStart(2, "0");
+
+                                    setFormData((prev) => ({
+                                    ...prev,
+                                    dob: localDateStr,
+                                    }));
+
+                                    setErrors((prev) => ({ ...prev, dob: "" }));
+                                    setShowCalendar(false);
+                                }}
+                                onCancel={() => setShowCalendar(false)} // ← working Cancel
+                                />
+                            </div>
+                            )}
+                        </div>
+                        </div>        
+    {/* Mobile No. */}
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={{
                                 color: "#393C3AE5", width: "325px",
