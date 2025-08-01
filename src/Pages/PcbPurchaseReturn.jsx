@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useRef } from "react";
 import { Button, Spinner, Form } from "react-bootstrap";
 import axios from "axios";
@@ -6,12 +7,14 @@ import "datatables.net-dt/js/dataTables.dataTables";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Row, Col } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
 export default function PcbPurchaseReturn() {
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(false);
   const tableRef = useRef(null);
   const hasFetched = useRef(false);
+  const navigate = useNavigate();
 
   const fetchReturns = async () => {
     setLoading(true);
@@ -57,9 +60,18 @@ export default function PcbPurchaseReturn() {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold">Purchase Return List ({returns.length})</h5>
         <div className="d-flex gap-2">
+
           <Button variant="outline-secondary" size="sm" onClick={fetchReturns}>
             <i className="bi bi-arrow-clockwise"></i>
           </Button>
+          <Button
+  variant="success"
+  size="sm"
+  onClick={() => navigate("/pcb-purchase-return/add")}
+>
+  + Add Return
+</Button>
+
         </div>
       </div>
 
@@ -74,7 +86,9 @@ export default function PcbPurchaseReturn() {
               <th>Invoice No</th>
               <th>Invoice Date</th>
               <th>Quantity</th>
-              <th>Remarks</th>
+              {/* <th>Remarks</th> */}
+               <th>Actions</th>
+
             </tr>
           </thead>
           <tbody>
@@ -86,7 +100,7 @@ export default function PcbPurchaseReturn() {
               </tr>
             ) : returns.length === 0 ? (
               <tr>
-                <td colSpan="8" className="text-center py-4 text-muted">
+                <td colSpan="12" className="text-center py-4 text-muted">
                   No return data found.
                 </td>
               </tr>
@@ -100,8 +114,20 @@ export default function PcbPurchaseReturn() {
                   <td>{item.invoice_no}</td>
                   <td>{item.invoice_date}</td>
                   <td>{item.quantity}</td>
-                  <td>{item.remarks}</td>
+                  {/* <td>{item.remarks}</td> */}
+                  <td>
+  <Button
+    variant="outline-primary"
+    size="sm"
+    onClick={() => navigate(`/pcb-purchase-return/edit/${item.id}`)}
+  >
+    Edit
+  </Button>
+</td>
+
                 </tr>
+
+
               ))
             )}
           </tbody>
