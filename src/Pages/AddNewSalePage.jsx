@@ -54,9 +54,12 @@ export default function AddNewSalePage() {
 
   const handleAddProducts = (selectedProducts) => {
     const newSerials = selectedProducts.map(p => p.serial_no);
+    const updatedSerials = [...formData.serial_numbers, ...newSerials];
+
     setFormData(prev => ({
       ...prev,
-      serial_numbers: [...prev.serial_numbers, ...newSerials]
+      serial_numbers: updatedSerials,
+      quantity: updatedSerials.length
     }));
   };
 
@@ -128,11 +131,14 @@ export default function AddNewSalePage() {
 
           setFormData(prev => ({
             ...prev,
-            serial_numbers: serials
+            serial_numbers: serials,
+            quantity: serials.length  // auto-correct quantity
           }));
 
           if (serials.length === 0) {
             setSerialError("No serial numbers found.");
+          } else if (serials.length < parseInt(quantity)) {
+            setSerialError(`Only ${serials.length} products available, but you requested ${quantity}.`);
           } else {
             setSerialError("");
           }
@@ -192,10 +198,14 @@ export default function AddNewSalePage() {
   };
 
   const handleRemoveSerial = (removeIdx) => {
-    setFormData(prev => ({
-      ...prev,
-      serial_numbers: prev.serial_numbers.filter((_, idx) => idx !== removeIdx)
-    }));
+    setFormData(prev => {
+      const updatedSerials = prev.serial_numbers.filter((_, idx) => idx !== removeIdx);
+      return {
+        ...prev,
+        serial_numbers: updatedSerials,
+        quantity: updatedSerials.length
+      };
+    });
   };
 
   const customerOptions = customers.map((c) => ({
@@ -300,14 +310,23 @@ export default function AddNewSalePage() {
         <Row className="mb-3 g-2">
           <Col md={4} sm={6} xs={12}>
             <Form.Label>Quantity</Form.Label>
-            <Form.Control size="sm" name="quantity" value={formData.quantity} onChange={handleChange} placeholder="Enter Quantity" style={{ boxShadow: 'none', borderColor: '#ced4da' }} />
+            <Form.Control
+              size="sm"
+              name="quantity"
+              value={formData.quantity}
+              onChange={handleChange}
+              placeholder="Enter Quantity"
+              style={{ boxShadow: 'none', borderColor: '#ced4da' }}
+            // readOnly={formData.serial_numbers.length > 0}
+            />
             {errors.quantity && <div className="text-danger small mt-1">{errors.quantity}</div>}
+            {serialError && <div className="text-danger small mt-1">{serialError}</div>}
 
           </Col>
           <Col md={4} sm={6} xs={12}>
             <Form.Label>From Serial Number</Form.Label>
             <Form.Control size="sm" name="from_serial" value={formData.from_serial} onChange={handleChange} placeholder="Enter From Serial" style={{ boxShadow: 'none', borderColor: '#ced4da' }} />
-            {serialError && <div className="text-danger small mt-1">{serialError}</div>}
+
           </Col>
           <Col md={4} sm={6} xs={12}>
             <Form.Label>Shipment Name</Form.Label>
