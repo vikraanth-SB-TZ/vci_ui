@@ -8,6 +8,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
+import { BsDashLg } from "react-icons/bs";
+import MiniCalendar from "./MiniCalendar";
 
 const API_BASE = "http://127.0.0.1:8000";
 
@@ -25,7 +27,8 @@ const [invoiceDate, setInvoiceDate] = useState(() => {
 });
   const dateInputRef = useRef();
   const [editingPurchase, setEditingPurchase] = useState(null);
-
+  const [showCalendar, setShowCalendar] = useState(false);
+  
   const [formData, setFormData] = useState({
     vendor_id: "",
     batch_id: "",
@@ -635,7 +638,7 @@ setInvoiceDate(new Date().toISOString().split("T")[0]);
               {/* Scrollable wrapper showing only 3 rows */}
               <div
                 style={{
-                  maxHeight: "156px",        // 3 rows × 52px each
+                  maxHeight: "156px",        
                   overflowY: "auto",
                   border: "1px solid #D3DBD5",
                   borderRadius: "4px"
@@ -710,13 +713,14 @@ setInvoiceDate(new Date().toISOString().split("T")[0]);
                                   width: "32px",
                                   height: "32px",
                                   fontSize: "20px",
-                                  lineHeight: "1",
                                   display: "inline-flex",
                                   alignItems: "center",
-                                  justifyContent: "center"
+                                  justifyContent: "center",
+                                  padding: 0,
                                 }}
+                                aria-label="Remove row"
                               >
-                                −
+                                <BsDashLg />
                               </Button>
                             )}
                           </td>
