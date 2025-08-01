@@ -689,26 +689,27 @@ setInvoiceDate(new Date().toISOString().split("T")[0]);
                           </td>
                           <td style={{ border: "1px solid #D3DBD5", textAlign: "center", width: "50px" }}>
                             {sparePartsRows.length >= 1 && (
-                              <Button
-                                variant="link"
-                                size="sm"
-                                onClick={() => handleRemoveRow(index)}
-                                className="text-danger p-0"
-                                style={{
-                                  backgroundColor: "#FFEBEBC9",
-                                  color: "#DF5555",
-                                  borderRadius: "50%",
-                                  width: "32px",
-                                  height: "32px",
-                                  fontSize: "20px",
-                                  lineHeight: "1",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center"
-                                }}
-                              >
-                                &minus;
-                              </Button>
+                            <Button
+  variant="link"
+  size="sm"
+  onClick={() => handleRemoveRow(index)}
+  className="text-danger p-0"
+  style={{
+    backgroundColor: "#FFEBEBC9",
+    color: "#DF5555",
+    borderRadius: "50%",
+    width: "32px",
+    height: "32px",
+    fontSize: "20px",
+    lineHeight: "1",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center"
+  }}
+>
+  −
+</Button>
+
                             )}
                           </td>
                         </tr>
