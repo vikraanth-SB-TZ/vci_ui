@@ -420,7 +420,7 @@ setInvoiceDate(new Date().toISOString().split("T")[0]);
             <tbody>
               {loading && spareparts.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="text-center py-4">
+                  <td colSpan="6" className="text-center py-4">
                     <Spinner animation="border" />
                   </td>
                 </tr>
@@ -630,11 +630,19 @@ setInvoiceDate(new Date().toISOString().split("T")[0]);
                 + Add Row
               </button>
             </div>
-            <div style={{ position: "relative", width: "530px" }}>
-              <div className="table-responsive">
+            <div style={{ position: "relative",  width: "100%"  }}>
+              {/* Scrollable wrapper showing only 3 rows */}
+              <div
+                style={{
+                  maxHeight: "156px",        // 3 rows × 52px each
+                  overflowY: "auto",
+                  border: "1px solid #D3DBD5",
+                  borderRadius: "4px"
+                }}
+              >
                 <table
                   className="table align-middle mb-0"
-                  style={{ width: "100%", border: "1px solid #D3DBD5", tableLayout: "fixed" }}
+                  style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}
                 >
                   <thead>
                     <tr style={{ backgroundColor: "#E9ECEF", height: "40px", color: "#393C3A" }}>
@@ -689,27 +697,26 @@ setInvoiceDate(new Date().toISOString().split("T")[0]);
                           </td>
                           <td style={{ border: "1px solid #D3DBD5", textAlign: "center", width: "50px" }}>
                             {sparePartsRows.length >= 1 && (
-                            <Button
-  variant="link"
-  size="sm"
-  onClick={() => handleRemoveRow(index)}
-  className="text-danger p-0"
-  style={{
-    backgroundColor: "#FFEBEBC9",
-    color: "#DF5555",
-    borderRadius: "50%",
-    width: "32px",
-    height: "32px",
-    fontSize: "20px",
-    lineHeight: "1",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center"
-  }}
->
-  −
-</Button>
-
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => handleRemoveRow(index)}
+                                className="text-danger p-0"
+                                style={{
+                                  backgroundColor: "#FFEBEBC9",
+                                  color: "#DF5555",
+                                  borderRadius: "50%",
+                                  width: "32px",
+                                  height: "32px",
+                                  fontSize: "20px",
+                                  lineHeight: "1",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center"
+                                }}
+                              >
+                                −
+                              </Button>
                             )}
                           </td>
                         </tr>
