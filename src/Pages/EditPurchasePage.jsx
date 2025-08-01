@@ -59,9 +59,17 @@ export default function EditPurchasePage() {
     setPurchase({ ...purchase, [name]: value });
   };
 
+  
+    const handleDeleteSerial = (indexToRemove) => {
+  const updated = serials.filter((_, index) => index !== indexToRemove);
+  setSerials(updated);
+};
+
   const handleAddNewSerials = () => {
     const input = newSerialsInput.trim();
     if (!input) return;
+
+
 
     const newEntries = input
       .split(/[\n,]/)
@@ -201,7 +209,7 @@ export default function EditPurchasePage() {
           </Col>
           <Col md={6}>
             <Form.Group>
-              <Form.Label className="text-muted mb-1">Total Serials (Auto)</Form.Label>
+              <Form.Label className="text-muted mb-1">Total Serials</Form.Label>
               <Form.Control
                 size="sm"
                 type="text"
@@ -245,32 +253,42 @@ export default function EditPurchasePage() {
 
         <div className="mb-3">
           <Form.Label className="fw-bold">Serial Details</Form.Label>
-          {serials.map((item, index) => (
-            <Row className="mb-2" key={index}>
-              <Col md={4}>
-                <Form.Control value={item.serial_no} readOnly />
-              </Col>
-              <Col md={4}>
-                <Form.Control
-                  size="sm"
-                  placeholder="Remark"
-                  value={item.remark || ''}
-                  onChange={(e) => handleInputChange(index, 'remark', e.target.value)}
-                />
-              </Col>
-              <Col md={4}>
-                <Form.Select
-                  size="sm"
-                  value={item.quality_check || ''}
-                  onChange={(e) => handleInputChange(index, 'quality_check', e.target.value)}
-                >
-                  <option value="">-- Select --</option>
-                  <option value="ok">OK</option>
-                  <option value="Issue">Issue</option>
-                </Form.Select>
-              </Col>
-            </Row>
-          ))}
+{serials.map((item, index) => (
+  <Row className="mb-2" key={index}>
+    <Col md={3}>
+      <Form.Control value={item.serial_no} readOnly />
+    </Col>
+    <Col md={3}>
+      <Form.Control
+        size="sm"
+        placeholder="Remark"
+        value={item.remark || ''}
+        onChange={(e) => handleInputChange(index, 'remark', e.target.value)}
+      />
+    </Col>
+    <Col md={3}>
+      <Form.Select
+        size="sm"
+        value={item.quality_check || ''}
+        onChange={(e) => handleInputChange(index, 'quality_check', e.target.value)}
+      >
+        <option value="">-- Select --</option>
+        <option value="ok">OK</option>
+        <option value="Issue">Issue</option>
+      </Form.Select>
+    </Col>
+    <Col md={3}>
+      <Button
+        size="sm"
+        variant="danger"
+        onClick={() => handleDeleteSerial(index)}
+      >
+        Delete
+      </Button>
+    </Col>
+  </Row>
+))}
+
         </div>
 
         <ToastContainer position="top-right" autoClose={3000} />
@@ -282,3 +300,4 @@ export default function EditPurchasePage() {
     </div>
   );
 }
+

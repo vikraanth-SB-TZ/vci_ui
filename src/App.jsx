@@ -28,6 +28,9 @@ import EditPurchasePage from './Pages/EditPurchasePage';
 
 import PcbPurchaseReturn from './Pages/PcbPurchaseReturn';
 
+import PcbPurchaseReturnEdit from './Pages/PcbPurchaseReturnEdit';
+import EditSaleReturnPage from './Pages/EditSaleReturnPage';
+
 import AddPcbReturnPage from './Pages/AddPcbReturnPage';
 import Overview from './Pages/Overview/Overview';
  import SalesList from './Pages/SalesList';
@@ -117,7 +120,8 @@ export default function App() {
             <Route path="purchaseReturn" element={<PcbPurchaseReturn />} /> 
  
             <Route path="/pcb-purchase-return/add" element={<AddPcbReturnPage />} />
-
+                        <Route path="pcb-purchase-return/edit/:id" element={<PcbPurchaseReturnEdit />} />
+<Route path="/returns/edit/:id" element={<EditSaleReturnPage />} />
  
           {/* new StatePage route */}
           {/* You can add more routes like <Route path="users" element={<UsersPage />} /> */}

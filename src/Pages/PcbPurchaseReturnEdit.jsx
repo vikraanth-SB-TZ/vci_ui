@@ -2,71 +2,77 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Form, Button, Table } from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-export default function PurchaseReturnPage() {
-  const [invoiceList, setInvoiceList] = useState([]);
+
+export default function EditPurchaseReturnPage() {
   const [selectedInvoice, setSelectedInvoice] = useState('');
   const [purchaseData, setPurchaseData] = useState(null);
   const [returnItems, setReturnItems] = useState([]);
+  const [returnId, setReturnId] = useState(null);
   const [reason, setReason] = useState('');
+  const { id } = useParams(); // returnId from URL
+  const navigate = useNavigate();
+
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/purchases/invoices').then(res => {
-      setInvoiceList(res.data);
-    });
-  }, []);
-const fetchDetails = (invoice) => {
-  axios.get(`http://localhost:8000/api/purchase-return/${invoice}`).then(res => {
-    setPurchaseData(res.data.purchase);
-    const items = res.data.items.map(item => ({
-      ...item,
-      selected: false,
-      remark: '',
-      quality_check: ''
-    }));
-    setReturnItems(items);
-  });
-};
+    if (id) {
+      axios.get(`http://localhost:8000/api/purchase-return-by-id/${id}`)
+        .then(res => {
+          setSelectedInvoice(res.data.purchase.invoice_no); // display only
+          setPurchaseData(res.data.purchase);
+          setReturnId(res.data.return_id ?? null);
+          setReason(res.data.purchase.reason || '');
 
+          const items = res.data.items.map(item => ({
+            ...item,
+            selected: item.selected || false,
+            remark: item.remark || '',
+            quality_check: item.quality_check || ''
+          }));
+          setReturnItems(items);
+        });
+    }
+  }, [id]);
 
   const handleSubmit = () => {
     const selectedItems = returnItems.filter(i => i.selected);
     if (!selectedItems.length) return alert('No items selected.');
 
-    axios.post('http://localhost:8000/api/purchase-returns', {
+    const payload = {
       pcb_board_purchase_id: purchaseData.id,
-      vendor_id: purchaseData.vendor_id,
-      batch_id: purchaseData.batch_id,
-      category_id: purchaseData.category_id,
-      invoice_no: purchaseData.invoice_no,
-      invoice_date: purchaseData.invoice_date,
+      reason: reason,
       items: selectedItems.map(item => ({
         id: item.id,
         remark: item.remark,
         quality_check: item.quality_check
       }))
-    }).then(() => {
-      alert('Returned successfully!');
-    });
+    };
+
+    const url = `http://localhost:8000/api/purchase-returns/${returnId}`;
+    axios.put(url, payload)
+      .then(() => alert('Return updated successfully!'))
+      .catch(err => alert('Failed: ' + err.response?.data?.message || err.message));
   };
 
   return (
     <div className="bg-white min-vh-100 p-4">
-      <h5>Sale Return</h5>
+      <h5>Edit Purchase Return</h5>
+      <Button variant="secondary" size="sm" className="mb-3 text-end" onClick={() => navigate(-1)}>
+  ← Back
+</Button>
+
+
+
       <Form.Group>
-        <Form.Label>Select Invoice</Form.Label>
-        <Form.Select
-          onChange={(e) => {
-            setSelectedInvoice(e.target.value);
-            fetchDetails(e.target.value);
-          }}
+        <Form.Label>Invoice Number</Form.Label>
+        <Form.Control
+          type="text"
           value={selectedInvoice}
-        >
-          <option value="">-- Select Invoice --</option>
-          {invoiceList.map(inv => (
-            <option key={inv.id} value={inv.invoice_no}>{inv.invoice_no}</option>
-          ))}
-        </Form.Select>
+          readOnly
+          plaintext
+        />
       </Form.Group>
 
       {purchaseData && (
@@ -123,7 +129,7 @@ const fetchDetails = (invoice) => {
           </Table>
 
           <div className="text-end">
-            <Button onClick={handleSubmit} variant="success">Return</Button>
+            <Button onClick={handleSubmit} variant="success">Update Return</Button>
           </div>
         </>
       )}

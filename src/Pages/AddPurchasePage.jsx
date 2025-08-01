@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Form, Button, Row, Col } from 'react-bootstrap';
 import Select from 'react-select';
@@ -127,7 +128,7 @@ export default function AddPurchasePage() {
             <Form.Label>Batch</Form.Label>
             <Select
               styles={customSelectStyles}
-              options={dropdowns.batches.map(b => ({ label: b.name || `Batch ${b.id}`, value: b.id }))}
+              options={dropdowns.batches.map(b => ({ label: b.name || b.batch, value: b.id }))}
               onChange={(selected) => handleSelectChange(selected, 'batch_id')}
               placeholder="Select batch"
             />
@@ -218,3 +219,4 @@ export default function AddPurchasePage() {
     </div>
   );
 }
+

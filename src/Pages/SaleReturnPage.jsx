@@ -90,6 +90,8 @@ export default function ReturnListPage() {
               <th className="py-3 px-3 text-dark fw-medium">Return Date</th>
               <th className="py-3 px-3 text-dark fw-medium">Qty</th>
               <th className="py-3 px-3 text-dark fw-medium">Reason</th>
+              <th className="py-3 px-3 text-dark fw-medium">Action</th>
+
             </tr>
           </thead>
           <tbody>
@@ -107,6 +109,16 @@ export default function ReturnListPage() {
                   <td className="py-2 px-3 text-dark">{item.return_invoice_date}</td>
                   <td className="py-2 px-3 text-dark">{item.quantity}</td>
                   <td className="py-2 px-3 text-dark">{item.reason}</td>
+                  <td className="py-2 px-3 text-dark ">
+  <Button
+    variant="outline-primary"
+    size="sm"
+    onClick={() => navigate(`/returns/edit/${item.id}`)}
+  >
+    <i className="bi bi-pencil-square"></i>
+  </Button>
+</td>
+
                 </tr>
               ))
             )}
@@ -116,3 +128,4 @@ export default function ReturnListPage() {
     </div>
   );
 }
+//saleReturnPage.jsx
