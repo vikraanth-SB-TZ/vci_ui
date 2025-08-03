@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "../assets/css/MiniCalendar.css";
 
-function MiniCalendar({ selectedDate, onDateChange, onCancel }) {
+function MiniCalendar({ selectedDate, onDateChange, onCancel, allowFuture = true }) {
   const getInitialMonthView = () =>
     selectedDate
       ? new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
@@ -30,13 +30,16 @@ function MiniCalendar({ selectedDate, onDateChange, onCancel }) {
 
   const selectDay = (d) => {
     const picked = new Date(monthView.getFullYear(), monthView.getMonth(), d);
-    onDateChange?.(picked);
+    const localDate = new Date(picked.getFullYear(), picked.getMonth(), picked.getDate());
+    if (!allowFuture && localDate > new Date()) return;
+    onDateChange?.(localDate);
   };
 
   const selectMonth = (m) => {
     setMonthView((d) => new Date(d.getFullYear(), m, 1));
     setView("days");
   };
+
   const selectYear = (y) => {
     setMonthView((d) => new Date(y, d.getMonth(), 1));
     setView("days");
@@ -108,11 +111,20 @@ function MiniCalendar({ selectedDate, onDateChange, onCancel }) {
               },
               (_, i) => i + 1
             ).map((d) => {
+              const current = new Date(monthView.getFullYear(), monthView.getMonth(), d);
+              const isFuture = !allowFuture && current > today;
+
               let className = "day";
               if (d === todayDay) className += " today";
               if (d === selectedDay) className += " selected";
+              if (isFuture) className += " disabled-day";
+
               return (
-                <div key={d} className={className} onClick={() => selectDay(d)}>
+                <div
+                  key={d}
+                  className={className}
+                  onClick={() => !isFuture && selectDay(d)}
+                >
                   {d}
                 </div>
               );
@@ -144,7 +156,7 @@ function MiniCalendar({ selectedDate, onDateChange, onCancel }) {
           <button
             type="button"
             className="close-btn"
-            onClick={() => onCancel?.()} // ✅ Cancel handler from parent
+            onClick={() => onCancel?.()}
           >
             Cancel
           </button>
@@ -153,7 +165,13 @@ function MiniCalendar({ selectedDate, onDateChange, onCancel }) {
             className="submit-btn"
             onClick={() =>
               selectedDate
-                ? onDateChange?.(selectedDate)
+                ? onDateChange?.(
+                    new Date(
+                      selectedDate.getFullYear(),
+                      selectedDate.getMonth(),
+                      selectedDate.getDate()
+                    )
+                  )
                 : onDateChange?.(
                     new Date(monthView.getFullYear(), monthView.getMonth(), 1)
                   )
