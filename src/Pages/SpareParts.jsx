@@ -8,14 +8,15 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+const MySwal = withReactContent(Swal);
 
 const CustomDropdown = ({ name, value, onChange, options, isInvalid, error }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const handleToggle = () => {
-    setIsOpen(!isOpen);
-  };
+  const handleToggle = () => setIsOpen(!isOpen);
 
   const handleOptionClick = (optionValue) => {
     onChange({ target: { name, value: optionValue } });
@@ -30,9 +31,7 @@ const CustomDropdown = ({ name, value, onChange, options, isInvalid, error }) =>
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const selectedLabel = options.find(option => option.value === value)?.label || "Select Status";
@@ -92,7 +91,6 @@ export default function App() {
     if ($.fn.DataTable.isDataTable(tableRef.current)) {
       $(tableRef.current).DataTable().destroy();
     }
-
     if (spareparts.length > 0) {
       $(tableRef.current).DataTable({
         ordering: true,
@@ -110,11 +108,9 @@ export default function App() {
       const response = await axios.get("http://localhost:8000/api/spareparts");
       const fetchedData = response.data.data;
       setSpareparts(fetchedData);
-      return fetchedData;
     } catch (error) {
       console.error("Error fetching spareparts:", error);
       if (showForm) toast.error("Failed to fetch spare parts.", { toastId: "fetch-fail" });
-      return [];
     } finally {
       setLoading(false);
     }
@@ -130,27 +126,14 @@ export default function App() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name.trim()) {
-      newErrors.name = "Spare Part Name is required.";
-    }
-
+    if (!formData.name.trim()) newErrors.name = "Spare Part Name is required.";
     if (!editingPart) {
-      if (!formData.quantity || isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0) {
-        newErrors.quantity = "Opening Stock must be a non-negative number.";
-      }
-      if (formData.quantity_per_vci === "" || isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) <= 0) {
-        newErrors.quantity_per_vci = "Quantity per VCI must be a positive number.";
-      }
-      if (!formData.is_active || !["Enable", "Disable"].includes(formData.is_active)) {
-        newErrors.is_active = "Status must be Enable or Disable.";
-      }
+      if (!formData.quantity || isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0) newErrors.quantity = "Opening Stock must be a non-negative number.";
+      if (formData.quantity_per_vci === "" || isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) <= 0) newErrors.quantity_per_vci = "Quantity per VCI must be a positive number.";
+      if (!formData.is_active || !["Enable", "Disable"].includes(formData.is_active)) newErrors.is_active = "Status must be Enable or Disable.";
     } else {
-      if (formData.quantity && (isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0)) {
-        newErrors.quantity = "Quantity to add must be a non-negative number.";
-      }
-      if (formData.quantity_per_vci && (isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) <= 0)) {
-        newErrors.quantity_per_vci = "Quantity per VCI must be a non-negative number.";
-      }
+      if (formData.quantity && (isNaN(formData.quantity) || parseInt(formData.quantity, 10) < 0)) newErrors.quantity = "Quantity to add must be a non-negative number.";
+      if (formData.quantity_per_vci && (isNaN(formData.quantity_per_vci) || parseInt(formData.quantity_per_vci, 10) <= 0)) newErrors.quantity_per_vci = "Quantity per VCI must be a non-negative number.";
     }
     return newErrors;
   };
@@ -160,7 +143,7 @@ export default function App() {
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      toast.error("Please fill in all required fields correctly.", { toastId: "form-validation" });
+      toast.error("Please fill in all required fields correctly.");
       return;
     }
 
@@ -171,83 +154,125 @@ export default function App() {
     };
 
     if (editingPart) {
-      if (formData.quantity) {
-        payload.quantity = parseInt(formData.quantity, 10);
-      }
-      if (formData.quantity_per_vci) {
-        payload.quantity_per_vci = parseInt(formData.quantity_per_vci, 10);
-      }
+      if (formData.quantity) payload.quantity = parseInt(formData.quantity, 10);
+      if (formData.quantity_per_vci) payload.quantity_per_vci = parseInt(formData.quantity_per_vci, 10);
     } else {
       payload.quantity = parseInt(formData.quantity, 10);
       payload.quantity_per_vci = parseInt(formData.quantity_per_vci, 10);
     }
 
     try {
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
+      }
+
+      let response;
       if (editingPart) {
-        await axios.put(`http://localhost:8000/api/spareparts/${editingPart.id}`, payload);
+        response = await axios.put(`http://localhost:8000/api/spareparts/${editingPart.id}`, payload);
       } else {
-        await axios.post("http://localhost:8000/api/spareparts", payload);
+        response = await axios.post("http://localhost:8000/api/spareparts", payload);
       }
 
       toast.success(`Spare part ${editingPart ? "updated" : "added"} successfully!`, {
-        toastId: "save-success",
+        toastId: editingPart ? "update-success" : "create-success"
       });
 
       closeForm();
-      localStorage.setItem("sparepart_refresh", "true");
-      window.location.reload();
+
+      let newData = [...spareparts];
+      if (editingPart) {
+        const index = newData.findIndex(p => p.id === editingPart.id);
+        if (index !== -1) {
+          newData[index] = { ...newData[index], ...payload };
+        }
+      } else {
+        newData.push(response.data.data); 
+      }
+
+      setSpareparts(newData);
+
+      setTimeout(() => {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+          $(tableRef.current).DataTable().destroy();
+        }
+        if (newData.length > 0) {
+          $(tableRef.current).DataTable({
+            ordering: true,
+            paging: true,
+            searching: true,
+            lengthChange: true,
+            columnDefs: [{ targets: 0, className: "text-center" }],
+          });
+        }
+      }, 0);
     } catch (error) {
       console.error("Error saving sparepart:", error);
-      if (error.response && error.response.data) {
+      if (error.response?.data) {
         const { message, errors: backendErrors } = error.response.data;
         let newErrors = {};
         if (backendErrors) {
-          Object.keys(backendErrors).forEach((field) => {
-            const fieldErrors = backendErrors[field];
-            if (Array.isArray(fieldErrors)) {
-              newErrors[field] = fieldErrors[0];
-              fieldErrors.forEach((msg) =>
-                toast.error(msg, { toastId: `err-${field}-${msg}` })
-              );
-            } else {
-              newErrors[field] = fieldErrors;
-              toast.error(fieldErrors, {
-                toastId: `err-${field}-${fieldErrors}`,
-              });
-            }
+          Object.entries(backendErrors).forEach(([field, msgs]) => {
+            newErrors[field] = Array.isArray(msgs) ? msgs[0] : msgs;
+            toast.error(Array.isArray(msgs) ? msgs[0] : msgs);
           });
         } else if (message) {
-          toast.error(`Failed to save spare part: ${message}`, {
-            toastId: "save-fail",
-          });
+          toast.error(`Failed to save spare part: ${message}`);
         } else {
-          toast.error("Failed to save spare part.", { toastId: "save-fail2" });
+          toast.error("Failed to save spare part.");
         }
         setErrors(newErrors);
       } else {
-        toast.error("Failed to save spare part.", { toastId: "network-fail" });
+        toast.error("Network error while saving spare part.");
       }
     }
   };
 
   const handleDelete = async (id) => {
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this spare part?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
-      await axios.delete(`http://localhost:8000/api/spareparts/${id}`);
-
-      toast.success("Spare part deleted successfully!", { toastId: "delete-success" });
-
-      if (editingPart && editingPart.id === id) {
-        closeForm();
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
       }
 
-      localStorage.setItem("sparepart_refresh", "true");
-      window.location.reload();
+      await axios.delete(`http://localhost:8000/api/spareparts/${id}`);
+      toast.success("Spare part deleted successfully!");
+
+      if (editingPart?.id === id) closeForm();
+
+      const updatedSpareparts = spareparts.filter(part => part.id !== id);
+      setSpareparts(updatedSpareparts);
+
+      setTimeout(() => {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+          $(tableRef.current).DataTable().destroy();
+        }
+        if (updatedSpareparts.length > 0) {
+          $(tableRef.current).DataTable({
+            ordering: true,
+            paging: true,
+            searching: true,
+            lengthChange: true,
+            columnDefs: [{ targets: 0, className: "text-center" }],
+          });
+        }
+      }, 0);
     } catch (error) {
       console.error("Error deleting:", error);
       if (error.response?.data?.message) {
-        toast.error(`Failed to delete spare part: ${error.response.data.message}`, { toastId: "delete-fail" });
+        toast.error(`Failed to delete spare part: ${error.response.data.message}`);
       } else {
-        toast.error("Failed to delete spare part.", { toastId: "delete-fail2" });
+        toast.error("Failed to delete spare part.");
       }
     }
   };
@@ -258,7 +283,7 @@ export default function App() {
       name: part.name || "",
       quantity_per_vci: part.quantity_per_vci || "",
       notes: part.notes || "",
-      quantity: "", // Reset on edit
+      quantity: "",
       is_active: part.is_active || "Enable"
     });
     setShowForm(true);
@@ -310,7 +335,7 @@ export default function App() {
     color: "#212529",
     padding: "10px",
   });
-  
+
   const drawerClass = showForm ? "slide-in" : "slide-out";
 
   const statusOptions = [
