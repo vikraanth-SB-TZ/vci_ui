@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Card, Row, Col, Spinner } from "react-bootstrap";
+import { Card, Row, Col, Spinner, Form } from "react-bootstrap";
 import {
   Chart as ChartJS,
   LineElement,
@@ -29,30 +29,45 @@ export default function OverviewPage() {
   });
   const [graphData, setGraphData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [duration, setDuration] = useState("Month"); // NEW
 
   const apiBase = "http://127.0.0.1:8000/api";
 
   useEffect(() => {
     fetchOverviewData();
-  }, []);
+  }, [duration]); // refetch when duration changes
 
   const fetchOverviewData = async () => {
     try {
-      const res = await axios.get(`${apiBase}/dashboard-overview`);
+      const res = await axios.get(`${apiBase}/dashboard-overview`, {
+        params: { duration: duration.toLowerCase() }, // Send "month" or "year"
+      });
+
       setStats(res.data.stats ?? { customers: 0, vendors: 0, productSales: 0 });
       setGraphData(res.data.graphData ?? []);
     } catch {
-      setGraphData([
-        { month: "Jan", value: 0 },
-        { month: "Feb", value: 4000 },
-        { month: "Mar", value: 10000 },
-        { month: "Apr", value: 8000 },
-        { month: "May", value: 13000 },
-        { month: "Jun", value: 11000 },
-        { month: "Jul", value: 9000 },
-        { month: "Aug", value: 18000 },
-        { month: "Sep", value: 25000 },
-      ]);
+      // Fallback data if API fails
+      if (duration === "Year") {
+        setGraphData([
+          { month: "2021", value: 25000 },
+          { month: "2022", value: 40000 },
+          { month: "2023", value: 55000 },
+          { month: "2024", value: 62000 },
+          { month: "2025", value: 72000 },
+        ]);
+      } else {
+        setGraphData([
+          { month: "Jan", value: 0 },
+          { month: "Feb", value: 4000 },
+          { month: "Mar", value: 10000 },
+          { month: "Apr", value: 8000 },
+          { month: "May", value: 13000 },
+          { month: "Jun", value: 11000 },
+          { month: "Jul", value: 9000 },
+          { month: "Aug", value: 18000 },
+          { month: "Sep", value: 25000 },
+        ]);
+      }
     } finally {
       setLoading(false);
     }
@@ -141,10 +156,14 @@ export default function OverviewPage() {
         <Card.Body>
           <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
             <h6 className="fw-semibold mb-2 mb-md-0">Product Sales</h6>
-            <select className="form-select w-auto">
+            <Form.Select
+              className="form-select w-auto"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+            >
               <option>Month</option>
               <option>Year</option>
-            </select>
+            </Form.Select>
           </div>
 
           {loading ? (
