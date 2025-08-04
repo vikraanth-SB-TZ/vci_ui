@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from "react";
 import { Button, Spinner, Form } from "react-bootstrap";
 import axios from "axios";
@@ -54,6 +53,16 @@ export default function PcbPurchaseReturn() {
       }, 300);
     }
   }, [returns, loading]);
+
+  const handleGenerateReturnInvoice = (returnId) => {
+  const pdfWindow = window.open(`http://localhost:8000/api/pcb-purchase-return-invoice/${returnId}`, '_blank');
+  if (pdfWindow) {
+    toast.success('Return invoice generated successfully!');
+  } else {
+    toast.error('Failed to generate return invoice.');
+  }
+};
+
 
   return (
     <div className="p-4 bg-white" style={{ minHeight: "100vh" }}>
@@ -115,13 +124,17 @@ export default function PcbPurchaseReturn() {
                   <td>{item.invoice_date}</td>
                   <td>{item.quantity}</td>
                   {/* <td>{item.remarks}</td> */}
-                  <td>
+         <td className="py-2 pe-1 d-flex gap-2">
+                 <Button variant="outline-info" size="sm" onClick={() => handleGenerateReturnInvoice(item.id)}>
+  <i className="bi bi-file-earmark-pdf"></i>
+</Button>
+
   <Button
     variant="outline-primary"
     size="sm"
     onClick={() => navigate(`/pcb-purchase-return/edit/${item.id}`)}
   >
-    Edit
+    <i className="bi bi-pencil-square"></i>
   </Button>
 </td>
 

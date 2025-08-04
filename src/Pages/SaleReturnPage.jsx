@@ -46,6 +46,30 @@ export default function ReturnListPage() {
       });
   };
 
+const handleGenerateReturnInvoice = (returnId) => {
+  const pdfWindow = window.open(`http://localhost:8000/api/sale-returns/${returnId}/invoice-pdf`, '_blank');
+
+  if (!pdfWindow || pdfWindow.closed || typeof pdfWindow.closed === 'undefined') {
+    toast.error('Popup blocked! Please allow popups to view invoice.');
+  }
+};
+
+// const handleDeleteReturn = (returnId) => {
+//   if (window.confirm('Are you sure you want to delete this return?')) {
+//     axios
+//       .delete(`http://localhost:8000/api/sale-returns-del/${returnId}`)
+//       .then((res) => {
+//         toast.success('Return deleted successfully');
+//         fetchReturns();
+//       })
+//       .catch((err) => {
+//         console.error('Delete failed:', err);
+//         toast.error('Failed to delete return');
+//       });
+//   }
+// };
+
+
   return (
     <div className="w-100 py-4 bg-white position-relative" style={{ minHeight: '100vh', fontSize: '14px' }}>
       <ToastContainer position="top-right" autoClose={3000} />
@@ -109,7 +133,16 @@ export default function ReturnListPage() {
                   <td className="py-2 px-3 text-dark">{item.return_invoice_date}</td>
                   <td className="py-2 px-3 text-dark">{item.quantity}</td>
                   <td className="py-2 px-3 text-dark">{item.reason}</td>
-                  <td className="py-2 px-3 text-dark ">
+                  <td className="py-2 px-3 text-dark d-flex gap-2 ">
+                    <Button
+  variant="outline-success"
+  size="sm"
+  onClick={() => handleGenerateReturnInvoice(item.id)}
+  title="Download Return Invoice PDF"
+>
+  <i className="bi bi-file-earmark-pdf"></i>
+</Button>
+
   <Button
     variant="outline-primary"
     size="sm"
@@ -117,6 +150,14 @@ export default function ReturnListPage() {
   >
     <i className="bi bi-pencil-square"></i>
   </Button>
+    {/* <Button
+    variant="outline-danger"
+    size="sm"
+    onClick={() => handleDeleteReturn(item.id)}
+    title="Delete Return"
+  >
+    <i className="bi bi-trash"></i>
+  </Button> */}
 </td>
 
                 </tr>

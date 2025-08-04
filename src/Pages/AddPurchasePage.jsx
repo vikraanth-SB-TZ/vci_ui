@@ -1,10 +1,11 @@
-
 import React, { useEffect, useState } from 'react';
 import { Form, Button, Row, Col } from 'react-bootstrap';
 import Select from 'react-select';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function AddPurchasePage() {
   const [dropdowns, setDropdowns] = useState({
@@ -88,25 +89,79 @@ export default function AddPurchasePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-   const payload = {
+    
+  // ✅ Frontend validation
+  if (!formData.vendor_id) {
+    return toast.error('Vendor is required');
+  }
+  if (!formData.batch_id) {
+    return toast.error('Batch is required');
+  }
+  if (!formData.category_id) {
+    return toast.error('Category is required');
+  }
+  if (!formData.invoice_no.trim()) {
+    return toast.error('Invoice number is required');
+  }
+  if (!formData.invoice_date) {
+    return toast.error('Invoice date is required');
+  }
+  if (parsedSerials.length === 0) {
+    return toast.error('At least one serial number is required');
+  }
+//
+  const hasDuplicates = parsedSerials.some((item, idx) => parsedSerials.indexOf(item) !== idx);
+  if (hasDuplicates) {
+    return toast.error('Duplicate serial numbers found. Please remove duplicates.');
+  }
+
+
+const serialCount = {};
+const duplicateSerials = [];
+
+parsedSerials.forEach(serial => {
+  serialCount[serial] = (serialCount[serial] || 0) + 1;
+});
+
+for (const [serial, count] of Object.entries(serialCount)) {
+  if (count > 1) {
+    duplicateSerials.push(serial);
+  }
+}
+
+if (duplicateSerials.length > 0) {
+  toast.error(`Duplicate serials found: ${duplicateSerials.join(', ')}`);
+  return;
+}
+
+//
+  const payload = {
   vendor_id: formData.vendor_id,
   batch_id: formData.batch_id,
   category_id: formData.category_id,
   invoice_no: formData.invoice_no,
   invoice_date: formData.invoice_date,
-  serials: parsedSerials, // 🔑 MATCHES BACKEND EXPECTATION
+  serials: parsedSerials, 
 };
 
 
     try {
       await axios.post('http://localhost:8000/api/pcbstore', payload);
       toast.success('Purchase added successfully!');
-      navigate('/purchaseOrder');
+      // navigate('/purchaseOrder');
+      setTimeout(() => navigate('/purchaseOrder'), 1000);
     } catch (error) {
-      console.error(error);
-      toast.error('Failed to add purchase');
+  console.error(error);
+
+  const msg =
+    error.response?.data?.errors?.invoice_no?.[0] ??
+    error.response?.data?.message ??
+    'Failed to add purchase';
+
+  toast.error(msg);
     }
   };
+
 
   return (
    <div style={{ minHeight: '100vh', backgroundColor: '#fff' }} className="p-4">
@@ -216,6 +271,8 @@ export default function AddPurchasePage() {
           </Button>
         </div>
       </Form>
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }

@@ -63,7 +63,6 @@ function handleDelete(purchaseId) {
     .delete(`http://localhost:8000/api/purchases/${purchaseId}`)
     .then((res) => {
       toast.success(res.data.message || 'Purchase deleted successfully');
-      // Optionally refresh list or remove item from state
     })
     .catch((err) => {
       toast.error(
@@ -72,20 +71,17 @@ function handleDelete(purchaseId) {
     });
 }
 
-  const handleGenerateInvoice = async (purchaseId) => {
-    try {
-      const res = await axios.get(`http://localhost:8000/api/pcb-purchase-invoice/${purchaseId}`);
-      if (res.data.url) {
-        window.open(res.data.url, '_blank');
-        toast.success('Invoice generated successfully!');
-      } else {
-        toast.warning('PDF URL not found.');
-      }
-    } catch (err) {
-      console.error('Failed to generate invoice:', err);
-      toast.error('Failed to generate invoice.');
-    }
-  };
+const handleGenerateInvoice = (purchaseId) => {
+  const pdfWindow = window.open(`http://localhost:8000/api/pcb-purchase-invoice/${purchaseId}`, '_blank');
+  if (pdfWindow) {
+    toast.success('Invoice generated successfully!');
+  } else {
+    toast.error('Failed to generate invoice.');
+  }
+};
+
+
+
 
   return (
     <div className="w-100 py-4 bg-white" style={{ minHeight: '100vh', fontFamily: 'Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,Product Sans', fontSize: '14px', fontWeight: '500' }}>
@@ -135,19 +131,19 @@ function handleDelete(purchaseId) {
                   <td className="py-2 text-dark">{item.category}</td>
                   <td className="py-2 text-dark">{item.quantity}</td>
                   <td className="py-2 pe-1 d-flex gap-2">
-                    <Button variant="outline-info rounded-circle" size="sm" onClick={() => handleGenerateInvoice(item.id)}>
+                    <Button variant="outline-info " size="sm" onClick={() => handleGenerateInvoice(item.id)}>
                       <i className="bi bi-file-earmark-pdf"></i>
                     </Button>
                     {/* <Button variant="outline-primary rounded-circle" size="sm">
                       <i className="bi bi-eye"></i>
                     </Button> */}
-                    <Button variant="outline-warning rounded-circle" size="sm" onClick={() => handleEdit(item)}>
+                    <Button variant="outline-warning" size="sm" onClick={() => handleEdit(item)}>
                       <i className="bi bi-pencil-square"></i>
                     </Button>
 <Button
-  variant="outline-danger rounded-circle"
+  variant="outline-danger"
   size="sm"
-  onClick={() => handleDelete(item.id)} // ✅ correct ID
+  onClick={() => handleDelete(item.id)} 
 >
   <i className="bi bi-trash"></i>
 </Button>

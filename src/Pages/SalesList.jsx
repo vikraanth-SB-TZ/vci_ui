@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Button, Modal, Spinner, Form } from "react-bootstrap";
+import { Button, Spinner } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -18,19 +18,18 @@ export default function SalesListPage() {
   const [selectedBatch, setSelectedBatch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [loading, setLoading] = useState(false);
-
   const tableRef = useRef(null);
 
   const filteredData = salesData.filter(item => {
-  const matchesBatch = selectedBatch ? item.batch_name?.toLowerCase() === selectedBatch.toLowerCase() : true;
-  const matchesCategory = selectedCategory ? item.category_name?.toLowerCase() === selectedCategory.toLowerCase() : true;
-  return matchesBatch && matchesCategory;
-});
+    const matchesBatch = selectedBatch ? item.batch_name?.toLowerCase() === selectedBatch.toLowerCase() : true;
+    const matchesCategory = selectedCategory ? item.category_name?.toLowerCase() === selectedCategory.toLowerCase() : true;
+    return matchesBatch && matchesCategory;
+  });
 
   const fetchSales = async () => {
     setLoading(true);
     try {
-      // destroy old table instance
+      // Destroy the existing DataTable instance (if any)
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
@@ -47,6 +46,7 @@ export default function SalesListPage() {
     }
   };
 
+  // Initial fetch
   useEffect(() => {
     fetchSales();
 
@@ -59,12 +59,14 @@ export default function SalesListPage() {
       .catch(err => console.error('Error loading dropdowns:', err));
   }, []);
 
+  // DataTable initialization — after data is ready
   useEffect(() => {
-    if (!loading && salesData.length > 0) {
-      setTimeout(() => {
+    if (!loading && filteredData.length > 0) {
+      const table = $(tableRef.current);
+      // Delay to ensure DOM is rendered
+      const timer = setTimeout(() => {
         if (!$.fn.DataTable.isDataTable(tableRef.current)) {
-           $(tableRef.current).DataTable().destroy();
-          $(tableRef.current).DataTable({
+          table.DataTable({
             ordering: true,
             paging: true,
             searching: true,
@@ -72,13 +74,12 @@ export default function SalesListPage() {
             columnDefs: [{ targets: 0, className: "text-center" }],
           });
         }
-      }, 300); // slight delay ensures DOM is ready
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [salesData, loading]);
+  }, [filteredData, loading]);
 
   const handleDelete = async (id) => {
-    // if (!window.confirm("Are you sure you want to delete this sale?")) return;
-
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
@@ -86,47 +87,29 @@ export default function SalesListPage() {
 
       await axios.delete(`${API_BASE_URL}/sales/${id}/del`);
       toast.success("Sale deleted successfully.");
-      fetchSales();
+      fetchSales(); // will re-fetch and reinitialize
     } catch (err) {
       console.error("Delete failed:", err);
       toast.error("Failed to delete sale.");
     }
   };
 
-const handleViewInvoice = (saleId) => {
-  try {
-    window.open(`${API_BASE_URL}/sales/${saleId}/invoices`, "_blank");
-  } catch (error) {
-    console.log(error);
-    
-  }
-};
+  const handleViewInvoice = (saleId) => {
+    try {
+      window.open(`${API_BASE_URL}/sales/${saleId}/invoices`, "_blank");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="p-4 bg-white" style={{ minHeight: "100vh" }}>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold">Sales List ({filteredData.length})</h5>
         <div className="d-flex gap-2">
-          {/* <select className="form-select form-select-sm" style={{ width: '150px' }} value={selectedBatch} onChange={(e) => setSelectedBatch(e.target.value)}>
-            <option value="">Batch</option>
-       {batches.map(batch => (
-  <option key={batch.id} value={batch.batch}>{batch.batch_name}</option>
-))}
-
-          </select>
-
-          <select className="form-select form-select-sm" style={{ width: '150px' }} value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-            <option value="">Category</option>
-        {categories.map(category => (
-  <option key={category.id} value={category.category}>{category.category_name}</option>
-))}
-
-          </select> */}
-
           <Button variant="outline-secondary" size="sm" onClick={fetchSales}>
             <i className="bi bi-arrow-clockwise"></i>
           </Button>
-
           <Button
             variant="success"
             size="sm"
@@ -158,14 +141,14 @@ const handleViewInvoice = (saleId) => {
                   <Spinner animation="border" />
                 </td>
               </tr>
-            ) : salesData.length === 0 ? (
+            ) : filteredData.length === 0 ? (
               <tr>
                 <td colSpan="8" className="text-center py-4 text-muted">
                   No sales data available.
                 </td>
               </tr>
             ) : (
-              salesData.map((item, index) => (
+              filteredData.map((item, index) => (
                 <tr key={item.id}>
                   <td style={{ textAlign: "start" }}>{index + 1}</td>
                   <td>{item.customer_name}</td>
@@ -175,21 +158,25 @@ const handleViewInvoice = (saleId) => {
                   <td>{item.category_name}</td>
                   <td>{item.quantity}</td>
                   <td className="d-flex gap-2">
-                    <Button variant="outline-info" size="sm" onClick={() => handleViewInvoice(item.id)}>
+                    <Button
+                      variant="outline-info"
+                      size="sm"
+                      onClick={() => handleViewInvoice(item.id)}
+                    >
                       <i className="bi bi-file-earmark-pdf"></i>
                     </Button>
-                 {/* <Button
-  variant="outline-primary"
-  size="sm"
-  onClick={() => setViewId(item.id)}
->
-  <i className="bi bi-eye"></i>
-</Button> */}
-
-                    <Button variant="outline-warning" size="sm" onClick={() => navigate(`/sales/edit/${item.id}`)}>
+                    <Button
+                      variant="outline-warning"
+                      size="sm"
+                      onClick={() => navigate(`/sales/edit/${item.id}`)}
+                    >
                       <i className="bi bi-pencil-square"></i>
                     </Button>
-                    <Button variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => handleDelete(item.id)}
+                    >
                       <i className="bi bi-trash"></i>
                     </Button>
                   </td>
@@ -198,7 +185,6 @@ const handleViewInvoice = (saleId) => {
             )}
           </tbody>
         </table>
-
       </div>
 
       <ToastContainer position="top-right" autoClose={2000} />
