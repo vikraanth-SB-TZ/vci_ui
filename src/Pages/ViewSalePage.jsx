@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button, Card } from 'react-bootstrap';
+import { API_BASE_URL } from '../api';
 
 export default function ViewSalePage() {
   const { id } = useParams();
@@ -9,7 +10,7 @@ export default function ViewSalePage() {
   const [sale, setSale] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:8000/api/sales/${id}`)
+    axios.get(`${API_BASE_URL}/sales/${id}`)
       .then(res => {
         if (res.data.success) {
           setSale(res.data.data);
