@@ -137,7 +137,7 @@ const handleGenerateInvoice = (purchaseId) => {
                     {/* <Button variant="outline-primary rounded-circle" size="sm">
                       <i className="bi bi-eye"></i>
                     </Button> */}
-                    <Button variant="outline-warning" size="sm" onClick={() => handleEdit(item)}>
+                    <Button variant="outline-info" size="sm" onClick={() => handleEdit(item)}>
                       <i className="bi bi-pencil-square"></i>
                     </Button>
 <Button
