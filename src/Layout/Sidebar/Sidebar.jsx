@@ -115,50 +115,50 @@ export default function Sidebar({ collapsed }) {
 
         {/* Metadata Dropdown */}
         <div>
-       <button
-  onClick={() => setMetadataOpen(!metadataOpen)}
-  className="bg-transparent border-0 w-100 text-start p-0"
->
-  <div
-    className="d-flex align-items-center"
-    style={{
-      backgroundColor: isActive("metadata") ? "#278C582E" : "transparent",
-      borderRadius: "12px",
-      padding: "8px 8px",
-      display: "flex",
-      alignItems: "center",
-    }}
-  >
-    <img
-      src={isActive("metadata") ? "/Metadata_G.png" : "/Metadata.png"}
-      alt="Metadata"
-      style={{
-        width: "18px",
-        filter: isActive("metadata") ? "none" : "brightness(0) invert(1)",
-      }}
-    />
-    {!collapsed && (
-      <span
-        style={{
-          color: isActive("metadata") ? "#28a745" : "white",
-          marginLeft: "10px",
-        }}
-      >
-        Metadata
-      </span>
-    )}
-    {!collapsed && (
-      <span
-        className="ms-auto me-4"
-        style={{
-          color: isActive("metadata") ? "#28a745" : "white",
-        }}
-      >
-        {metadataOpen ? "▾" : "▸"}
-      </span>
-    )}
-  </div>
-</button>
+          <button
+            onClick={() => setMetadataOpen(!metadataOpen)}
+            className="bg-transparent border-0 w-100 text-start p-0"
+          >
+            <div
+              className="d-flex align-items-center"
+              style={{
+                backgroundColor: isActive("metadata") ? "#278C582E" : "transparent",
+                borderRadius: "8px",
+                padding: "12px",
+              }}
+            >
+              <img
+                src={isActive("metadata") ? "/Metadata_G.png" : "/Metadata.png"}
+                alt="Metadata"
+                style={{
+                  width: "18px",
+                  filter: isActive("metadata") ? "none" : "brightness(0) invert(1)",
+                }}
+              />
+              {!collapsed && (
+                <span
+                  style={{
+                    color: isActive("metadata") ? "#28a745" : "#ffffff",
+                    marginLeft: "10px",
+                  }}
+                >
+                  Metadata
+                </span>
+              )}
+              {!collapsed && (
+                <span
+                  className="ms-auto"
+                  style={{
+                    color: isActive("metadata") ? "#28a745" : "#ffffff",
+                    marginLeft: "auto",
+                  }}
+                >
+                  {metadataOpen ? "▾" : "▸"}
+                </span>
+              )}
+            </div>
+          </button>
+
 
 
           {!collapsed && metadataOpen && (
@@ -207,10 +207,8 @@ export default function Sidebar({ collapsed }) {
               className="d-flex align-items-center"
               style={{
                 backgroundColor: isActive("components") ? "#278C582E" : "transparent",
-                borderRadius: "12px",
-                padding: "8px 8px",
-                display: "flex",
-                alignItems: "center",
+                borderRadius: "8px",
+                padding: "12px",
               }}
             >
               <img
@@ -222,15 +220,13 @@ export default function Sidebar({ collapsed }) {
                 alt="Components"
                 style={{
                   width: "18px",
-                  filter: isActive("components")
-                    ? "none"
-                    : "brightness(0) invert(1)",
+                  filter: isActive("components") ? "none" : "brightness(0) invert(1)",
                 }}
               />
               {!collapsed && (
                 <span
                   style={{
-                    color: isActive("components") ? "#28a745" : "white",
+                    color: isActive("components") ? "#28a745" : "#ffffff",
                     marginLeft: "10px",
                   }}
                 >
@@ -239,9 +235,9 @@ export default function Sidebar({ collapsed }) {
               )}
               {!collapsed && (
                 <span
-                  className="ms-auto me-4"
+                  className="ms-auto"
                   style={{
-                    color: isActive("components") ? "#28a745" : "white",
+                    color: isActive("components") ? "#28a745" : "#ffffff",
                   }}
                 >
                   {componentsOpen ? "▾" : "▸"}
@@ -291,50 +287,49 @@ export default function Sidebar({ collapsed }) {
 
         {/* Product Dropdown */}
         <div className="mb-2">
-       <button
-  onClick={() => setProductOpen(!productOpen)}
-  className="bg-transparent border-0 w-100 text-start p-0"
->
-  <div
-    className="d-flex align-items-center"
-    style={{
-      backgroundColor: isActive("product") ? "#278C582E" : "transparent",
-      borderRadius: "12px",
-      padding: "8px 8px",
-      display: "flex",
-      alignItems: "center",
-    }}
-  >
-    <img
-      src={isActive("product") ? "/Product_G.png" : "/Product.png"}
-      alt="Product"
-      style={{
-        width: "18px",
-        filter: isActive("product") ? "none" : "brightness(0) invert(1)",
-      }}
-    />
-    {!collapsed && (
-      <span
-        style={{
-          color: isActive("product") ? "#28a745" : "white",
-          marginLeft: "10px",
-        }}
-      >
-        Product
-      </span>
-    )}
-    {!collapsed && (
-      <span
-        className="ms-auto me-4"
-        style={{
-          color: isActive("product") ? "#28a745" : "white",
-        }}
-      >
-        {productOpen ? "▾" : "▸"}
-      </span>
-    )}
-  </div>
-</button>
+          <button
+            onClick={() => setProductOpen(!productOpen)}
+            className="bg-transparent border-0 w-100 text-start p-0"
+          >
+            <div
+              className="d-flex align-items-center"
+              style={{
+                backgroundColor: isActive("product") ? "#278C582E" : "transparent",
+                borderRadius: "8px",
+                padding: "12px",
+              }}
+            >
+              <img
+                src={isActive("product") ? "/Product_G.png" : "/Product.png"}
+                alt="Product"
+                style={{
+                  width: "18px",
+                  filter: isActive("product") ? "none" : "brightness(0) invert(1)",
+                }}
+              />
+              {!collapsed && (
+                <span
+                  style={{
+                    color: isActive("product") ? "#28a745" : "#ffffff",
+                    marginLeft: "10px",
+                  }}
+                >
+                  Product
+                </span>
+              )}
+              {!collapsed && (
+                <span
+                  className="ms-auto"
+                  style={{
+                    color: isActive("product") ? "#28a745" : "#ffffff",
+                  }}
+                >
+                  {productOpen ? "▾" : "▸"}
+                </span>
+              )}
+            </div>
+          </button>
+
 
           {!collapsed && productOpen && (
             <div className="ms-2">
@@ -397,7 +392,13 @@ export default function Sidebar({ collapsed }) {
               e.preventDefault();
               handleLinkClick("Vendor");
             }}
-            className={linkClass("Vendor")}
+            className="d-flex align-items-center"
+            style={{
+              backgroundColor: isActive("Vendor") ? "#278C582E" : "transparent",
+              borderRadius: "8px",
+              padding: "12px 12px",
+              textDecoration: "none",
+            }}
           >
             <img
               src={isActive("Vendor") ? "/Vendor_G.png" : "/Vendor.png"}
@@ -411,6 +412,7 @@ export default function Sidebar({ collapsed }) {
               <span
                 style={{
                   color: isActive("Vendor") ? "#28a745" : "white",
+                  marginLeft: "10px",
                 }}
               >
                 Vendor
@@ -425,7 +427,13 @@ export default function Sidebar({ collapsed }) {
               e.preventDefault();
               handleLinkClick("purchaseOrder");
             }}
-            className={linkClass("purchaseOrder")}
+            className="d-flex align-items-center"
+            style={{
+              backgroundColor: isActive("purchaseOrder") ? "#278C582E" : "transparent",
+              borderRadius: "8px",
+              padding: "12px 12px",
+              textDecoration: "none", // optional for anchor
+            }}
           >
             <img
               src={
@@ -445,6 +453,7 @@ export default function Sidebar({ collapsed }) {
               <span
                 style={{
                   color: isActive("purchaseOrder") ? "#28a745" : "white",
+                  marginLeft: "10px",
                 }}
               >
                 Purchase Order
@@ -453,13 +462,20 @@ export default function Sidebar({ collapsed }) {
           </a>
 
 
+
           <a
             href="#"
             onClick={(e) => {
               e.preventDefault();
               handleLinkClick("purchaseReturn");
             }}
-            className={linkClass("purchaseReturn")}
+            className="d-flex align-items-center"
+            style={{
+              backgroundColor: isActive("purchaseReturn") ? "#278C582E" : "transparent",
+              borderRadius: "8px",
+              padding: "12px",
+              textDecoration: "none",
+            }}
           >
             <img
               src={
@@ -468,18 +484,17 @@ export default function Sidebar({ collapsed }) {
                   ? "/Purchase_Order_G.png"
                   : "/Purchase Order 1.png"
               }
-              alt="Purchase Order"
+              alt="Purchase Return"
               style={{
                 width: "18px",
-                filter: isActive("purchaseReturn")
-                  ? "none"
-                  : "brightness(0) invert(1)",
+                filter: isActive("purchaseReturn") ? "none" : "brightness(0) invert(1)",
               }}
             />
             {!collapsed && (
               <span
                 style={{
-                  color: isActive("purchaseReturn") ? "#28a745" : "white",
+                  color: isActive("purchaseReturn") ? "#28a745" : "#ffffff",
+                  marginLeft: "10px",
                 }}
               >
                 Purchase Return
@@ -498,16 +513,31 @@ export default function Sidebar({ collapsed }) {
 
         <div className="mb-1">
           {/* Customer */}
-
-
-          <a href="#" onClick={(e) => { e.preventDefault(); handleLinkClick("VciCustomer"); }} className={linkClass("VciCustomer")}>
-            <img src="/Customer.png" alt="Customer" style={{ width: "18px", filter: "brightness(0) invert(1)" }} />
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleLinkClick("VciCustomer");
+            }}
+            className="d-flex align-items-center"
+            style={{
+              backgroundColor: isActive("VciCustomer") ? "#278C582E" : "transparent",
+              borderRadius: "8px",
+              padding: "12px",
+              color: isActive("VciCustomer") ? "#28a745" : "white",
+              textDecoration: "none",
+            }}
+          >
+            <img
+              src="/Customer.png"
+              alt="Customer"
+              style={{
+                width: "18px",
+                filter: isActive("VciCustomer") ? "none" : "brightness(0) invert(1)",
+              }}
+            />
             {!collapsed && (
-              <span
-                style={{
-                  color: isActive("VciCustomer") ? "#28a745" : "white",
-                }}
-              >
+              <span style={{ marginLeft: "10px" }}>
                 Customer
               </span>
             )}
@@ -520,24 +550,26 @@ export default function Sidebar({ collapsed }) {
               e.preventDefault();
               handleLinkClick("salesOrder");
             }}
-            className={linkClass("salesOrder")}
+            className="d-flex align-items-center"
+            style={{
+              backgroundColor: isActive("salesOrder") ? "#278C582E" : "transparent",
+              borderRadius: "8px",
+              padding: "12px",
+              color: isActive("salesOrder") ? "#28a745" : "white",
+              textDecoration: "none",
+              marginTop: "6px",
+            }}
           >
             <img
               src={isActive("salesOrder") ? "/Sale_Order_G.png" : "/Sale 1.png"}
               alt="Sales Order"
               style={{
                 width: "18px",
-                filter: isActive("salesOrder")
-                  ? "none"
-                  : "brightness(0) invert(1)",
+                filter: isActive("salesOrder") ? "none" : "brightness(0) invert(1)",
               }}
             />
             {!collapsed && (
-              <span
-                style={{
-                  color: isActive("salesOrder") ? "#28a745" : "white",
-                }}
-              >
+              <span style={{ marginLeft: "10px" }}>
                 Sales Order
               </span>
             )}
@@ -550,28 +582,26 @@ export default function Sidebar({ collapsed }) {
               e.preventDefault();
               handleLinkClick("salesReturn");
             }}
-            className={linkClass("salesReturn")}
+            className="d-flex align-items-center"
+            style={{
+              backgroundColor: isActive("salesReturn") ? "#278C582E" : "transparent",
+              borderRadius: "8px",
+              padding: "12px",
+              color: isActive("salesReturn") ? "#28a745" : "white",
+              textDecoration: "none",
+              marginTop: "6px",
+            }}
           >
             <img
-              src={
-                isActive("salesReturn")
-                  ? "/SaleReturn_G.png"
-                  : "/Sale_Return.png"
-              }
+              src={isActive("salesReturn") ? "/SaleReturn_G.png" : "/Sale_Return.png"}
               alt="Sales Return"
               style={{
                 width: "18px",
-                filter: isActive("salesReturn")
-                  ? "none"
-                  : "brightness(0) invert(1)",
+                filter: isActive("salesReturn") ? "none" : "brightness(0) invert(1)",
               }}
             />
             {!collapsed && (
-              <span
-                style={{
-                  color: isActive("salesReturn") ? "#28a745" : "white",
-                }}
-              >
+              <span style={{ marginLeft: "10px" }}>
                 Sales Return
               </span>
             )}
@@ -588,32 +618,34 @@ export default function Sidebar({ collapsed }) {
               e.preventDefault();
               handleLinkClick("serviceProduct");
             }}
-            className={linkClass("serviceProduct")}
+            className="d-flex align-items-center"
+            style={{
+              backgroundColor: isActive("serviceProduct") ? "#278C582E" : "transparent",
+              borderRadius: "8px",
+              padding: "12px",
+              textDecoration: "none",
+            }}
           >
             <img
-              src={
-                isActive("serviceProduct")
-                  ? "/ServiceVci_G.png"
-                  : "/Service VCI.png"
-              }
+              src={isActive("serviceProduct") ? "/ServiceVci_G.png" : "/Service VCI.png"}
               alt="Service Product"
               style={{
                 width: "18px",
-                filter: isActive("serviceProduct")
-                  ? "none"
-                  : "brightness(0) invert(1)",
+                filter: isActive("serviceProduct") ? "none" : "brightness(0) invert(1)",
               }}
             />
             {!collapsed && (
               <span
                 style={{
                   color: isActive("serviceProduct") ? "#28a745" : "white",
+                  marginLeft: "10px",
                 }}
               >
                 Service Product
               </span>
             )}
           </a>
+
         </div>
       </nav>
 
