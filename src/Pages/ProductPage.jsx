@@ -390,7 +390,6 @@ export default function ProductPage() {
                 onChange={handleChange}
                 disabled={productData.test === "Issue"}
               >
-                <option value="">Select Sale Status</option>
                 <option value="Available">Available</option>
                 <option value="Sold">Sold</option>
                 <option value="Reserved">Reserved</option>
