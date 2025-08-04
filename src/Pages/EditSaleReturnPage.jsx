@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Form, Table } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import { API_BASE_URL } from "../api";
 
 export default function EditSaleReturnPage() {
   const { id } = useParams();
@@ -14,7 +14,7 @@ export default function EditSaleReturnPage() {
   const [products, setProducts] = useState([]);
 
 useEffect(() => {
-  axios.get(`http://localhost:8000/api/sale-returns/view/${id}`)
+  axios.get(`${API_BASE_URL}/sale-returns/view/${id}`)
     .then(res => {
       const data = res.data;
       setReturnData(data);
@@ -43,7 +43,7 @@ setProducts(formattedProducts);
 const handleSave = () => {
   const selectedProducts = products.filter(p => p.selected);
 
-  axios.put(`http://localhost:8000/api/update/${id}`, {
+  axios.put(`${API_BASE_URL}/update/${id}`, {
     reason,
     products: selectedProducts.map(p => ({
       sale_item_id: p.sale_item_id,

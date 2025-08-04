@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from "../api";
 
 export default function SaleReturns() {
     const [invoices, setInvoices] = useState([]);
@@ -16,7 +17,7 @@ export default function SaleReturns() {
 
     // 🔹 Load all invoices for dropdown
     useEffect(() => {
-        axios.get('http://localhost:8000/api/invoice')
+        axios.get(`${API_BASE_URL}/invoice`)
             .then(res => {
                 const invoiceOptions = res.data.map(item => ({
                     label: item.invoice_no,
@@ -35,7 +36,7 @@ export default function SaleReturns() {
         setSerials([]);
         setSaleId(null);
 
-        axios.get(`http://localhost:8000/api/sale-return/invoice/${option.label}`)
+        axios.get(`${API_BASE_URL}/sale-return/invoice/${option.label}`)
             .then((res) => {
                 const data = res.data.products.map(item => ({
                     ...item,
@@ -74,7 +75,7 @@ export default function SaleReturns() {
         }))
     };
 
-    axios.post('http://localhost:8000/api/sale-return-store', payload)
+    axios.post(`${API_BASE_URL}/sale-return-store`, payload)
         .then(() => {
             toast.success('Return processed successfully!');
             // Reset state

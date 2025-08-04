@@ -8,6 +8,7 @@ import "datatables.net";
 import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from "../api";
 
 export default function ReturnListPage() {
   const [returnData, setReturnData] = useState([]);
@@ -35,7 +36,7 @@ export default function ReturnListPage() {
       $(tableRef.current).DataTable().destroy();
     }
 
-    axios.get('http://localhost:8000/api/saleReturns')
+    axios.get(`${API_BASE_URL}/saleReturns`)
       .then(res => {
         if (res.data.data) {
           setReturnData(res.data.data);
@@ -47,7 +48,7 @@ export default function ReturnListPage() {
   };
 
 const handleGenerateReturnInvoice = (returnId) => {
-  const pdfWindow = window.open(`http://localhost:8000/api/sale-returns/${returnId}/invoice-pdf`, '_blank');
+  const pdfWindow = window.open(`${API_BASE_URL}/sale-returns/${returnId}/invoice-pdf`, '_blank');
 
   if (!pdfWindow || pdfWindow.closed || typeof pdfWindow.closed === 'undefined') {
     toast.error('Popup blocked! Please allow popups to view invoice.');

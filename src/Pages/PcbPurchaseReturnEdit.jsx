@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { API_BASE_URL } from "../api";
 
 
 
@@ -20,7 +21,7 @@ export default function EditPurchaseReturnPage() {
 
   useEffect(() => {
     if (id) {
-      axios.get(`http://localhost:8000/api/purchase-return-by-id/${id}`)
+      axios.get(`${API_BASE_URL}/purchase-return-by-id/${id}`)
         .then(res => {
           setSelectedInvoice(res.data.purchase.invoice_no); 
           setPurchaseData(res.data.purchase);
@@ -52,7 +53,7 @@ export default function EditPurchaseReturnPage() {
       }))
     };
 
-    const url = `http://localhost:8000/api/purchase-returns/${returnId}`;
+    const url = `${API_BASE_URL}/purchase-returns/${returnId}`;
     axios.put(url, payload)
      .then(() => {
   toast.success('Return updated successfully!');

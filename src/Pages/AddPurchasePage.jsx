@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { API_BASE_URL } from "../api";
 
 export default function AddPurchasePage() {
   const [dropdowns, setDropdowns] = useState({
@@ -28,7 +29,7 @@ export default function AddPurchasePage() {
 
   const fetchDropdownData = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/form-dropdowns');
+      const res = await axios.get(`${API_BASE_URL}/form-dropdowns`);
       const data = res.data.data;
       setDropdowns({
         vendors: data.vendors || [],
@@ -146,7 +147,7 @@ if (duplicateSerials.length > 0) {
 
 
     try {
-      await axios.post('http://localhost:8000/api/pcbstore', payload);
+      await axios.post(`${API_BASE_URL}/pcbstore`, payload);
       toast.success('Purchase added successfully!');
       // navigate('/purchaseOrder');
       setTimeout(() => navigate('/purchaseOrder'), 1000);

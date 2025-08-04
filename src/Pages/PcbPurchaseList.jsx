@@ -8,6 +8,7 @@ import 'datatables.net-dt/css/dataTables.dataTables.css';
 import 'datatables.net';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { API_BASE_URL } from "../api";
 
 export default function PurchaseListPage() {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function PurchaseListPage() {
   const [purchaseData, setPurchaseData] = useState([]);
 
   const fetchPurchases = () => {
-    axios.get('http://localhost:8000/api/purchase')
+    axios.get(`${API_BASE_URL}/purchase`)
       .then(res => setPurchaseData(res.data))
       .catch(err => {
         console.error('Error fetching purchase list:', err);
@@ -60,7 +61,7 @@ function handleDelete(purchaseId) {
   // if (!window.confirm("Are you sure you want to delete this purchase?")) return;
 
   axios
-    .delete(`http://localhost:8000/api/purchases/${purchaseId}`)
+    .delete(`${API_BASE_URL}/purchases/${purchaseId}`)
     .then((res) => {
       toast.success(res.data.message || 'Purchase deleted successfully');
     })
@@ -72,7 +73,7 @@ function handleDelete(purchaseId) {
 }
 
 const handleGenerateInvoice = (purchaseId) => {
-  const pdfWindow = window.open(`http://localhost:8000/api/pcb-purchase-invoice/${purchaseId}`, '_blank');
+  const pdfWindow = window.open(`${API_BASE_URL}/pcb-purchase-invoice/${purchaseId}`, '_blank');
   if (pdfWindow) {
     toast.success('Invoice generated successfully!');
   } else {

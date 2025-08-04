@@ -6,6 +6,9 @@ import Select, { components } from 'react-select';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Modal } from 'react-bootstrap';
+import EditProductModal from './EditProductModal';
+import { API_BASE_URL } from "../api";
+
 
 export default function EditSalePage() {
   const navigate = useNavigate();
@@ -34,37 +37,37 @@ export default function EditSalePage() {
 
 
   function AvailableSerialsModal({ show, handleClose, serials, onSelect }) {
-      const handleSerialClick = (serial) => {
-    onSelect(serial);
-    handleClose(); // Close modal after adding
-  };
+    const handleSerialClick = (serial) => {
+      onSelect(serial);
+      handleClose(); // Close modal after adding
+    };
 
-  return (
-    <Modal show={show} onHide={handleClose} size="lg" centered>
-      <Modal.Header closeButton>
-        <Modal.Title>Available Serials</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        {serials.length === 0 ? (
-          <p>No serials found.</p>
-        ) : (
-          <div className="d-flex flex-wrap gap-2">
-            {serials.map((sn, idx) => (
-              <div
-                 key={sn.serial_no}
-                onClick={() => handleSerialClick(sn)}
-                className="border rounded px-2 py-1"
-                style={{ cursor: 'pointer', background: '#f8f9fa' }}
-              >
-                {sn.serial_no}
-              </div>
-            ))}
-          </div>
-        )}
-      </Modal.Body>
-    </Modal>
-  );
-}
+    return (
+      <Modal show={show} onHide={handleClose} size="lg" centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Available Serials</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {serials.length === 0 ? (
+            <p>No serials found.</p>
+          ) : (
+            <div className="d-flex flex-wrap gap-2">
+              {serials.map((sn, idx) => (
+                <div
+                  key={sn.serial_no}
+                  onClick={() => handleSerialClick(sn)}
+                  className="border rounded px-2 py-1"
+                  style={{ cursor: 'pointer', background: '#f8f9fa' }}
+                >
+                  {sn.serial_no}
+                </div>
+              ))}
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
+    );
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -77,40 +80,40 @@ export default function EditSalePage() {
 
 
   const handleSerialChange = (index, value) => {
-  const updatedSerials = [...formData.serial_numbers];
-  updatedSerials[index] = { ...updatedSerials[index], serial_no: value };
-  setFormData(prev => ({ ...prev, serial_numbers: updatedSerials }));
-};
+    const updatedSerials = [...formData.serial_numbers];
+    updatedSerials[index] = { ...updatedSerials[index], serial_no: value };
+    setFormData(prev => ({ ...prev, serial_numbers: updatedSerials }));
+  };
 
-const handleRemoveSerial = (removeIdx) => {
-  const updatedSerials = formData.serial_numbers.filter((_, idx) => idx !== removeIdx);
-  setFormData(prev => ({
-    ...prev,
-    serial_numbers: updatedSerials,
-    quantity: updatedSerials.length
-  }));
-};
-
-
-const handleAddSerial = (serial) => {
-  const alreadySelected = formData.serial_numbers.find(s => s.serial_no === serial.serial_no);
-  if (alreadySelected) return;
-
-  const updatedSerials = [...formData.serial_numbers, serial];
-  setFormData(prev => ({
-    ...prev,
-    serial_numbers: updatedSerials,
-    quantity: updatedSerials.length
-  }));
-};
-
-const updatedFormData = {
-  ...formData,
-  selected_serials: formData.serial_numbers.map(p => p.serial_no),
-};
+  const handleRemoveSerial = (removeIdx) => {
+    const updatedSerials = formData.serial_numbers.filter((_, idx) => idx !== removeIdx);
+    setFormData(prev => ({
+      ...prev,
+      serial_numbers: updatedSerials,
+      quantity: updatedSerials.length
+    }));
+  };
 
 
-//
+  const handleAddSerial = (serial) => {
+    const alreadySelected = formData.serial_numbers.find(s => s.serial_no === serial.serial_no);
+    if (alreadySelected) return;
+
+    const updatedSerials = [...formData.serial_numbers, serial];
+    setFormData(prev => ({
+      ...prev,
+      serial_numbers: updatedSerials,
+      quantity: updatedSerials.length
+    }));
+  };
+
+  const updatedFormData = {
+    ...formData,
+    selected_serials: formData.serial_numbers.map(p => p.serial_no),
+  };
+
+
+  //
 
   const handleCustomerChange = (selected) => {
     setFormData(prev => ({
@@ -124,17 +127,17 @@ const updatedFormData = {
     if (!batch_id || !category_id || !quantity) return;
 
     try {
-      const response = await axios.post('http://localhost:8000/api/available-serials', {
+      const response = await axios.post(`${API_BASE_URL}/available-serials`, {
         batch_id,
         category_id,
         from_serial,
         quantity: parseInt(quantity, 10),
-  include_serials: originalSerials.map(p => p.serial_no),
+        include_serials: originalSerials.map(p => p.serial_no),
 
       });
-const uniqueAvailable = response.data.available_serials.filter(
-  sn => !originalSerials.some(p => p.serial_no === sn.serial_no)
-);
+      const uniqueAvailable = response.data.available_serials.filter(
+        sn => !originalSerials.some(p => p.serial_no === sn.serial_no)
+      );
 
       setAvailableSerials(uniqueAvailable);
     } catch (error) {
@@ -143,7 +146,7 @@ const uniqueAvailable = response.data.available_serials.filter(
   };
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/form-dropdowns')
+    axios.get( `${API_BASE_URL}/form-dropdowns`)
       .then(res => {
         const { customers, batches, categories } = res.data.data;
         setCustomers(customers);
@@ -152,7 +155,7 @@ const uniqueAvailable = response.data.available_serials.filter(
       })
       .catch(err => console.error('Dropdown fetch error:', err));
 
-    axios.get(`http://localhost:8000/api/sales/${id}/edit`)
+    axios.get(`${API_BASE_URL}/sales/${id}/edit`)
       .then(res => {
         const sale = res.data.sale;
         const currentSerials = res.data.current_product_ids || [];
@@ -183,45 +186,45 @@ const uniqueAvailable = response.data.available_serials.filter(
     }
   }, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
 
-  
-const handleSubmit = (e) => {
-  e.preventDefault();
 
-  const requiredQty = parseInt(formData.quantity || 0, 10);
-  const currentSerials = formData.serial_numbers || [];
-  const available = availableSerials || [];
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  // Remove duplicates based on serial_no
-  const merged = [...currentSerials, ...available];
-  const uniqueSerialsMap = {};
-  const uniqueSerials = [];
+    const requiredQty = parseInt(formData.quantity || 0, 10);
+    const currentSerials = formData.serial_numbers || [];
+    const available = availableSerials || [];
 
-  for (const item of merged) {
-    if (!uniqueSerialsMap[item.serial_no]) {
-      uniqueSerialsMap[item.serial_no] = true;
-      uniqueSerials.push(item);
+    // Remove duplicates based on serial_no
+    const merged = [...currentSerials, ...available];
+    const uniqueSerialsMap = {};
+    const uniqueSerials = [];
+
+    for (const item of merged) {
+      if (!uniqueSerialsMap[item.serial_no]) {
+        uniqueSerialsMap[item.serial_no] = true;
+        uniqueSerials.push(item);
+      }
     }
-  }
 
-  const finalSerials = uniqueSerials.slice(0, requiredQty);
+    const finalSerials = uniqueSerials.slice(0, requiredQty);
 
-  if (finalSerials.length < requiredQty) {
-    alert(`Only ${finalSerials.length} serials assigned. Please assign ${requiredQty}.`);
-    return;
-  }
-
+    if (finalSerials.length < requiredQty) {
+      alert(`Only ${finalSerials.length} serials assigned. Please assign ${requiredQty}.`);
+      return;
+    }
 
 
-  axios.put(`http://localhost:8000/api/salesUpdate/${id}`, updatedFormData)
-    .then(() => {
-      toast.success('Sale updated successfully!');
-      setTimeout(() => navigate('/salesOrder'), 1500);
-    })
-    .catch(err => {
-      console.error('Error updating sale:', err);
-      toast.error('Failed to update sale.');
-    });
-};
+
+    axios.put(`${API_BASE_URL}/salesUpdate/${id}`, updatedFormData)
+      .then(() => {
+        toast.success('Sale updated successfully!');
+        setTimeout(() => navigate('/salesOrder'), 1500);
+      })
+      .catch(err => {
+        console.error('Error updating sale:', err);
+        toast.error('Failed to update sale.');
+      });
+  };
 
   const customerOptions = customers.map(c => ({
     value: c.id,
@@ -301,48 +304,48 @@ const handleSubmit = (e) => {
           </Col>
         </Row>
 
-      <Form.Label className="mb-2 text-dark fw-normal">
-  Product Serial No. (Already Sold for this Sale)
-  <Button variant="outline-secondary" className="ms-2" onClick={() => setShowModal(true)}>
-   Product
-</Button>
-</Form.Label>
-<div className="w-100 d-flex flex-wrap gap-2 mb-3">
-  {formData.serial_numbers.map((item, idx) => (
-    <div
-      key={idx}
-      className="d-flex align-items-center border rounded-3 px-2 py-1"
-      style={{ width: '105px', backgroundColor: '#F8F9FA', position: 'relative' }}
-    >
-      <Form.Control
-        type="text"
-        size="sm"
-        value={item.serial_no}
-        onChange={(e) => handleSerialChange(idx, e.target.value)}
-        className="shadow-none bg-transparent border-0 p-0 flex-grow-1"
-        style={{ minWidth: 0 }}
-      />
-      <Button
-        variant="link"
-        size="sm"
-        onClick={() => handleRemoveSerial(idx)}
-        style={{
-          color: '#dc3545',
-          textDecoration: 'none',
-          fontWeight: 'bold',
-          fontSize: '0.8rem',
-          marginLeft: '2px',
-          padding: 0
-        }}
-      >
-        ×
-      </Button>
-    </div>
-  ))}
-</div>
+        <Form.Label className="mb-2 text-dark fw-normal">
+          Product Serial No. (Already Sold for this Sale)
+          <Button variant="outline-secondary" className="ms-2" onClick={() => setShowModal(true)}>
+            Product
+          </Button>
+        </Form.Label>
+        <div className="w-100 d-flex flex-wrap gap-2 mb-3">
+          {formData.serial_numbers.map((item, idx) => (
+            <div
+              key={idx}
+              className="d-flex align-items-center border rounded-3 px-2 py-1"
+              style={{ width: '105px', backgroundColor: '#F8F9FA', position: 'relative' }}
+            >
+              <Form.Control
+                type="text"
+                size="sm"
+                value={item.serial_no}
+                onChange={(e) => handleSerialChange(idx, e.target.value)}
+                className="shadow-none bg-transparent border-0 p-0 flex-grow-1"
+                style={{ minWidth: 0 }}
+              />
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => handleRemoveSerial(idx)}
+                style={{
+                  color: '#dc3545',
+                  textDecoration: 'none',
+                  fontWeight: 'bold',
+                  fontSize: '0.8rem',
+                  marginLeft: '2px',
+                  padding: 0
+                }}
+              >
+                ×
+              </Button>
+            </div>
+          ))}
+        </div>
 
 
-{/* 
+        {/* 
        {availableSerials.length > 0 && (
   <>
     <Form.Label className="mb-2 text-dark fw-normal">Available Product Serials</Form.Label>
@@ -387,16 +390,30 @@ const handleSubmit = (e) => {
           <Button type="submit" variant="success">Update</Button>
         </div>
       </Form>
+      <EditProductModal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        loading={false} // optional: you can handle loading state
+        products={availableSerials}
+        onAdd={(selected) => {
+          const updatedSerials = [
+            ...formData.serial_numbers,
+            ...selected.filter(
+              item => !formData.serial_numbers.some(existing => existing.serial_no === item.serial_no)
+            )
+          ];
+          setFormData(prev => ({
+            ...prev,
+            serial_numbers: updatedSerials,
+            quantity: updatedSerials.length
+          }));
+          setShowModal(false);
+        }}
+        existingSerials={formData.serial_numbers.map(p => p.serial_no)}
+      />
 
-      <AvailableSerialsModal
-  show={showModal}
-  handleClose={() => setShowModal(false)}
-  serials={availableSerials}
-  onSelect={handleAddSerial}
-/>
 
-
-          </div>
+    </div>
   );
 }
 

@@ -7,6 +7,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../api";
 
 export default function PcbPurchaseReturn() {
   const [returns, setReturns] = useState([]);
@@ -22,7 +23,7 @@ export default function PcbPurchaseReturn() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      const res = await axios.get("http://localhost:8000/api/pcb-purchase-return");
+      const res = await axios.get(`${API_BASE_URL}/pcb-purchase-return`);
       setReturns(res.data || []);
     } catch (err) {
       console.error("Error fetching purchase returns:", err);
@@ -55,7 +56,7 @@ export default function PcbPurchaseReturn() {
   }, [returns, loading]);
 
   const handleGenerateReturnInvoice = (returnId) => {
-  const pdfWindow = window.open(`http://localhost:8000/api/pcb-purchase-return-invoice/${returnId}`, '_blank');
+  const pdfWindow = window.open(`${API_BASE_URL}/pcb-purchase-return-invoice/${returnId}`, '_blank');
   if (pdfWindow) {
     toast.success('Return invoice generated successfully!');
   } else {
