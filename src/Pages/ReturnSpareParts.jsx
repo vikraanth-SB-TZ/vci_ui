@@ -187,7 +187,7 @@ export default function ReturnSparePartsPage() {
     if (!payload.return_date) {
       errors.return_date = "Return Date is required.";
     }
-    
+
     if (!payload.batch_id) {
       errors.batch_id = "Batch is required.";
     }
@@ -234,6 +234,7 @@ export default function ReturnSparePartsPage() {
 
     const payload = {
       vendor_id: formData.vendor_id,
+      batch_id: formData.batch_id,
       invoice_no: formData.invoiceNo,
       return_date: returnDate,
       notes: formData.notes || null,
@@ -294,6 +295,7 @@ export default function ReturnSparePartsPage() {
       setFormErrors({});
       setFormData({
         vendor_id: "",
+        batch_id: "",
         invoiceNo: "",
         notes: "",
       });
@@ -314,17 +316,10 @@ export default function ReturnSparePartsPage() {
       setLoading(false);
     }
   };
-
-
   const handleDelete = async (id) => {
-    if (!id || isNaN(parseInt(id))) {
-      toast.error("Invalid ID. Cannot delete.");
-      return;
-    }
-
     const result = await MySwal.fire({
       title: "Are you sure?",
-      text: "Do you really want to delete this return?",
+      text: "Do you really want to delete this spare part?",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -332,28 +327,26 @@ export default function ReturnSparePartsPage() {
       confirmButtonText: "Yes, delete it!",
     });
 
+    if (!result.isConfirmed) return;
 
-  const result = await MySwal.fire({
-    title: "Are you sure?",
-    text: "Do you really want to delete this spare part return?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-  });
-
-  if (!result.isConfirmed) return;
-
+    try {
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
+      }
 
       await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`);
-      toast.success("Return deleted successfully!");
+      toast.success("Spare part deleted successfully!");
 
-      const updatedReturns = returns.filter((r) => String(r.id) !== String(id));
-      setReturns(updatedReturns);
+      if (editingPart?.id === id) closeForm();
+
+      const updatedSpareparts = spareparts.filter(part => part.id !== id);
+      setSpareparts(updatedSpareparts);
 
       setTimeout(() => {
-        if (updatedReturns.length > 0 && tableRef.current) {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+          $(tableRef.current).DataTable().destroy();
+        }
+        if (updatedSpareparts.length > 0) {
           $(tableRef.current).DataTable({
             ordering: true,
             paging: true,
@@ -365,7 +358,11 @@ export default function ReturnSparePartsPage() {
       }, 0);
     } catch (error) {
       console.error("Error deleting:", error);
-      toast.error(`Failed to delete return: ${error.response?.data?.message || "Server error"}`);
+      if (error.response?.data?.message) {
+        toast.error(`Failed to delete spare part: ${error.response.data.message}`);
+      } else {
+        toast.error("Failed to delete spare part.");
+      }
     }
   };
 
