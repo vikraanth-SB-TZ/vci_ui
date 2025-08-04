@@ -401,7 +401,7 @@ export default function Sidebar({ collapsed }) {
             }}
           >
             <img
-              src={isActive("Vendor") ? "/Vendor_G.png" : "/Vendor.png"}
+              src={isActive("Vendor") ? "/VendorG.png" : "/Vendor.png"}
               alt="Vendor"
               style={{
                 width: "18px",
@@ -529,7 +529,7 @@ export default function Sidebar({ collapsed }) {
             }}
           >
             <img
-              src="/Customer.png"
+              src="/VendorG.png"
               alt="Customer"
               style={{
                 width: "18px",
