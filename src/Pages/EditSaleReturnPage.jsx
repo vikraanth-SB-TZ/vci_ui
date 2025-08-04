@@ -38,6 +38,8 @@ setProducts(formattedProducts);
 });
 
 }, [id]);
+
+
 const handleSave = () => {
   const selectedProducts = products.filter(p => p.selected);
 
@@ -49,9 +51,10 @@ const handleSave = () => {
       remark: p.remark || '',
     }))
   }).then(() => {
- toast.success('Return updated successfully ', { autoClose: 3000 });
-
-    navigate('/returns');
+    setTimeout(() => {
+      toast.success('Return updated successfully ', { autoClose: 3000 });
+    }, 1000);
+    navigate('/salesReturn');
  }).catch(err => {
   const msg = err.response?.data?.error || 'Update failed ';
   toast.error(msg, { autoClose: 3000 });

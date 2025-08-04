@@ -182,6 +182,8 @@ const uniqueAvailable = response.data.available_serials.filter(
       fetchSerialNumbers();
     }
   }, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
+
+  
 const handleSubmit = (e) => {
   e.preventDefault();
 
