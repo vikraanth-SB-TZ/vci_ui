@@ -117,6 +117,7 @@ export default function VciCustomer() {
 
     const handleChange = (e, selectName = null) => {
         let name, value;
+
         if (selectName) {
             name = selectName;
             value = e ? e.value : "";
@@ -127,24 +128,43 @@ export default function VciCustomer() {
             name = e.target.name;
             value = e.target.value;
 
-            if ((name === "mobile" || name === "altMobile")) {
-                if (/\D/.test(value)) {
-                    if (!toast.isActive(toastIdRef.current)) {
-                        toastIdRef.current = toast.error(`${name === "mobile" ? "Mobile" : "Alt Mobile"} should contain only numbers`, {
-                            autoClose: 1500,
-                        });
-                    }
+            if (["first_name", "last_name"].includes(name)) {
+                if (!/^[A-Za-z\s]*$/.test(value)) {
+                    setErrors(prev => ({ ...prev, [name]: "Only alphabets are allowed." }));
                     return;
+                } else {
+                    setErrors(prev => ({ ...prev, [name]: "" }));
                 }
-                if (toast.isActive(toastIdRef.current)) {
-                    toast.dismiss(toastIdRef.current);
+            }
+
+
+            if ((name === "mobile" || name === "altMobile") && /\D/.test(value)) {
+                if (!toast.isActive(toastIdRef.current)) {
+                    toastIdRef.current = toast.error(`${name === "mobile" ? "Mobile" : "Alt Mobile"} should contain only numbers`, {
+                        autoClose: 1500,
+                    });
                 }
+                return;
+            } else if (toast.isActive(toastIdRef.current)) {
+                toast.dismiss(toastIdRef.current);
             }
         }
 
         setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: "" }));
+    };
+
+    const handleBlur = (e) => {
+        const { name, value } = e.target;
+
+        if (name === "email") {
+            const emailRegex = /^\S+@\S+\.\S+$/;
+            if (!value.trim()) {
+                setErrors(prev => ({ ...prev, [name]: "Email is required." }));
+            } else if (!emailRegex.test(value)) {
+                setErrors(prev => ({ ...prev, [name]: "Enter a valid email address." }));
+            } else {
+                setErrors(prev => ({ ...prev, [name]: "" }));
+            }
         }
     };
 
@@ -746,6 +766,7 @@ const handleDownloadPdf = async () => {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
                                 placeholder="Enter Email"
                                 size="sm"
                                 isInvalid={!!errors.email}
