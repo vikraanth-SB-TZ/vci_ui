@@ -118,11 +118,21 @@ export default function App() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "name") {
+      const alphaRegex = /^[A-Za-z\s]*$/;
+      if (!alphaRegex.test(value)) {
+        setErrors((prev) => ({ ...prev, name: "Only letters are allowed." }));
+        return; // reject invalid character
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" })); // clear error on valid input
     }
   };
+
 
   const validateForm = () => {
     const newErrors = {};

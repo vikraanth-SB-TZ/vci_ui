@@ -61,7 +61,6 @@ export default function Vendor() {
 
                 const vendorsRes = await axios.get(`${API_BASE_URL}/vendors`);
                 setVendors(Array.isArray(vendorsRes.data.data) ? vendorsRes.data.data : vendorsRes.data);
-                toast.success("Vendors loaded successfully!", { toastId: 'vendors-loaded', autoClose: 1500 });
             } catch (err) {
                 console.error("Failed to load initial data:", err);
                 toast.error("Failed to load data.", { autoClose: 1500 });
@@ -76,7 +75,7 @@ export default function Vendor() {
     useEffect(() => {
         if (!loading && vendors.length > 0) {
             $(tableRef.current).DataTable({
-                destroy: true, // This is crucial for re-initialization
+                destroy: true, 
                 ordering: true,
                 paging: true,
                 searching: true,
@@ -95,7 +94,7 @@ export default function Vendor() {
         if (formData.state) {
             fetchDistrictsForForm(formData.state);
         } else {
-            setDistrictsForForm([]); // Clear form districts if state is not selected
+            setDistrictsForForm([]); 
         }
     }, [formData.state]);
 
@@ -117,6 +116,7 @@ export default function Vendor() {
 
     const handleChange = (e, selectName = null) => {
         let name, value;
+
         if (selectName) {
             name = selectName;
             value = e ? e.value : "";
@@ -127,27 +127,48 @@ export default function Vendor() {
             name = e.target.name;
             value = e.target.value;
 
-            if ((name === "mobile" || name === "altMobile")) {
-                if (/\D/.test(value)) {
-                    if (!toast.isActive(toastIdRef.current)) {
-                        toastIdRef.current = toast.error(`${name === "mobile" ? "Mobile" : "Alt Mobile"} should contain only numbers`, {
-                            autoClose: 1500,
-                        });
+            // ✅ Allow only letters and spaces for first_name and last_name
+            if ((name === "first_name" || name === "last_name")) {
+                if (!/^[a-zA-Z\s]*$/.test(value)) {
+                    // Show error below the field
+                    setErrors(prev => ({ ...prev, [name]: "Only alphabets are allowed." }));
+                    return; // Block update
+                } else {
+                    // Clear error if input is valid
+                    if (errors[name]) {
+                        setErrors(prev => ({ ...prev, [name]: "" }));
                     }
-                    return;
                 }
-                if (toast.isActive(toastIdRef.current)) {
-                    toast.dismiss(toastIdRef.current);
+            }
+
+            // ✅ Allow only digits in mobile and altMobile
+            if ((name === "mobile" || name === "altMobile")) {
+                if (!/^\d*$/.test(value)) {
+                    setErrors(prev => ({ ...prev, [name]: "Only digits are allowed." }));
+                    return;
+                } else {
+                    if (errors[name]) {
+                        setErrors(prev => ({ ...prev, [name]: "" }));
+                    }
                 }
             }
         }
 
         setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: "" }));
-        }
     };
-    
+
+    const handleEmailBlur = () => {
+    const email = formData.email.trim();
+
+    if (!email) {
+        setErrors((prev) => ({ ...prev, email: "Email is required." }));
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setErrors((prev) => ({ ...prev, email: "Email format is invalid." }));
+    } else {
+        setErrors((prev) => ({ ...prev, email: "" }));
+    }
+    };
+
     const validateForm = () => {
         const newErrors = {};
         if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
@@ -179,61 +200,64 @@ export default function Vendor() {
     };
 
     const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!validateForm()) {
-            return;
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    const payload = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        gender: formData.gender,
+        mobile: formData.mobile,
+        alter_mobile: formData.altMobile,
+        email: formData.email,
+        company_name: formData.company_name,
+        address: formData.address,
+        city: formData.city,
+        state_id: formData.state ? parseInt(formData.state, 10) : null,
+        district_id: formData.district ? parseInt(formData.district, 10) : null,
+        pincode: formData.pincode,
+        gst_no: formData.gst,
+        date_of_birth: formData.dob,
+    };
+
+    const request = isEditing
+        ? axios.put(`${API_BASE_URL}/vendors/${formData.id}`, payload)
+        : axios.post(`${API_BASE_URL}/vendors`, payload);
+
+    request
+        .then((res) => {
+        const newVendor = res.data?.data || payload;
+
+        toast.success(isEditing ? "Vendor updated successfully!" : "Vendor added successfully!", {
+            autoClose: 1500,
+        });
+
+        if (isEditing) {
+            setVendors((prev) =>
+            prev.map((v) => (v.id === formData.id ? { ...v, ...newVendor } : v))
+            );
+        } else {
+            
+            setVendors((prev) => [...prev, newVendor]);
         }
 
-        const payload = {
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            gender: formData.gender,
-            mobile: formData.mobile,
-            alter_mobile: formData.altMobile,
-            email: formData.email,
-            company_name: formData.company_name,
-            address: formData.address,
-            city: formData.city,
-            state_id: formData.state ? parseInt(formData.state, 10) : null,
-            district_id: formData.district ? parseInt(formData.district, 10) : null,
-            pincode: formData.pincode,
-            gst_no: formData.gst,
-            date_of_birth: formData.dob,
-        };
-
-        const request = isEditing
-            ? axios.put(`${API_BASE_URL}/vendors/${formData.id}`, payload)
-            : axios.post(`${API_BASE_URL}/vendors`, payload);
-
-        request
-            .then(() => {
-                window.location.reload();
-            })
-            .catch((err) => {
-                if (err.response && err.response.data) {
-                    const { message, errors: backendErrors } = err.response.data;
-                    let newErrors = {};
-                    if (backendErrors) {
-                        Object.keys(backendErrors).forEach(field => {
-                            const fieldErrors = backendErrors[field];
-                            if (Array.isArray(fieldErrors)) {
-                                newErrors[field] = fieldErrors[0];
-                                toast.error(fieldErrors[0], { autoClose: 1000 });
-                            } else {
-                                newErrors[field] = fieldErrors;
-                                toast.error(fieldErrors, { autoClose: 1000 });
-                            }
-                        });
-                    } else if (message) {
-                        toast.error(`Failed to save vendor: ${message}`, { autoClose: 1000 });
-                    } else {
-                        toast.error("Failed to save vendor. Please try again.", { autoClose: 1000 });
-                    }
-                    setErrors(newErrors);
-                } else {
-                    toast.error("Failed to save vendor.", { autoClose: 1000 });
-                }
-            });
+        closeForm(); 
+        })
+        .catch((err) => {
+        const newErrors = {};
+        const { message, errors: backendErrors } = err?.response?.data || {};
+        if (backendErrors) {
+            for (const key in backendErrors) {
+            newErrors[key] = Array.isArray(backendErrors[key])
+                ? backendErrors[key][0]
+                : backendErrors[key];
+            toast.error(newErrors[key], { autoClose: 1500 });
+            }
+        } else {
+            toast.error(message || "Failed to save vendor.", { autoClose: 1500 });
+        }
+        setErrors(newErrors);
+        });
     };
 
     const stateOptions = states.map(state => ({
@@ -752,17 +776,18 @@ export default function Vendor() {
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={labelStyle}>Email</Form.Label>
                             <Form.Control
-                                className="custom-placeholder"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="Enter Email"
-                                size="sm"
-                                isInvalid={!!errors.email}
-                                style={getInputStyle("email")}
+                            className="custom-placeholder"
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            onBlur={handleEmailBlur}
+                            placeholder="Enter Email"
+                            size="sm"
+                            isInvalid={!!errors.email}
+                            style={getInputStyle("email")}
                             />
                             <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.email}
+                            {errors.email}
                             </Form.Control.Feedback>
                         </div>
                         <div className="col-6 mb-2">
