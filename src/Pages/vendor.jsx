@@ -406,13 +406,42 @@ export default function Vendor() {
     return (
         <div className="vh-80 d-flex flex-column position-relative bg-light">
             <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-                <h5 className="mb-0 fw-bold">Vendors ({vendors.length})</h5>
-                <div>
-                    
-                    <Button variant="success" size="sm" onClick={openForm}>
-                        + Add New
-                    </Button>
-                </div>
+            <h5 className="mb-0 fw-bold">Vendors ({vendors.length})</h5>
+
+            <div className="d-flex gap-2">
+                <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => {
+                    setLoading(true);
+                    axios
+                    .get(`${apiBase}/vendors`)
+                    .then((res) => {
+                        const rows = Array.isArray(res.data.data) ? res.data.data : res.data;
+                        setVendors(rows);
+                        toast.success("Vendors reloaded!", {
+                        toastId: "vendors-loaded-refresh",
+                        autoClose: 1500,
+                        });
+                    })
+                    .catch(() => {
+                        toast.error("Failed to reload vendors.", { autoClose: 1500 });
+                    })
+                    .finally(() => setLoading(false));
+                }}
+                disabled={loading}
+                >
+                {loading ? (
+                    <Spinner animation="border" size="sm" />
+                ) : (
+                    <i className="bi bi-arrow-clockwise"></i>
+                )}
+                </Button>
+
+                <Button variant="success" size="sm" onClick={openForm}>
+                + Add New
+                </Button>
+            </div>
             </div>
 
             <div className="flex-grow-1 overflow-auto px-4 py-3">
