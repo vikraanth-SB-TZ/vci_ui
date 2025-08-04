@@ -147,9 +147,16 @@ export default function ReturnSparePartsPage() {
       copy[index] = { ...copy[index], [field]: value };
       return copy;
     });
+
     setFormErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
       delete newErrors[`${field}-${index}`];
+
+      // If user is filling anything in rows, clear the general error too
+      if (field === "sparepart_id" || field === "quantity") {
+        delete newErrors.items;
+      }
+
       return newErrors;
     });
   };
@@ -174,14 +181,21 @@ export default function ReturnSparePartsPage() {
     }
 
     if (!payload.invoice_no) {
-      errors.invoice_no = "Invoice No. is required.";
+      errors.invoiceNo = "Invoice No. is required.";
     }
 
     if (!payload.return_date) {
       errors.return_date = "Return Date is required.";
     }
+    
+    if (!payload.batch_id) {
+      errors.batch_id = "Batch is required.";
+    }
 
-    if (items.length === 0 || items.every(item => !item.sparepart_id || !item.quantity)) {
+    if (
+      items.length === 0 ||
+      items.every(item => !item.sparepart_id || !parseInt(item.quantity))
+    ) {
       errors.items = "Please add at least one spare part with a quantity.";
     } else {
       const selectedInvoice = purchases.find(p => String(p.invoice_no) === String(payload.invoice_no));
@@ -300,11 +314,24 @@ export default function ReturnSparePartsPage() {
       setLoading(false);
     }
   };
-const handleDelete = async (id) => {
-  if (!id || isNaN(id)) {
-    toast.error("Invalid return ID. Cannot delete.");
-    return;
-  }
+
+
+  const handleDelete = async (id) => {
+    if (!id || isNaN(parseInt(id))) {
+      toast.error("Invalid ID. Cannot delete.");
+      return;
+    }
+
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this return?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+
 
   const result = await MySwal.fire({
     title: "Are you sure?",
@@ -318,24 +345,29 @@ const handleDelete = async (id) => {
 
   if (!result.isConfirmed) return;
 
-  try {
-    await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`);
-    toast.success("Spare part return deleted successfully!");
 
-    if (editingReturn?.id === id) {
-      setEditingReturn(null);
-      setShowForm(false);
+      await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`);
+      toast.success("Return deleted successfully!");
+
+      const updatedReturns = returns.filter((r) => String(r.id) !== String(id));
+      setReturns(updatedReturns);
+
+      setTimeout(() => {
+        if (updatedReturns.length > 0 && tableRef.current) {
+          $(tableRef.current).DataTable({
+            ordering: true,
+            paging: true,
+            searching: true,
+            lengthChange: true,
+            columnDefs: [{ targets: 0, className: "text-center" }],
+          });
+        }
+      }, 0);
+    } catch (error) {
+      console.error("Error deleting:", error);
+      toast.error(`Failed to delete return: ${error.response?.data?.message || "Server error"}`);
     }
-
-    const updatedReturns = returns.filter(item => item.id !== id);
-    setReturns(updatedReturns);
-  } catch (error) {
-    console.error("Error deleting:", error);
-    const errorMsg = error.response?.data?.message || "Failed to delete spare part return.";
-    toast.error(errorMsg);
-  }
-};
-
+  };
 
 
   const handleShowForm = (returnedItem = null) => {
@@ -552,7 +584,7 @@ const handleDelete = async (id) => {
                 style={{ ...getBlueBorderStyles(formData.invoiceNo, !!formErrors.invoice_no) }}
                 value={formData.invoiceNo}
                 onChange={handleInputChange}
-                isInvalid={!!formErrors.invoice_no}
+                isInvalid={!!formErrors.invoiceNo}
               >
                 <option value="" disabled>Select Invoice</option>
                 {purchases.map((purchase) => (
@@ -562,7 +594,7 @@ const handleDelete = async (id) => {
                 ))}
               </Form.Select>
               <Form.Control.Feedback type="invalid" className="d-block">
-                {formErrors.invoice_no}
+                {formErrors.invoiceNo}
               </Form.Control.Feedback>
             </div>
             <div className="col-6 position-relative">
@@ -728,89 +760,99 @@ const handleDelete = async (id) => {
                   </thead>
                   <tbody>
                     {sparePartsRows.length > 0 ? (
-                      sparePartsRows.map((row, index) => (
-                        <tr key={index}>
-                          <td style={{ padding: "12px" }}>
-                            <Form.Select
-                              name={`sparepart-${index}`}
-                              value={row.sparepart_id}
-                              onChange={(e) => handleRowChange(index, "sparepart_id", e.target.value)}
-                              isInvalid={!!formErrors[`sparepart-${index}`]}
-                              disabled={!formData.invoiceNo}
-                              className="shadow-none"
-                              style={{
-                                border: "none",
-                                backgroundColor: "#fff", // or "#E9ECEF" to match a gray input
-                                padding: "5px",
-                                fontSize: "14px",
-                                borderRadius: "6px",
-                                outline: "none",
-                                boxShadow: "none",
-                                appearance: "none", // optional: cleaner native select look
-                                WebkitAppearance: "none", // for Safari
-                                MozAppearance: "none", // for Firefox
-                              }}
-                            >
-                              <option value="" disabled>
-                                {formData.invoiceNo ? "Select Spare Part" : "Select Invoice first"}
-                              </option>
-                              {invoiceSpareparts.map((sparepart) => (
-                                <option key={sparepart.id} value={sparepart.id}>
-                                  {sparepart.name}
+                      sparePartsRows.map((row, index) => {
+                        const selectedIds = sparePartsRows
+                          .filter((_, i) => i !== index)
+                          .map((r) => String(r.sparepart_id));
+
+                        const availableOptions = invoiceSpareparts.filter(
+                          (sp) =>
+                            String(row.sparepart_id) === String(sp.id) || // keep current selection
+                            !selectedIds.includes(String(sp.id)) // exclude others already selected
+                        );
+
+                        return (
+                          <tr key={index}>
+                            <td style={{ padding: "12px" }}>
+                              <Form.Select
+                                name={`sparepart-${index}`}
+                                value={row.sparepart_id}
+                                onChange={(e) => handleRowChange(index, "sparepart_id", e.target.value)}
+                                isInvalid={!!formErrors[`sparepart-${index}`]}
+                                disabled={!formData.invoiceNo}
+                                className="shadow-none"
+                                style={{
+                                  border: "none",
+                                  backgroundColor: "#fff",
+                                  padding: "5px",
+                                  fontSize: "14px",
+                                  borderRadius: "6px",
+                                  outline: "none",
+                                  boxShadow: "none",
+                                  appearance: "none",
+                                  WebkitAppearance: "none",
+                                  MozAppearance: "none",
+                                }}
+                              >
+                                <option value="" disabled>
+                                  {formData.invoiceNo ? "Select Spare Part" : "Select Invoice first"}
                                 </option>
-                              ))}
-                            </Form.Select>
-                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                              {formErrors[`sparepart-${index}`]}
-                            </Form.Control.Feedback>
-                          </td>
-                          <td style={{ padding: "12px" }}>
-                            <Form.Control
-                              type="number"
-                              name={`quantity-${index}`}
-                              placeholder="Enter Quantity"
-                              min="1"
-                              value={row.quantity}
-                              onChange={(e) => handleRowChange(index, "quantity", e.target.value)}
-                              isInvalid={!!formErrors[`quantity-${index}`]}
-                              className="shadow-none"
-                              style={{
-                                border: "none",
-                                backgroundColor: "#fff", // or "#E9ECEF" if you want a light gray bg
-                                // padding: "10px 12px",
-                                // fontSize: "14px",
-                                borderRadius: "6px",
-                                outline: "none",
-                                boxShadow: "none",
-                              }}
-                            />
-                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                              {formErrors[`quantity-${index}`]}
-                            </Form.Control.Feedback>
-                          </td>
-                          <td className="text-center align-middle" style={{ padding: "5px", }}>
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={() => handleRemoveRow(index)}
-                              className="p-0"
-                              style={{
-                                backgroundColor: "#FFEBEBC9",
-                                borderRadius: "50%",
-                                width: "28px",
-                                height: "28px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                outline: "none",
-                                boxShadow: "none",
-                              }}
-                            >
-                              <BsDashLg style={{ color: "red", fontSize: "1rem" }} />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
+                                {availableOptions.map((sparepart) => (
+                                  <option key={sparepart.id} value={sparepart.id}>
+                                    {sparepart.name}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                              <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                                {formErrors[`sparepart-${index}`]}
+                              </Form.Control.Feedback>
+                            </td>
+                            <td style={{ padding: "12px" }}>
+                              <Form.Control
+                                type="number"
+                                name={`quantity-${index}`}
+                                placeholder="Enter Quantity"
+                                min="1"
+                                value={row.quantity}
+                                onChange={(e) => handleRowChange(index, "quantity", e.target.value)}
+                                isInvalid={!!formErrors[`quantity-${index}`]}
+                                className="shadow-none"
+                                style={{
+                                  border: "none",
+                                  backgroundColor: "#fff",
+                                  borderRadius: "6px",
+                                  outline: "none",
+                                  boxShadow: "none",
+                                }}
+                              />
+                              <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                                {formErrors[`quantity-${index}`]}
+                              </Form.Control.Feedback>
+                            </td>
+                            <td className="text-center align-middle" style={{ padding: "5px" }}>
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => handleRemoveRow(index)}
+                                className="p-0"
+                                style={{
+                                  backgroundColor: "#FFEBEBC9",
+                                  borderRadius: "50%",
+                                  width: "28px",
+                                  height: "28px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  outline: "none",
+                                  boxShadow: "none",
+                                }}
+                              >
+                                <BsDashLg style={{ color: "red", fontSize: "1rem" }} />
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan="2" className="text-center text-muted py-3">
