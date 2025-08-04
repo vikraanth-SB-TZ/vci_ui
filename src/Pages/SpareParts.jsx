@@ -584,18 +584,30 @@ export default function App() {
                   </div>
                 </div>
               </div>
-                    <div
-  className="save-button-footer"
+<div
+  className="save-button-footer d-flex justify-content-end"
+  style={{
+    position: "sticky",
+    bottom: "0",
+    backgroundColor: "#fff",
+    padding: "20px 30px",
+    borderTop: "1px solid #F2F2F2",
+  }}
 >
   <Button
     type="submit"
     variant="success"
-    style={{ width: "20%", height: "50px", borderRadius: "6px", right: "0px", position: "sticky", bottom: "0" }}
+    style={{
+      width: "auto",
+      height: "50px",
+      borderRadius: "6px",
+      minWidth: "120px",
+    }}
   >
     {editingPart ? "Update" : "Save"}
   </Button>
-</div>	
-            </form>
+</div>   
+         </form>
           </div>
         )}
         <style>{`

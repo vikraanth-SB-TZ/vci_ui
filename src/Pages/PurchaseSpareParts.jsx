@@ -24,15 +24,15 @@ export default function PurchaseSparepartsPage() {
   const [showForm, setShowForm] = useState(false);
   const MySwal = withReactContent(Swal);
 
-  const [sparePartsRows, setSparePartsRows] = useState([
-    { sparepart_id: "", quantity: "" },
-  ]);
+  const [sparePartsRows, setSparePartsRows] = useState([{
+    sparepart_id: "",
+    quantity: ""
+  }, ]);
   const [invoiceDate, setInvoiceDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0]; // format as "YYYY-MM-DD"
   });
 
-  const dateInputRef = useRef();
   const [editingPurchase, setEditingPurchase] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -105,8 +105,12 @@ export default function PurchaseSparepartsPage() {
 
   const fetchVendors = useCallback(async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/api/vendors`, {
-        headers: { Accept: "application/json" },
+      const {
+        data
+      } = await axios.get(`${API_BASE}/api/vendors`, {
+        headers: {
+          Accept: "application/json"
+        },
       });
       let rows = Array.isArray(data) ? data : data.data ?? [];
       setVendors(rows);
@@ -117,8 +121,12 @@ export default function PurchaseSparepartsPage() {
 
   const fetchBatches = useCallback(async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/api/batches`, {
-        headers: { Accept: "application/json" },
+      const {
+        data
+      } = await axios.get(`${API_BASE}/api/batches`, {
+        headers: {
+          Accept: "application/json"
+        },
       });
       let rows = Array.isArray(data) ? data : data.batches ?? data.data ?? [];
       setBatches(rows);
@@ -129,8 +137,12 @@ export default function PurchaseSparepartsPage() {
 
   const fetchAvailableSpareparts = useCallback(async () => {
     try {
-      const { data } = await axios.get(`${API_BASE}/api/spareparts`, {
-        headers: { Accept: "application/json" },
+      const {
+        data
+      } = await axios.get(`${API_BASE}/api/spareparts`, {
+        headers: {
+          Accept: "application/json"
+        },
       });
       let rows = Array.isArray(data) ? data : data.data ?? [];
       setAvailableSpareparts(rows);
@@ -142,8 +154,12 @@ export default function PurchaseSparepartsPage() {
   const fetchPurchases = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API_BASE}/api/sparepart-purchases`, {
-        headers: { Accept: "application/json" },
+      const {
+        data
+      } = await axios.get(`${API_BASE}/api/sparepart-purchases`, {
+        headers: {
+          Accept: "application/json"
+        },
       });
       let rows = Array.isArray(data) ? data : data.data ?? [];
       setSpareparts(rows);
@@ -155,7 +171,7 @@ export default function PurchaseSparepartsPage() {
     }
   }, []);
 
-  
+
 
   useEffect(() => {
     fetchVendors();
@@ -177,14 +193,17 @@ export default function PurchaseSparepartsPage() {
           paging: true,
           searching: true,
           lengthChange: true,
-          columnDefs: [{ targets: 0, className: "text-center" }],
-          destroy: true, 
+          columnDefs: [{
+            targets: 0,
+            className: "text-center"
+          }],
+          destroy: true,
         });
       }
-    }, 0); 
+    }, 0);
 
     return () => {
-    
+
       if (dataTableInstance.current) {
         dataTableInstance.current.destroy();
         dataTableInstance.current = null;
@@ -194,13 +213,17 @@ export default function PurchaseSparepartsPage() {
   }, [spareparts, loading]);
 
   const handleAddRow = () => {
-    setSparePartsRows((rows) => [...rows, { sparepart_id: "", quantity: "" }]);
+    setSparePartsRows((rows) => [...rows, {
+      sparepart_id: "",
+      quantity: ""
+    }]);
   };
 
   const handleRemoveRow = (index) => {
     setSparePartsRows((rows) => rows.filter((_, i) => i !== index));
     setFormErrors((prevErrors) => {
-      const newErrors = { ...prevErrors };
+      const newErrors = { ...prevErrors
+      };
       delete newErrors[`sparepart-${index}`];
       delete newErrors[`quantity-${index}`];
       return newErrors;
@@ -210,26 +233,40 @@ export default function PurchaseSparepartsPage() {
   const handleRowChange = (index, field, value) => {
     setSparePartsRows((rows) => {
       const copy = [...rows];
-      copy[index] = { ...copy[index], [field]: value };
+      copy[index] = { ...copy[index],
+        [field]: value
+      };
       return copy;
     });
     setFormErrors((prevErrors) => {
-      const newErrors = { ...prevErrors };
+      const newErrors = { ...prevErrors
+      };
       delete newErrors[`${field}-${index}`];
       return newErrors;
     });
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setFormErrors((prev) => ({ ...prev, [name]: "" }));
+    const {
+      name,
+      value
+    } = e.target;
+    setFormData((prev) => ({ ...prev,
+      [name]: value
+    }));
+    setFormErrors((prev) => ({ ...prev,
+      [name]: ""
+    }));
   };
 
   const handleDateChange = (e) => {
-    const { value } = e.target;
+    const {
+      value
+    } = e.target;
     setInvoiceDate(value);
-    setFormErrors((prev) => ({ ...prev, invoice_date: "" }));
+    setFormErrors((prev) => ({ ...prev,
+      invoice_date: ""
+    }));
   };
 
   const validateForm = (payload, items) => {
@@ -308,8 +345,7 @@ export default function PurchaseSparepartsPage() {
       if (editingPurchase) {
         const resp = await axios.put(
           `${API_BASE}/api/sparepart-purchases/${editingPurchase.id}`,
-          payload,
-          {
+          payload, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -321,9 +357,12 @@ export default function PurchaseSparepartsPage() {
           toast.success("Purchase updated successfully!");
           setSpareparts((prev) =>
             prev.map((p) =>
-              p.id === editingPurchase.id
-                ? { ...p, ...payload, items: items }
-                : p
+              p.id === editingPurchase.id ?
+              { ...p,
+                ...payload,
+                items: items
+              } :
+              p
             )
           );
         } else {
@@ -332,8 +371,7 @@ export default function PurchaseSparepartsPage() {
       } else {
         const resp = await axios.post(
           `${API_BASE}/api/spareparts/purchase`,
-          payload,
-          {
+          payload, {
             headers: {
               "Content-Type": "application/json",
               Accept: "application/json",
@@ -344,7 +382,7 @@ export default function PurchaseSparepartsPage() {
         if (data?.success && data.data?.id) {
           const newEntry = {
             ...payload,
-            id: data.data.id,        
+            id: data.data.id,
             items,
             created_at: data.data.created_at,
             updated_at: data.data.updated_at,
@@ -365,7 +403,10 @@ export default function PurchaseSparepartsPage() {
                 paging: true,
                 searching: true,
                 lengthChange: true,
-                columnDefs: [{ targets: 0, className: "text-center" }],
+                columnDefs: [{
+                  targets: 0,
+                  className: "text-center"
+                }],
               });
             }
           }, 0);
@@ -378,10 +419,18 @@ export default function PurchaseSparepartsPage() {
 
       setShowForm(false);
       setEditingPurchase(null);
-      setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+      setSparePartsRows([{
+        sparepart_id: "",
+        quantity: ""
+      }]);
       setInvoiceDate(new Date().toISOString().split("T")[0]);
       setFormErrors({});
-      setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
+      setFormData({
+        vendor_id: "",
+        batch_id: "",
+        invoiceNo: "",
+        notes: ""
+      });
     } catch (error) {
       if (error.response) {
         console.error(
@@ -391,8 +440,8 @@ export default function PurchaseSparepartsPage() {
         );
         toast.error(
           `Server error (${error.response.status}): ${
-            error.response.data?.message ?? "Please check form data"
-          }`
+            error.response.data?.message ?? "Please check form data"
+          }`
         );
       } else if (error.request) {
         console.error("No response received:", error.request);
@@ -425,8 +474,12 @@ export default function PurchaseSparepartsPage() {
         dataTableInstance.current = null;
       }
 
-      const { data } = await axios.delete(`${API_BASE}/api/sparepart-purchases/${id}`, {
-        headers: { Accept: "application/json" },
+      const {
+        data
+      } = await axios.delete(`${API_BASE}/api/sparepart-purchases/${id}`, {
+        headers: {
+          Accept: "application/json"
+        },
       });
 
       if (data?.success) {
@@ -446,7 +499,10 @@ export default function PurchaseSparepartsPage() {
               paging: true,
               searching: true,
               lengthChange: true,
-              columnDefs: [{ targets: 0, className: "text-center" }],
+              columnDefs: [{
+                targets: 0,
+                className: "text-center"
+              }],
             });
           }
         }, 0);
@@ -466,12 +522,15 @@ export default function PurchaseSparepartsPage() {
     setFormErrors({});
     if (purchase) {
       setSparePartsRows(
-        purchase.items && purchase.items.length > 0
-          ? purchase.items.map((item) => ({
-              sparepart_id: String(item.sparepart_id),
-              quantity: String(item.quantity),
-            }))
-          : [{ sparepart_id: "", quantity: "" }]
+        purchase.items && purchase.items.length > 0 ?
+        purchase.items.map((item) => ({
+          sparepart_id: String(item.sparepart_id),
+          quantity: String(item.quantity),
+        })) :
+        [{
+          sparepart_id: "",
+          quantity: ""
+        }]
       );
       setInvoiceDate(purchase.invoice_date);
       setFormData({
@@ -481,11 +540,31 @@ export default function PurchaseSparepartsPage() {
         notes: purchase.notes || "",
       });
     } else {
-      setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-      setInvoiceDate("");
-      setFormData({ vendor_id: "", batch_id: "", invoiceNo: "", notes: "" });
+      setSparePartsRows([{
+        sparepart_id: "",
+        quantity: ""
+      }]);
+      setInvoiceDate(new Date().toISOString().split("T")[0]);
+      setFormData({
+        vendor_id: "",
+        batch_id: "",
+        invoiceNo: "",
+        notes: ""
+      });
     }
     setShowForm(true);
+  };
+
+  const getVendorNameById = (id) => {
+    const vendor = vendors.find((v) => String(v.id) === String(id));
+    return vendor ?
+      `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim() :
+      `ID: ${id}`;
+  };
+
+  const getBatchNameById = (id) => {
+    const batch = batches.find((b) => String(b.id) === String(id));
+    return batch ? batch.batch : `ID: ${id}`;
   };
 
   return (
@@ -521,20 +600,19 @@ export default function PurchaseSparepartsPage() {
                 <th>Vendor Name</th>
                 <th>Invoice Date</th>
                 <th>Invoice No</th>
-                <th>Purchase No</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {loading && spareparts.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-4">
+                  <td colSpan="5" className="text-center py-4">
                     <Spinner animation="border" />
                   </td>
                 </tr>
               ) : spareparts.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-4 text-muted">
+                  <td colSpan="5" className="text-center py-4 text-muted">
                     No purchases found.
                   </td>
                 </tr>
@@ -542,29 +620,13 @@ export default function PurchaseSparepartsPage() {
                 spareparts.map((purchase, index) => (
                   <tr key={purchase.id}>
                     <td style={{ textAlign: "center" }}>{index + 1}</td>
-                    <td>
-                      {(() => {
-                        const vendor = vendors.find(
-                          (v) => String(v.id) === String(purchase.vendor_id)
-                        );
-                        return vendor
-                          ? `${vendor.first_name ?? ""} ${
-                              vendor.last_name ?? ""
-                            }`.trim()
-                          : `ID: ${purchase.vendor_id}`;
-                      })()}
-                    </td>
+                    <td>{getVendorNameById(purchase.vendor_id)}</td>
                     <td>
                       {new Date(purchase.invoice_date).toLocaleDateString(
                         "en-GB"
                       )}
                     </td>
                     <td>{purchase.invoice_no}</td>
-                    <td>
-                      {purchase.purchase_no ||
-                        purchase.invoice_no ||
-                        `ID: ${purchase.id}`}
-                    </td>
                     <td>
                       <Button
                         variant="outline-primary"
@@ -619,7 +681,7 @@ export default function PurchaseSparepartsPage() {
               setEditingPurchase(null);
               setFormErrors({});
               setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-              setInvoiceDate("");
+              setInvoiceDate(new Date().toISOString().split("T")[0]);
               setFormData({
                 vendor_id: "",
                 batch_id: "",
@@ -646,313 +708,321 @@ export default function PurchaseSparepartsPage() {
             &times;
           </button>
         </div>
-        <Form onSubmit={handleFormSubmit} noValidate>
-          <div className="row mb-3">
-            <div className="col-6">
-              <Form.Label
-                className="fw-semibold mb-1"
-                style={{ color: "#393C3AE5" }}
-              >
-                Vendor <span className="text-danger">*</span>
-              </Form.Label>
-              <Form.Select
-                name="vendor_id"
-                required
-                style={{
-                  ...customSelectStyle,
-                  ...getBlueBorderStyles(
-                    formData.vendor_id,
-                    !!formErrors.vendor_id
-                  ),
-                }}
-                value={formData.vendor_id}
-                onChange={handleInputChange}
-                isInvalid={!!formErrors.vendor_id}
-              >
-                <option value="" disabled>
-                  Select Vendor
-                </option>
-                {vendors.map((vendor) => (
-                  <option key={vendor.id} value={vendor.id}>
-                    {vendor.first_name} {vendor.last_name}
-                  </option>
-                ))}
-              </Form.Select>
-              <Form.Control.Feedback type="invalid" className="d-block">
-                {formErrors.vendor_id}
-              </Form.Control.Feedback>
-            </div>
-            <div className="col-6">
-              <Form.Label
-                className="fw-semibold mb-1"
-                style={{ color: "#393C3AE5" }}
-              >
-                Batch <span className="text-danger">*</span>
-              </Form.Label>
-              <Form.Select
-                name="batch_id"
-                required
-                style={{
-                  ...customSelectStyle,
-                  ...getBlueBorderStyles(
-                    formData.batch_id,
-                    !!formErrors.batch_id
-                  ),
-                }}
-                value={formData.batch_id}
-                onChange={handleInputChange}
-                isInvalid={!!formErrors.batch_id}
-              >
-                <option value="" disabled>
-                  Select Batch
-                </option>
-                {batches.map((batch) => (
-                  <option key={batch.id} value={batch.id}>
-                    {batch.batch}
-                  </option>
-                ))}
-              </Form.Select>
-              <Form.Control.Feedback type="invalid" className="d-block">
-                {formErrors.batch_id}
-              </Form.Control.Feedback>
-            </div>
-          </div>
-          <div className="row mb-3">
-            <div className="col-6">
-              <Form.Label
-                className="fw-semibold mb-1"
-                style={{ color: "#393C3AE5" }}
-              >
-                Invoice No. <span className="text-danger">*</span>
-              </Form.Label>
-              <Form.Control
-                type="text"
-                name="invoiceNo"
-                placeholder="Enter Invoice No."
-                required
-                value={formData.invoiceNo}
-                onChange={handleInputChange}
-                style={getBlueBorderStyles(
-                  formData.invoiceNo,
-                  !!formErrors.invoice_no
-                )}
-                isInvalid={!!formErrors.invoice_no}
-              />
-              <Form.Control.Feedback type="invalid" className="d-block">
-                {formErrors.invoice_no}
-              </Form.Control.Feedback>
-            </div>
-            <div className="col-6 position-relative">
-              <Form.Label
-                className="fw-semibold mb-1"
-                style={{ color: "#393C3AE5" }}
-              >
-                Invoice Date <span className="text-danger">*</span>
-              </Form.Label>
-
-              <div
-                className="form-control d-flex align-items-center justify-content-between"
-                style={{
-                  position: "relative",
-                  cursor: "pointer",
-                  ...getBlueBorderStyles(
-                    invoiceDate,
-                    !!formErrors.invoice_date
-                  ),
-                  minHeight: "34px",
-                }}
-                onClick={() => setShowCalendar(true)}
-              >
-                <span>
-                  {invoiceDate
-                    ? new Date(invoiceDate + "T00:00:00").toLocaleDateString()
-                    : "DD/MM/YYYY"}
-                </span>
-                <img
-                  src="/Calendar.png"
-                  alt="calendar icon"
+        <div style={{ maxHeight: "calc(100vh - 150px)", overflowY: "auto", paddingRight: '15px' }}>
+          <Form onSubmit={handleFormSubmit} noValidate>
+            <div className="row mb-3">
+              <div className="col-6">
+                <Form.Label
+                  className="fw-semibold mb-1"
+                  style={{ color: "#393C3AE5" }}
+                >
+                  Vendor <span className="text-danger">*</span>
+                </Form.Label>
+                <Form.Select
+                  name="vendor_id"
+                  required
                   style={{
-                    position: "absolute",
-                    right: "10px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: "24px",
-                    height: "24px",
-                    pointerEvents: "none",
+                    ...customSelectStyle,
+                    ...getBlueBorderStyles(
+                      formData.vendor_id,
+                      !!formErrors.vendor_id
+                    ),
                   }}
-                />
+                  value={formData.vendor_id}
+                  onChange={handleInputChange}
+                  isInvalid={!!formErrors.vendor_id}
+                >
+                  <option value="" disabled>
+                    Select Vendor
+                  </option>
+                  {vendors.map((vendor) => (
+                    <option key={vendor.id} value={vendor.id}>
+                      {vendor.first_name} {vendor.last_name}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Control.Feedback type="invalid" className="d-block">
+                  {formErrors.vendor_id}
+                </Form.Control.Feedback>
               </div>
+              <div className="col-6">
+                <Form.Label
+                  className="fw-semibold mb-1"
+                  style={{ color: "#393C3AE5" }}
+                >
+                  Batch <span className="text-danger">*</span>
+                </Form.Label>
+                <Form.Select
+                  name="batch_id"
+                  required
+                  style={{
+                    ...customSelectStyle,
+                    ...getBlueBorderStyles(
+                      formData.batch_id,
+                      !!formErrors.batch_id
+                    ),
+                  }}
+                  value={formData.batch_id}
+                  onChange={handleInputChange}
+                  isInvalid={!!formErrors.batch_id}
+                >
+                  <option value="" disabled>
+                    Select Batch
+                  </option>
+                  {batches.map((batch) => (
+                    <option key={batch.id} value={batch.id}>
+                      {batch.batch}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Control.Feedback type="invalid" className="d-block">
+                  {formErrors.batch_id}
+                </Form.Control.Feedback>
+              </div>
+            </div>
+            <div className="row mb-3">
+              <div className="col-6">
+                <Form.Label
+                  className="fw-semibold mb-1"
+                  style={{ color: "#393C3AE5" }}
+                >
+                  Invoice No. <span className="text-danger">*</span>
+                </Form.Label>
+                <Form.Control
+                  type="text"
+                  name="invoiceNo"
+                  placeholder="Enter Invoice No."
+                  required
+                  value={formData.invoiceNo}
+                  onChange={handleInputChange}
+                  style={getBlueBorderStyles(
+                    formData.invoiceNo,
+                    !!formErrors.invoice_no
+                  )}
+                  isInvalid={!!formErrors.invoice_no}
+                />
+                <Form.Control.Feedback type="invalid" className="d-block">
+                  {formErrors.invoice_no}
+                </Form.Control.Feedback>
+              </div>
+              <div className="col-6 position-relative">
+                <Form.Label
+                  className="fw-semibold mb-1"
+                  style={{ color: "#393C3AE5" }}
+                >
+                  Invoice Date <span className="text-danger">*</span>
+                </Form.Label>
 
-              {formErrors.invoice_date && (
-                <div className="invalid-feedback d-block">
-                  {formErrors.invoice_date}
-                </div>
-              )}
-
-              {showCalendar && (
-                <div style={{ position: "absolute", zIndex: 10 }}>
-                  <MiniCalendar
-                    selectedDate={
-                      invoiceDate ? new Date(invoiceDate + "T00:00:00") : null
-                    }
-                    onDateChange={(date) => {
-                      const safeDate = new Date(
-                        date.getFullYear(),
-                        date.getMonth(),
-                        date.getDate()
-                      );
-                      const formatted = `${safeDate.getFullYear()}-${String(
-                        safeDate.getMonth() + 1
-                      ).padStart(2, "0")}-${String(safeDate.getDate()).padStart(
-                        2,
-                        "0"
-                      )}`;
-                      setInvoiceDate(formatted);
-                      setShowCalendar(false);
+                <div
+                  className="form-control d-flex align-items-center justify-content-between"
+                  style={{
+                    position: "relative",
+                    cursor: "pointer",
+                    ...getBlueBorderStyles(
+                      invoiceDate,
+                      !!formErrors.invoice_date
+                    ),
+                    minHeight: "34px",
+                  }}
+                  onClick={() => setShowCalendar(true)}
+                >
+                  <span>
+                    {invoiceDate
+                      ? new Date(invoiceDate + "T00:00:00").toLocaleDateString(
+                          "en-GB"
+                        )
+                      : "DD/MM/YYYY"}
+                  </span>
+                  <img
+                    src="/Calendar.png"
+                    alt="calendar icon"
+                    style={{
+                      position: "absolute",
+                      right: "10px",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: "24px",
+                      height: "24px",
+                      pointerEvents: "none",
                     }}
-                    onCancel={() => setShowCalendar(false)}
-                    allowFuture={false}
                   />
                 </div>
-              )}
-            </div>
-          </div>
-          <div className="mb-3">
-            <Form.Label
-              className="fw-semibold mb-1"
-              style={{ color: "#393C3AE5" }}
-            >
-              Notes
-            </Form.Label>
-            <Form.Control
-              as="textarea"
-              name="notes"
-              placeholder="Enter any notes"
-              rows="3"
-              value={formData.notes}
-              onChange={handleInputChange}
-              style={getBlueBorderStyles(formData.notes, false)}
-            ></Form.Control>
-          </div>
-          <div className="mb-3">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 className="fw-semibold mb-0">
-                Add Spare parts <span className="text-danger">*</span>
-              </h6>
-              <button
-                type="button"
-                onClick={handleAddRow}
-                className="add-row-btn"
-              >
-                + Add Row
-              </button>
-            </div>
 
-            <div
-              style={{
-                border: "1px solid #D3DBD5",
-                borderRadius: "6px",
-                overflow: "hidden",
-              }}
-            >
+                {formErrors.invoice_date && (
+                  <div className="invalid-feedback d-block">
+                    {formErrors.invoice_date}
+                  </div>
+                )}
+
+                {showCalendar && (
+                  <div style={{ position: "absolute", zIndex: 10 }}>
+                    <MiniCalendar
+                      selectedDate={
+                        invoiceDate ? new Date(invoiceDate + "T00:00:00") : null
+                      }
+                      onDateChange={(date) => {
+                        const safeDate = new Date(
+                          date.getFullYear(),
+                          date.getMonth(),
+                          date.getDate()
+                        );
+                        const formatted = `${safeDate.getFullYear()}-${String(
+                          safeDate.getMonth() + 1
+                        ).padStart(2, "0")}-${String(safeDate.getDate()).padStart(
+                          2,
+                          "0"
+                        )}`;
+                        setInvoiceDate(formatted);
+                        setShowCalendar(false);
+                      }}
+                      onCancel={() => setShowCalendar(false)}
+                      allowFuture={false}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="mb-3">
+              <Form.Label
+                className="fw-semibold mb-1"
+                style={{ color: "#393C3AE5" }}
+              >
+                Notes
+              </Form.Label>
+              <Form.Control
+                as="textarea"
+                name="notes"
+                placeholder="Enter any notes"
+                rows="3"
+                value={formData.notes}
+                onChange={handleInputChange}
+                style={getBlueBorderStyles(formData.notes, false)}
+              ></Form.Control>
+            </div>
+            <div className="mb-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="fw-semibold mb-0">
+                  Add Spare parts <span className="text-danger">*</span>
+                </h6>
+                <button
+                  type="button"
+                  onClick={handleAddRow}
+                  className="add-row-btn"
+                >
+                  + Add Row
+                </button>
+              </div>
+
               <div
                 style={{
-                  maxHeight: "200px",
-                  overflowY: "auto",
+                  border: "1px solid #D3DBD5",
+                  borderRadius: "6px",
+                  overflow: "hidden",
                 }}
               >
-                <table className="custom-table" style={{ width: "100%", tableLayout: "fixed" }}>
-                  <thead>
-                    <tr>
-                      <th>Sparepart Name</th>
-                      <th>Quantity</th>
-                      <th style={{ width: "40px" }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sparePartsRows.length > 0 ? (
-                      sparePartsRows.map((row, index) => (
-                        <tr key={index}>
-                          <td>
-                            <Form.Select
-                              className="shadow-none"
-                              name={`sparepart-${index}`}
-                              required
-                              value={row.sparepart_id}
-                              onChange={(e) =>
-                                handleRowChange(index, "sparepart_id", e.target.value)
-                              }
-                              isInvalid={!!formErrors[`sparepart-${index}`]}
-                            >
-                              <option value="">Select Spare part</option>
-                              {availableSpareparts.map((sparepart) => (
-                                <option key={sparepart.id} value={sparepart.id}>
-                                  {sparepart.name}
-                                </option>
-                              ))}
-                            </Form.Select>
-                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                              {formErrors[`sparepart-${index}`]}
-                            </Form.Control.Feedback>
-                          </td>
-                          <td>
-                            <Form.Control
-                              type="number"
-                              name={`quantity-${index}`}
-                              placeholder="Enter Quantity"
-                              required
-                              min="1"
-                              value={row.quantity}
-                              onChange={(e) =>
-                                handleRowChange(index, "quantity", e.target.value)
-                              }
-                              isInvalid={!!formErrors[`quantity-${index}`]}
-                            />
-                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                              {formErrors[`quantity-${index}`]}
-                            </Form.Control.Feedback>
-                          </td>
-                          <td className="text-center align-middle">
-                            <Button
-                              variant="link"
-                              size="sm"
-                              onClick={() => handleRemoveRow(index)}
-                              className="remove-btn p-0"
-                            >
-                              <BsDashLg style={{ color: "red", fontSize: "1.2rem" }} />
-                            </Button>
+                <div
+                  style={{
+                    maxHeight: "200px",
+                    overflowY: "auto",
+                  }}
+                >
+                  <table
+                    className="custom-table"
+                    style={{ width: "100%", tableLayout: "fixed" }}
+                  >
+                    <thead>
+                      <tr>
+                        <th>Sparepart Name</th>
+                        <th>Quantity</th>
+                        <th style={{ width: "40px" }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sparePartsRows.length > 0 ? (
+                        sparePartsRows.map((row, index) => (
+                          <tr key={index}>
+                            <td>
+                              <Form.Select
+                                className="shadow-none"
+                                name={`sparepart-${index}`}
+                                required
+                                value={row.sparepart_id}
+                                onChange={(e) =>
+                                  handleRowChange(index, "sparepart_id", e.target.value)
+                                }
+                                isInvalid={!!formErrors[`sparepart-${index}`]}
+                              >
+                                <option value="">Select Spare part</option>
+                                {availableSpareparts.map((sparepart) => (
+                                  <option key={sparepart.id} value={sparepart.id}>
+                                    {sparepart.name}
+                                  </option>
+                                ))}
+                              </Form.Select>
+                              <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                                {formErrors[`sparepart-${index}`]}
+                              </Form.Control.Feedback>
+                            </td>
+                            <td>
+                              <Form.Control
+                                type="number"
+                                name={`quantity-${index}`}
+                                placeholder="Enter Quantity"
+                                required
+                                min="1"
+                                value={row.quantity}
+                                onChange={(e) =>
+                                  handleRowChange(index, "quantity", e.target.value)
+                                }
+                                isInvalid={!!formErrors[`quantity-${index}`]}
+                              />
+                              <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                                {formErrors[`quantity-${index}`]}
+                              </Form.Control.Feedback>
+                            </td>
+                            <td className="text-center align-middle">
+                              <Button
+                                variant="link"
+                                size="sm"
+                                onClick={() => handleRemoveRow(index)}
+                                className="remove-btn p-0"
+                              >
+                                <BsDashLg style={{ color: "red", fontSize: "1.2rem" }} />
+                              </Button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="6" className="text-center text-muted py-3">
+                            No spare parts added yet.
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="3" className="text-center text-muted py-3">
-                          No spare parts added yet.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
 
-            {!!formErrors.items && (
-              <div className="invalid-feedback d-block mt-1">
-                {formErrors.items}
-              </div>
-            )}
-          </div>
-          <div className="d-flex justify-content-end mt-4">
-            <Button
-              variant="success"
-              type="submit"
-              style={{ width: "179px", height: "50px", borderRadius: "6px" }}
-            >
-              {editingPurchase ? "Update Purchase" : "Save"}
-            </Button>
-          </div>
-        </Form>
+              {!!formErrors.items && (
+                <div className="invalid-feedback d-block mt-1">
+                  {formErrors.items}
+                </div>
+              )}
+            </div>
+            <div className="d-flex justify-content-end mt-4">
+              <Button
+                variant="success"
+                type="submit"
+                style={{ width: "179px", height: "50px", borderRadius: "6px" }}
+              >
+                {editingPurchase ? "Update Purchase" : "Save"}
+              </Button>
+            </div>
+          </Form>
+        </div>
       </div>
+
       <style>
       {`
 .custom-table {
