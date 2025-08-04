@@ -11,7 +11,7 @@ import "datatables.net";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 const MySwal = withReactContent(Swal);
-
+import { API_BASE_URL } from "../api";
 const CustomDropdown = ({ name, value, onChange, options, isInvalid, error }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -105,7 +105,7 @@ export default function App() {
   const fetchSpareparts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/spareparts");
+      const response = await axios.get(`${API_BASE_URL}/spareparts`);
       const fetchedData = response.data.data;
       setSpareparts(fetchedData);
     } catch (error) {
@@ -168,9 +168,9 @@ export default function App() {
 
       let response;
       if (editingPart) {
-        response = await axios.put(`http://localhost:8000/api/spareparts/${editingPart.id}`, payload);
+        response = await axios.put(`${API_BASE_URL}/spareparts/${editingPart.id}`, payload);
       } else {
-        response = await axios.post("http://localhost:8000/api/spareparts", payload);
+        response = await axios.post(`${API_BASE_URL}/spareparts`, payload);
       }
 
       toast.success(`Spare part ${editingPart ? "updated" : "added"} successfully!`, {
@@ -245,7 +245,7 @@ export default function App() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      await axios.delete(`http://localhost:8000/api/spareparts/${id}`);
+      await axios.delete(`${API_BASE_URL}/spareparts/${id}`);
       toast.success("Spare part deleted successfully!");
 
       if (editingPart?.id === id) closeForm();
@@ -433,19 +433,24 @@ export default function App() {
             </table>
           </div>
         </div>
-        {showForm && (
-          <div className={drawerClass} style={{
-            position: "fixed",
-            top: "63px",
-            right: 0,
-            width: "600px",
-            height: "100vh",
-            backgroundColor: "#fff",
-            boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
-            zIndex: 2000,
-            padding: "30px",
-            overflowY: "auto",
-            borderLeft: "1px solid #dee2e6"
+       {showForm && (
+  <div className={drawerClass} style={{ 
+         
+          position: "fixed",
+    top: "63px",
+    right: showForm ? "0" : "-600px", // triggers slide
+    opacity: showForm ? 1 : 0,         // fade in/out
+    visibility: showForm ? "visible" : "hidden", // optional: prevent tabbing
+    pointerEvents: showForm ? "auto" : "none",   // prevent clicks when hidden
+    width: "600px",
+    height: "100vh",
+    backgroundColor: "#fff",
+    boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
+    zIndex: 2000,
+    padding: "30px",
+    overflowY: "auto",
+    borderLeft: "1px solid #dee2e6",
+    transition: "right 3s ease-in-out, opacity 2s ease-in-out", // smooth slow
           }}>
             <div className="d-flex justify-content-between align-items-start mb-4">
               <h5 className="fw-bold mb-0">{editingPart ? "Edit Spare Part" : "Add New Spare Part"}</h5>
@@ -730,6 +735,31 @@ export default function App() {
           .custom-dropdown-item:hover {
             background-color: #f1f1f1;
           }
+            .drawer {
+  position: fixed;
+  top: 63px;
+  right: 0;
+  width: 600px;
+  height: 100vh;
+  background-color: #fff;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 2000;
+  padding: 30px;
+  overflow-y: auto;
+  border-left: 1px solid #dee2e6;
+  transition: transform 1s ease-in-out, opacity 1s ease-in-out;
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.drawer.show {
+  transform: translateX(0%);
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
         `}</style>
       </div>
     </>

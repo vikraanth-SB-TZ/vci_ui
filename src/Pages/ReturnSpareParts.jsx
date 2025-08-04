@@ -3,22 +3,26 @@ import { Button, Spinner, Form } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import { BsDashLg } from "react-icons/bs";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+import MiniCalendar from "./MiniCalendar";
+import { API_BASE_URL } from "../api";
 
-const API_BASE = "http://127.0.0.1:8000";
 
 const getBlueBorderStyles = (value, isInvalid) => {
   if (isInvalid) {
     return { borderColor: "#dc3545" };
   }
   if (value) {
-    return { borderColor: "#0d6efd" };
+    return { borderColor: "none" };
   }
-  return {}; // Default style
+  return {};
 };
 
 const getTableInputStyles = (value, isInvalid) => {
@@ -26,7 +30,7 @@ const getTableInputStyles = (value, isInvalid) => {
     return { borderColor: "#dc3545" };
   }
   if (value) {
-    return { borderColor: "#0d6efd" };
+    return { borderColor: "none" };
   }
   return {};
 };
@@ -39,11 +43,15 @@ export default function ReturnSparePartsPage() {
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const MySwal = withReactContent(Swal);
   const [sparePartsRows, setSparePartsRows] = useState([{ sparepart_id: "", quantity: "" }]);
   const [returnDate, setReturnDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
+  // const [returnDate, setReturnDate] = useState("");
+  const [showReturnCalendar, setShowReturnCalendar] = useState(false);
+
   const dateInputRef = useRef();
   const [editingReturn, setEditingReturn] = useState(null);
 
@@ -63,11 +71,11 @@ export default function ReturnSparePartsPage() {
     setLoading(true);
     try {
       const [vendorsRes, batchesRes, purchasesRes, sparepartsRes, returnsRes] = await Promise.all([
-        axios.get(`${API_BASE}/api/vendors`, { headers: { Accept: "application/json" } }),
-        axios.get(`${API_BASE}/api/batches`, { headers: { Accept: "application/json" } }),
-        axios.get(`${API_BASE}/api/sparepart-purchases`, { headers: { Accept: "application/json" } }),
-        axios.get(`${API_BASE}/api/spareparts`, { headers: { Accept: "application/json" } }),
-        axios.get(`${API_BASE}/api/sparepart-returns`, { headers: { Accept: "application/json" } }),
+        axios.get(`${API_BASE_URL}/vendors`, { headers: { Accept: "application/json" } }),
+        axios.get(`${API_BASE_URL}/batches`, { headers: { Accept: "application/json" } }),
+        axios.get(`${API_BASE_URL}/sparepart-purchases`, { headers: { Accept: "application/json" } }),
+        axios.get(`${API_BASE_URL}/spareparts`, { headers: { Accept: "application/json" } }),
+        axios.get(`${API_BASE_URL}/sparepart-returns`, { headers: { Accept: "application/json" } }),
       ]);
 
       setVendors(vendorsRes.data.data ?? vendorsRes.data ?? []);
@@ -248,7 +256,7 @@ export default function ReturnSparePartsPage() {
         }
       } else {
         const resp = await axios.post(
-          `${API_BASE}/api/sparepart-returns`,
+          `${API_BASE_URL}/api/sparepart-returns`,
           payload, {
           headers: {
             "Content-Type": "application/json",
@@ -293,55 +301,55 @@ export default function ReturnSparePartsPage() {
     }
   };
   const handleDelete = async (id) => {
-    toast.warn(
-      ({ closeToast }) => (
-        <div>
-          Are you sure you want to delete this return?
-          <div className="d-flex justify-content-end mt-2">
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={async () => {
-                closeToast();
-                try {
-                  const { data } = await axios.delete(`${API_BASE}/api/sparepart-returns/${id}`, {
-                    headers: { Accept: "application/json" },
-                  });
-                  if (data?.success || data?.message) {
-                    setReturns((rows) => rows.filter((p) => String(p.id) !== String(id)));
-                    toast.success("Return deleted successfully!");
-                  } else {
-                    toast.error(data?.message || "Failed to delete.");
-                  }
-                } catch (err) {
-                  console.error("Error during delete request:", err);
-                  if (err.response) {
-                    toast.error(`Error deleting: ${err.response.data?.message || "Server Error"}`);
-                  } else if (err.request) {
-                    toast.error("Network Error: No response from server.");
-                  } else {
-                    toast.error("An unknown error occurred.");
-                  }
-                }
-              }}
-              className="me-2"
-            >
-              Yes, Delete
-            </Button>
-            <Button variant="secondary" size="sm" onClick={closeToast}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      ),
-      {
-        position: "top-center",
-        autoClose: false,
-        closeButton: false,
-        draggable: false,
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this spare part?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
       }
-    );
+
+      await axios.delete(`${API_BASE_URL}/api/spareparts-returns/${id}`);
+      toast.success("Spare part deleted successfully!");
+
+      if (editingPart?.id === id) closeForm();
+
+      const updatedSpareparts = spareparts.filter(part => part.id !== id);
+      setSpareparts(updatedSpareparts);
+
+      setTimeout(() => {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+          $(tableRef.current).DataTable().destroy();
+        }
+        if (updatedSpareparts.length > 0) {
+          $(tableRef.current).DataTable({
+            ordering: true,
+            paging: true,
+            searching: true,
+            lengthChange: true,
+            columnDefs: [{ targets: 0, className: "text-center" }],
+          });
+        }
+      }, 0);
+    } catch (error) {
+      console.error("Error deleting:", error);
+      if (error.response?.data?.message) {
+        toast.error(`Failed to delete spare part: ${error.response.data.message}`);
+      } else {
+        toast.error("Failed to delete spare part.");
+      }
+    }
   };
+
 
   const handleShowForm = (returnedItem = null) => {
     setEditingReturn(returnedItem);
@@ -570,24 +578,70 @@ export default function ReturnSparePartsPage() {
                 {formErrors.invoice_no}
               </Form.Control.Feedback>
             </div>
-            <div className="col-6">
-              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Return Date <span className="text-danger">*</span></Form.Label>
-              <div style={{ position: "relative" }}>
-                <Form.Control
-                  type="date"
-                  name="return_date"
-                  placeholder="YYYY-MM-DD"
-                  value={returnDate || ""}
-                  onChange={handleReturnDateChange}
-                  style={getBlueBorderStyles(returnDate, !!formErrors.return_date)}
-                  isInvalid={!!formErrors.return_date}
-                  max={new Date().toISOString().split("T")[0]}
-                  required
+            <div className="col-6 position-relative">
+              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
+                Return Date <span className="text-danger">*</span>
+              </Form.Label>
+
+              <div
+                className="form-control d-flex align-items-center justify-content-between"
+                style={{
+                  position: "relative",
+                  cursor: "pointer",
+                  ...getBlueBorderStyles(returnDate, !!formErrors.return_date),
+                  minHeight: "34px",
+                }}
+                onClick={() => setShowReturnCalendar(true)}
+              >
+                <span>
+                  {returnDate
+                    ? new Date(returnDate + "T00:00:00").toLocaleDateString("en-GB")
+                    : "DD/MM/YYYY"}
+                </span>
+                <img
+                  src="/Calendar.png"
+                  alt="calendar icon"
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: "24px",
+                    height: "24px",
+                    pointerEvents: "none",
+                  }}
                 />
-                <Form.Control.Feedback type="invalid" className="d-block">
-                  {formErrors.return_date}
-                </Form.Control.Feedback>
               </div>
+
+              {formErrors.return_date && (
+                <div className="invalid-feedback d-block">
+                  {formErrors.return_date}
+                </div>
+              )}
+
+              {showReturnCalendar && (
+                <div style={{ position: "absolute", zIndex: 10 }}>
+                  <MiniCalendar
+                    selectedDate={
+                      returnDate ? new Date(returnDate + "T00:00:00") : null
+                    }
+                    onDateChange={(date) => {
+                      const safeDate = new Date(
+                        date.getFullYear(),
+                        date.getMonth(),
+                        date.getDate()
+                      );
+                      const formatted = `${safeDate.getFullYear()}-${String(
+                        safeDate.getMonth() + 1
+                      ).padStart(2, "0")}-${String(safeDate.getDate()).padStart(2, "0")}`;
+                      setReturnDate(formatted);
+                      setShowReturnCalendar(false);
+                    }}
+                    onCancel={() => setShowReturnCalendar(false)}
+                  // allowFuture={false}
+                  />
+                </div>
+              )}
             </div>
           </div>
           <div className="mb-3">
@@ -616,22 +670,28 @@ export default function ReturnSparePartsPage() {
                 type="button"
                 onClick={handleAddRow}
                 className="add-row-btn"
-                // style={{
-                //   backgroundColor: "#278C58",
-                //   color: "white",
-                //   border: "none",
-                //   padding: "5px 10px",
-                //   borderRadius: "5px",
-                //   cursor: "pointer",
-                // }}
+                disabled={sparePartsRows.length >= invoiceSpareparts.length}
+                style={{
+                  border: "1px solid #C7E6D1",
+                  backgroundColor: "#F1FCF6",
+                  color: "#1F9254",
+                  padding: "6px 12px",
+                  fontSize: "14px",
+                  borderRadius: "6px",
+                  opacity: sparePartsRows.length >= invoiceSpareparts.length ? 0.6 : 1,
+                  cursor: sparePartsRows.length >= invoiceSpareparts.length ? "not-allowed" : "pointer",
+                  outline: "none",
+                  boxShadow: "none",
+                }}
               >
                 + Add Row
               </button>
             </div>
+
             <div
               style={{
-                border: "1px solid  #D3DBD5",
-                borderRadius: "6px",
+                border: "1px solid #D3DBD5",
+                borderRadius: "8px",
                 overflow: "hidden",
               }}
             >
@@ -641,29 +701,68 @@ export default function ReturnSparePartsPage() {
                   overflowY: "auto",
                 }}
               >
-<table
-  className="custom-table"
-  style={{ width: "100%", tableLayout: "fixed" }}
->
-  <thead>
-    <tr>
-      <th style={{ textAlign: "left" }}>Sparepart Name</th>
-      <th style={{ textAlign: "left" }}>Quantity</th>
-      <th style={{ width: "40px" }}></th>
+                <table
+                  className="custom-table"
+                  style={{
+                    width: "100%",
+                    tableLayout: "fixed",
+                    borderCollapse: "collapse",
+                  }}
+                >
+                  <thead>
+                    <tr>
+                      <th style={{
+                        textAlign: "left",
+                        padding: "12px",
+                        backgroundColor: "#F3F4F6",
+                        borderBottom: "1px solid #D3DBD5",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                      }}>
+                        Sparepart Name
+                      </th>
+                      <th style={{
+                        textAlign: "left",
+                        padding: "12px",
+                        backgroundColor: "#F3F4F6",
+                        borderBottom: "1px solid #D3DBD5",
+                        fontWeight: 600,
+                        fontSize: "14px",
+                      }}>
+                        Quantity
+                      </th>
+                      <th style={{
+                        width: "40px",
+                        padding: "12px",
+                        backgroundColor: "#F3F4F6",
+                        borderBottom: "1px solid #D3DBD5",
+                      }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {sparePartsRows.length > 0 ? (
                       sparePartsRows.map((row, index) => (
                         <tr key={index}>
-                          <td>
+                          <td style={{ padding: "12px" }}>
                             <Form.Select
                               name={`sparepart-${index}`}
                               value={row.sparepart_id}
                               onChange={(e) => handleRowChange(index, "sparepart_id", e.target.value)}
-                              style={getTableInputStyles(row.sparepart_id, !!formErrors[`sparepart-${index}`])}
                               isInvalid={!!formErrors[`sparepart-${index}`]}
-                              disabled={!formData.invoiceNo} 
+                              disabled={!formData.invoiceNo}
+                              className="shadow-none"
+                              style={{
+                                border: "none",
+                                backgroundColor: "#fff", // or "#E9ECEF" to match a gray input
+                                padding: "5px",
+                                fontSize: "14px",
+                                borderRadius: "6px",
+                                outline: "none",
+                                boxShadow: "none",
+                                appearance: "none", // optional: cleaner native select look
+                                WebkitAppearance: "none", // for Safari
+                                MozAppearance: "none", // for Firefox
+                              }}
                             >
                               <option value="" disabled>
                                 {formData.invoiceNo ? "Select Spare Part" : "Select Invoice first"}
@@ -678,38 +777,56 @@ export default function ReturnSparePartsPage() {
                               {formErrors[`sparepart-${index}`]}
                             </Form.Control.Feedback>
                           </td>
-                          <td>
+                          <td style={{ padding: "12px" }}>
                             <Form.Control
                               type="number"
                               name={`quantity-${index}`}
                               placeholder="Enter Quantity"
-                              required
                               min="1"
                               value={row.quantity}
-                              onChange={(e) =>
-                                handleRowChange(index, "quantity", e.target.value)
-                              }
+                              onChange={(e) => handleRowChange(index, "quantity", e.target.value)}
                               isInvalid={!!formErrors[`quantity-${index}`]}
+                              className="shadow-none"
+                              style={{
+                                border: "none",
+                                backgroundColor: "#fff", // or "#E9ECEF" if you want a light gray bg
+                                // padding: "10px 12px",
+                                // fontSize: "14px",
+                                borderRadius: "6px",
+                                outline: "none",
+                                boxShadow: "none",
+                              }}
                             />
                             <Form.Control.Feedback type="invalid" className="d-block mt-0">
                               {formErrors[`quantity-${index}`]}
                             </Form.Control.Feedback>
                           </td>
-                          <td className="text-center align-middle">
+                          <td className="text-center align-middle" style={{ padding: "5px", }}>
                             <Button
                               variant="link"
                               size="sm"
                               onClick={() => handleRemoveRow(index)}
-                              className="remove-btn p-0"
+                              className="p-0"
+                              style={{
+                                backgroundColor: "#FFEBEBC9",
+                                borderRadius: "50%",
+                                width: "28px",
+                                height: "28px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                outline: "none",
+                                boxShadow: "none",
+                              }}
                             >
-                              <BsDashLg style={{ color: "red", fontSize: "1.2rem" }} />
+                              <BsDashLg style={{ color: "red", fontSize: "1rem" }} />
                             </Button>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="6" className="text-center text-muted py-3">
+                        <td colSpan="2" className="text-center text-muted py-3">
                           No spare parts added yet.
                         </td>
                       </tr>
@@ -718,6 +835,7 @@ export default function ReturnSparePartsPage() {
                 </table>
               </div>
             </div>
+
             {!!formErrors.items && (
               <div className="invalid-feedback d-block mt-1">
                 {formErrors.items}
@@ -747,19 +865,17 @@ export default function ReturnSparePartsPage() {
       </div>
 
       <style>
-      {`
+        {`
         .add-row-btn {
   background-color: #278C580F;
   color: #278C58;
-  border: 1px solid #D5E8D4;
   font-size: 14px;
   padding: 6px 12px;
-  border-radius: 4px;
   box-shadow: none;
   cursor: pointer;
 }
     `}
       </style>
-      </div>
+    </div>
   );
 }

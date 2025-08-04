@@ -11,7 +11,7 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import MiniCalendar from "./MiniCalendar";
 import { FaRegCalendarAlt } from "react-icons/fa";
-
+import { API_BASE_URL } from "../api";
 function initialForm() {
     return {
         id: null,
@@ -47,19 +47,19 @@ export default function Vendor() {
 
     const tableRef = useRef(null);
     
-    const apiBase = "http://127.0.0.1:8000/api";
+    // const apiBase = "http://127.0.0.1:8000/api";
 
     useEffect(() => {
         const loadInitialData = async () => {
             setLoading(true);
             try {
-                const statesRes = await axios.get(`${apiBase}/states`);
+                const statesRes = await axios.get(`${API_BASE_URL}/states`);
                 setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
 
-                const districtsRes = await axios.get(`${apiBase}/districts`);
+                const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
                 setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
 
-                const vendorsRes = await axios.get(`${apiBase}/vendors`);
+                const vendorsRes = await axios.get(`${API_BASE_URL}/vendors`);
                 setVendors(Array.isArray(vendorsRes.data.data) ? vendorsRes.data.data : vendorsRes.data);
                 toast.success("Vendors loaded successfully!", { toastId: 'vendors-loaded', autoClose: 1500 });
             } catch (err) {
@@ -105,7 +105,7 @@ export default function Vendor() {
             return;
         }
 
-        axios.get(`${apiBase}/districts/state/${stateId}`)
+        axios.get(`${API_BASE_URL}/districts/state/${stateId}`)
             .then((res) => {
                 setDistrictsForForm(Array.isArray(res.data) ? res.data : []);
             })
@@ -202,8 +202,8 @@ export default function Vendor() {
         };
 
         const request = isEditing
-            ? axios.put(`${apiBase}/vendors/${formData.id}`, payload)
-            : axios.post(`${apiBase}/vendors`, payload);
+            ? axios.put(`${API_BASE_URL}/vendors/${formData.id}`, payload)
+            : axios.post(`${API_BASE_URL}/vendors`, payload);
 
         request
             .then(() => {
@@ -408,6 +408,7 @@ export default function Vendor() {
             <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
                 <h5 className="mb-0 fw-bold">Vendors ({vendors.length})</h5>
                 <div>
+                    
                     <Button variant="success" size="sm" onClick={openForm}>
                         + Add New
                     </Button>
