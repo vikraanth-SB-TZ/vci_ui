@@ -159,14 +159,14 @@ export default function SalesListPage() {
                   <td>{item.quantity}</td>
                   <td className="d-flex gap-2">
                     <Button
-                      variant="outline-info"
+                      variant="outline-success"
                       size="sm"
                       onClick={() => handleViewInvoice(item.id)}
                     >
                       <i className="bi bi-file-earmark-pdf"></i>
                     </Button>
                     <Button
-                      variant="outline-warning"
+                      variant="outline-info"
                       size="sm"
                       onClick={() => navigate(`/sales/edit/${item.id}`)}
                     >

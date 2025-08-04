@@ -125,7 +125,7 @@ export default function PcbPurchaseReturn() {
                   <td>{item.quantity}</td>
                   {/* <td>{item.remarks}</td> */}
          <td className="py-2 pe-1 d-flex gap-2">
-                 <Button variant="outline-info" size="sm" onClick={() => handleGenerateReturnInvoice(item.id)}>
+                 <Button variant="outline-success" size="sm" onClick={() => handleGenerateReturnInvoice(item.id)}>
   <i className="bi bi-file-earmark-pdf"></i>
 </Button>
 

@@ -131,7 +131,7 @@ const handleGenerateInvoice = (purchaseId) => {
                   <td className="py-2 text-dark">{item.category}</td>
                   <td className="py-2 text-dark">{item.quantity}</td>
                   <td className="py-2 pe-1 d-flex gap-2">
-                    <Button variant="outline-info " size="sm" onClick={() => handleGenerateInvoice(item.id)}>
+                    <Button variant="outline-success " size="sm" onClick={() => handleGenerateInvoice(item.id)}>
                       <i className="bi bi-file-earmark-pdf"></i>
                     </Button>
                     {/* <Button variant="outline-primary rounded-circle" size="sm">
