@@ -4,6 +4,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
+import { API_BASE_URL } from './api';
 
 export default function LoginPage({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +31,7 @@ export default function LoginPage({ onLogin }) {
     e.preventDefault();
     try {
       setLoading(true);
-      const res = await axios.post('http://localhost:8000/api/login', formData);
+      const res = await axios.post(`${API_BASE_URL}/login`, formData);
       localStorage.setItem('authToken', res.data.data.token);
       localStorage.setItem('authEmail', formData.email);
       onLogin();
@@ -45,7 +46,7 @@ export default function LoginPage({ onLogin }) {
   const handleSendOtp = async () => {
     try {
       setLoading(true);
-      await axios.post('http://localhost:8000/api/forgot-password', {
+      await axios.post(`${API_BASE_URL}/forgot-password`, {
         email: forgotData.email
       });
       toast.success('OTP sent to your email');
@@ -60,7 +61,7 @@ export default function LoginPage({ onLogin }) {
   const handleVerifyOtp = async () => {
     try {
       setLoading(true);
-      await axios.post('http://localhost:8000/api/verify-otp', {
+      await axios.post(`${API_BASE_URL}/verify-otp`, {
         email: forgotData.email,
         otp: forgotData.otp
       });
@@ -81,7 +82,7 @@ export default function LoginPage({ onLogin }) {
 
     try {
       setLoading(true);
-      await axios.post('http://localhost:8000/api/reset-password', {
+      await axios.post(`${API_BASE_URL}/reset-password`, {
         email: forgotData.email,
         password: forgotData.password,
         password_confirmation: forgotData.confirmPassword
