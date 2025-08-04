@@ -680,7 +680,8 @@ export default function Vendor() {
                                     setErrors((prev) => ({ ...prev, dob: "" }));
                                     setShowCalendar(false);
                                 }}
-                                onCancel={() => setShowCalendar(false)} // ← working Cancel
+                                onCancel={() => setShowCalendar(false)}
+                                allowFuture={false} 
                                 />
                             </div>
                             )}
