@@ -235,7 +235,7 @@ export default function ReturnSparePartsPage() {
       let data;
       if (editingReturn) {
         const resp = await axios.put(
-          `${API_BASE}/api/sparepart-returns/${editingReturn.id}`,
+          `${API_BASE_URL}/sparepart-returns/${editingReturn.id}`,
           payload, {
           headers: {
             "Content-Type": "application/json",
@@ -256,7 +256,7 @@ export default function ReturnSparePartsPage() {
         }
       } else {
         const resp = await axios.post(
-          `${API_BASE_URL}/api/sparepart-returns`,
+          `${API_BASE_URL}/sparepart-returns`,
           payload, {
           headers: {
             "Content-Type": "application/json",
@@ -318,7 +318,7 @@ export default function ReturnSparePartsPage() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      await axios.delete(`${API_BASE_URL}/api/spareparts-returns/${id}`);
+      await axios.delete(`${API_BASE_URL}/spareparts-returns/${id}`);
       toast.success("Spare part deleted successfully!");
 
       if (editingPart?.id === id) closeForm();
