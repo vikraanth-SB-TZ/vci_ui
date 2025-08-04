@@ -4,6 +4,7 @@ import { Form, Button, Spinner, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { API_BASE_URL } from "../api";
 
 
 export default function EditPurchasePage() {
@@ -19,7 +20,7 @@ export default function EditPurchasePage() {
 
   useEffect(() => {
     fetchDropdownData();
-    axios.get(`http://localhost:8000/api/purchase/${id}/edit`)
+    axios.get(`${API_BASE_URL}/purchase/${id}/edit`)
       .then(res => {
         if (res.data.status) {
           setPurchase(res.data.data.purchase);
@@ -36,7 +37,7 @@ export default function EditPurchasePage() {
 
   const fetchDropdownData = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/form-dropdowns');
+      const res = await axios.get('${API_BASE_URL}/form-dropdowns');
       const data = res.data.data;
 
       setDropdowns({
@@ -104,7 +105,7 @@ export default function EditPurchasePage() {
       }))
     };
 
-    axios.put(`http://localhost:8000/api/purchase/${id}`, payload)
+    axios.put(`${API_BASE_URL}/purchase/${id}`, payload)
       .then(res => {
         if (res.data.status) {
           toast.success('Updated successfully!');

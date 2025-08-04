@@ -4,6 +4,7 @@ import { Form, Button, Table } from 'react-bootstrap';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from "../api";
 
 export default function PurchaseReturnPage() {
   const [invoiceList, setInvoiceList] = useState([]);
@@ -14,14 +15,14 @@ export default function PurchaseReturnPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/purchases/invoices')
+    axios.get(`${API_BASE_URL}/purchases/invoices`)
       .then(res => setInvoiceList(res.data))
       .catch(() => toast.error('Failed to fetch invoices'));
   }, []);
 
 
   const fetchDetails = (invoice) => {
-    axios.get(`http://localhost:8000/api/purchase-return/${invoice}`)
+    axios.get(`${API_BASE_URL}/purchase-return/${invoice}`)
       .then(res => {
         setPurchaseData(res.data.purchase);
         const items = res.data.items.map(item => ({
@@ -43,7 +44,7 @@ export default function PurchaseReturnPage() {
       return;
     }
 
-    axios.post('http://localhost:8000/api/purchase-returns', {
+    axios.post(`${API_BASE_URL}/purchase-returns`, {
       pcb_board_purchase_id: purchaseData.id,
       vendor_id: purchaseData.vendor_id,
       batch_id: purchaseData.batch_id,
@@ -61,6 +62,7 @@ export default function PurchaseReturnPage() {
       setPurchaseData(null);
       setReturnItems([]);
       setReason('');
+       navigate('/purchaseReturn'); 
     }).catch(() => toast.error('Failed to submit return'));
   };
 
