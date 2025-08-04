@@ -307,7 +307,7 @@ export default function EditSalePage() {
         <Form.Label className="mb-2 text-dark fw-normal">
           Product Serial No. (Already Sold for this Sale)
           <Button variant="outline-secondary" className="ms-2" onClick={() => setShowModal(true)}>
-            Product
+            Add Product
           </Button>
         </Form.Label>
         <div className="w-100 d-flex flex-wrap gap-2 mb-3">
