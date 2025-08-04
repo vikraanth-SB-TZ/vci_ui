@@ -417,6 +417,7 @@ export default function AddNewSalePage() {
         onAdd={handleAddProducts}
         existingSerials={formData.serial_numbers}
       />
+         
     </div>
   );
 }

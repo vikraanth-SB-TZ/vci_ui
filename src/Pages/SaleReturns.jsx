@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Form, Button, Row, Col, Table } from 'react-bootstrap';
 import Select from 'react-select';
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
 
 export default function SaleReturns() {
     const [invoices, setInvoices] = useState([]);
@@ -10,6 +12,7 @@ export default function SaleReturns() {
     const [saleId, setSaleId] = useState(null);
     const [serials, setSerials] = useState([]);
     const [reason, setReason] = useState('');
+    const navigate = useNavigate();
 
     // 🔹 Load all invoices for dropdown
     useEffect(() => {
@@ -93,9 +96,8 @@ export default function SaleReturns() {
         setSerials(updated);
     };
 
-
     return (
-     <div className="p-4 bg-white min-vh-100">
+     <div className="p-4 bg-white vh-100">
 
             <h5>Sale Return</h5>
 
@@ -159,10 +161,19 @@ export default function SaleReturns() {
                 </Table>
             )}
            <div className="text-end mt-3">
+                <Button
+                            variant="secondary"
+                        
+                            className="me-2"
+                            onClick={() => navigate(-1)}
+                          >
+                            Cancel
+                          </Button>
             <Button variant="success" className='text-end' onClick={handleSubmit}>
                 Return
             </Button>
             </div>
+             <ToastContainer position="top-right" autoClose={3000} />
         </div>
     );
 }

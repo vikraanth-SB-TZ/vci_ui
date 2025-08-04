@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+
 export default function EditPurchasePage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -63,6 +64,7 @@ export default function EditPurchasePage() {
     const handleDeleteSerial = (indexToRemove) => {
   const updated = serials.filter((_, index) => index !== indexToRemove);
   setSerials(updated);
+    toast.info('Serial removed');
 };
 
   const handleAddNewSerials = () => {
@@ -283,7 +285,7 @@ export default function EditPurchasePage() {
         variant="danger"
         onClick={() => handleDeleteSerial(index)}
       >
-        Delete
+        Del
       </Button>
     </Col>
   </Row>
@@ -294,6 +296,9 @@ export default function EditPurchasePage() {
         <ToastContainer position="top-right" autoClose={3000} />
 
         <div className="d-flex justify-content-end">
+             <Button variant="secondary" className="me-2" onClick={() => navigate('/purchaseOrder')}>
+                      Cancel
+                    </Button>
           <Button type="submit" variant="success">Update</Button>
         </div>
       </Form>

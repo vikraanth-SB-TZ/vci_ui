@@ -1,9 +1,11 @@
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Form, Button, Table } from 'react-bootstrap';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 
 export default function EditPurchaseReturnPage() {
@@ -12,7 +14,7 @@ export default function EditPurchaseReturnPage() {
   const [returnItems, setReturnItems] = useState([]);
   const [returnId, setReturnId] = useState(null);
   const [reason, setReason] = useState('');
-  const { id } = useParams(); // returnId from URL
+  const { id } = useParams(); 
   const navigate = useNavigate();
 
 
@@ -20,7 +22,7 @@ export default function EditPurchaseReturnPage() {
     if (id) {
       axios.get(`http://localhost:8000/api/purchase-return-by-id/${id}`)
         .then(res => {
-          setSelectedInvoice(res.data.purchase.invoice_no); // display only
+          setSelectedInvoice(res.data.purchase.invoice_no); 
           setPurchaseData(res.data.purchase);
           setReturnId(res.data.return_id ?? null);
           setReason(res.data.purchase.reason || '');
@@ -38,7 +40,7 @@ export default function EditPurchaseReturnPage() {
 
   const handleSubmit = () => {
     const selectedItems = returnItems.filter(i => i.selected);
-    if (!selectedItems.length) return alert('No items selected.');
+    // if (!selectedItems.length) return alert('No items selected.');
 
     const payload = {
       pcb_board_purchase_id: purchaseData.id,
@@ -52,16 +54,18 @@ export default function EditPurchaseReturnPage() {
 
     const url = `http://localhost:8000/api/purchase-returns/${returnId}`;
     axios.put(url, payload)
-      .then(() => alert('Return updated successfully!'))
-      .catch(err => alert('Failed: ' + err.response?.data?.message || err.message));
+     .then(() => {
+  toast.success('Return updated successfully!');
+  setTimeout(() => navigate(-1), 1500); 
+})
+    .catch(err => {
+  toast.error('Failed: ' + (err.response?.data?.message || err.message));
+});
   };
 
   return (
     <div className="bg-white min-vh-100 p-4">
       <h5>Edit Purchase Return</h5>
-      <Button variant="secondary" size="sm" className="mb-3 text-end" onClick={() => navigate(-1)}>
-  ← Back
-</Button>
 
 
 
@@ -87,7 +91,7 @@ export default function EditPurchaseReturnPage() {
             />
           </Form.Group>
 
-          <Table bordered className="mt-3">
+          <Table className="mt-3">
             <thead>
               <tr>
                 <th>Sno</th>
@@ -128,11 +132,24 @@ export default function EditPurchaseReturnPage() {
             </tbody>
           </Table>
 
-          <div className="text-end">
-            <Button onClick={handleSubmit} variant="success">Update Return</Button>
-          </div>
+  <div className="text-end mb-3">
+  <Button
+    variant="secondary"
+
+    className="me-2"
+    onClick={() => navigate(-1)}
+  >
+    Cancel
+  </Button>
+  <Button onClick={handleSubmit} variant="success">
+    Update Return
+  </Button>
+</div>
+
         </>
       )}
+      <ToastContainer position="top-right" autoClose={2000} />
+
     </div>
   );
 }

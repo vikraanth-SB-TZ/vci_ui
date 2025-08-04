@@ -1,9 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Form, Table } from 'react-bootstrap';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 export default function EditSaleReturnPage() {
   const { id } = useParams();
@@ -18,15 +19,24 @@ useEffect(() => {
       const data = res.data;
       setReturnData(data);
       setReason(data.reason || '');
+      // const formattedProducts = (data.products || []).map(p => ({
+      //   ...p,
+      //   selected: true //  mark as selected initially
+      // }));
+      // setProducts(formattedProducts);
+
       const formattedProducts = (data.products || []).map(p => ({
-        ...p,
-        selected: true // ✅ mark as selected initially
-      }));
-      setProducts(formattedProducts);
+  ...p,
+  selected: p.selected || false  //  already returned = true, others = false
+}));
+setProducts(formattedProducts);
+
     })
-    .catch(err => {
-      console.error('Error fetching return details:', err);
-    });
+  .catch(err => {
+  toast.error('Failed to load return details ');
+  console.error('Error fetching return details:', err);
+});
+
 }, [id]);
 const handleSave = () => {
   const selectedProducts = products.filter(p => p.selected);
@@ -39,19 +49,22 @@ const handleSave = () => {
       remark: p.remark || '',
     }))
   }).then(() => {
-    toast.success('Return updated successfully');
+ toast.success('Return updated successfully ', { autoClose: 3000 });
+
     navigate('/returns');
-  }).catch(err => {
-    toast.error('Update failed');
-    console.error(err);
-  });
+ }).catch(err => {
+  const msg = err.response?.data?.error || 'Update failed ';
+  toast.error(msg, { autoClose: 3000 });
+  console.error(err);
+});
+
 };
 
 
   if (!returnData) return <div className="p-4">Loading...</div>;
 
   return (
-    <div className="p-4 bg-white" style={{ minHeight: '100vh' }}>
+    <div className="p-4 bg-white vh-100">
       <h5>Edit Return - {returnData.return_invoice_no}</h5>
 
       <Form.Group className="my-3">
@@ -105,9 +118,18 @@ const handleSave = () => {
   </tbody>
 </Table>
 
+  <div className='text-end'>
+      <Button variant="success" onClick={handleSave}>Save Changes</Button>{' '}
+         <Button
+                     variant="secondary"
+                 
+                     className="me-2"
+                     onClick={() => navigate(-1)}
+                   >
+                     Cancel
+                   </Button></div>
 
-      <Button variant="primary" onClick={handleSave}>Save Changes</Button>{' '}
-      <Button variant="secondary" onClick={() => navigate('/returns')}>Cancel</Button>
+<ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }
