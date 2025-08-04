@@ -315,6 +315,7 @@ export default function ReturnSparePartsPage() {
     }
   };
 
+
   const handleDelete = async (id) => {
     if (!id || isNaN(parseInt(id))) {
       toast.error("Invalid ID. Cannot delete.");
@@ -331,12 +332,19 @@ export default function ReturnSparePartsPage() {
       confirmButtonText: "Yes, delete it!",
     });
 
-    if (!result.isConfirmed) return;
 
-    try {
-      if ($.fn.DataTable.isDataTable(tableRef.current)) {
-        $(tableRef.current).DataTable().destroy();
-      }
+  const result = await MySwal.fire({
+    title: "Are you sure?",
+    text: "Do you really want to delete this spare part return?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  });
+
+  if (!result.isConfirmed) return;
+
 
       await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`);
       toast.success("Return deleted successfully!");
@@ -360,6 +368,7 @@ export default function ReturnSparePartsPage() {
       toast.error(`Failed to delete return: ${error.response?.data?.message || "Server error"}`);
     }
   };
+
 
   const handleShowForm = (returnedItem = null) => {
     setEditingReturn(returnedItem);

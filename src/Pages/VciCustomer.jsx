@@ -10,6 +10,8 @@ import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import MiniCalendar from "./MiniCalendar";
+import { saveAs } from "file-saver"; 
+import { API_BASE_URL } from "../api";
 
 function initialForm() {
     return {
@@ -38,27 +40,27 @@ export default function VciCustomer() {
     const [formData, setFormData] = useState(initialForm());
     const [isEditing, setIsEditing] = useState(false);
     const [states, setStates] = useState([]);
-    const [districtsForTable, setDistrictsForTable] = useState([]); 
-    const [districtsForForm, setDistrictsForForm] = useState([]); 
+    const [districtsForTable, setDistrictsForTable] = useState([]);
+    const [districtsForForm, setDistrictsForForm] = useState([]);
     const [errors, setErrors] = useState({});
     const [showCalendar, setShowCalendar] = useState(false);
-    const toastIdRef = useRef(null); // Ref to store the toast ID
+    const toastIdRef = useRef(null); 
 
     const tableRef = useRef(null);
-    
-    const apiBase = "http://127.0.0.1:8000/api";
+
+    // const apiBase = "http://127.0.0.1:8000/api";
 
     useEffect(() => {
         const loadInitialData = async () => {
             setLoading(true);
             try {
-                const statesRes = await axios.get(`${apiBase}/states`);
+                const statesRes = await axios.get(`${API_BASE_URL}/states`);
                 setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
 
-                const districtsRes = await axios.get(`${apiBase}/districts`);
+                const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
                 setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
 
-                const customersRes = await axios.get(`${apiBase}/customers`);
+                const customersRes = await axios.get(`${API_BASE_URL}/customers`);
                 setCustomers(Array.isArray(customersRes.data.data) ? customersRes.data.data : customersRes.data);
                 toast.success("Customers loaded successfully!", { toastId: 'customers-loaded', autoClose: 1500 });
             } catch (err) {
@@ -104,7 +106,7 @@ export default function VciCustomer() {
             return;
         }
 
-        axios.get(`${apiBase}/districts/state/${stateId}`)
+        axios.get(`${API_BASE_URL}/districts/state/${stateId}`)
             .then((res) => {
                 setDistrictsForForm(Array.isArray(res.data) ? res.data : []);
             })
@@ -146,7 +148,7 @@ export default function VciCustomer() {
             setErrors(prev => ({ ...prev, [name]: "" }));
         }
     };
-    
+
     const validateForm = () => {
         const newErrors = {};
         if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
@@ -172,7 +174,7 @@ export default function VciCustomer() {
         if (!formData.district) newErrors.district = "District is required.";
         if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
         else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -201,8 +203,8 @@ export default function VciCustomer() {
         };
 
         const request = isEditing
-            ? axios.put(`${apiBase}/customers/${formData.id}`, payload)
-            : axios.post(`${apiBase}/customers`, payload);
+            ? axios.put(`${API_BASE_URL}/customers/${formData.id}`, payload)
+            : axios.post(`${API_BASE_URL}/customers`, payload);
 
         request
             .then(() => {
@@ -323,11 +325,10 @@ export default function VciCustomer() {
             fontWeight: 400,
             fontSize: "16px",
             borderRadius: "4px",
-            border: `1px solid ${
-                state.selectProps.name && state.selectProps.errors?.[state.selectProps.name]
-                    ? "#dc3545"
-                    : "#D3DBD5"
-            }`,
+            border: `1px solid ${state.selectProps.name && state.selectProps.errors?.[state.selectProps.name]
+                ? "#dc3545"
+                : "#D3DBD5"
+                }`,
             boxShadow: "none",
             "&:hover": {
                 borderColor: "#D3DBD5",
@@ -401,17 +402,40 @@ export default function VciCustomer() {
         const district = districtsForTable.find(d => String(d.id) === String(districtId));
         return district ? district.district : '';
     };
+const handleDownloadPdf = async () => {
+    try {
+        toast.info("Generating PDF, please wait...", { autoClose: false, toastId: "pdf-download-progress" });
+        const response = await axios.get(`${API_BASE_URL}/pdf`, {
+            responseType: 'blob',
+        });
+        saveAs(response.data, 'customers.pdf');
+        toast.dismiss("pdf-download-progress");
+        toast.success("PDF downloaded successfully!", { autoClose: 1500 });
+    } catch (error) {
+        toast.dismiss("pdf-download-progress");
+        console.error("Error downloading PDF:", error);
+        if (error.response && error.response.status === 404) {
+            toast.error("PDF download route not found. Please check your backend.", { autoClose: 3000 });
+        } else {
+            toast.error("Failed to download PDF. Please try again.", { autoClose: 3000 });
+        }
+    }
+};
+
 
     return (
         <div className="vh-80 d-flex flex-column position-relative bg-light">
-            <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-                <h5 className="mb-0 fw-bold">Customers ({customers.length})</h5>
-                <div>
-                    <Button variant="success" size="sm" onClick={openForm}>
-                        + Add New
-                    </Button>
-                </div>
-            </div>
+         <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
+    <h5 className="mb-0 fw-bold">Customers ({customers.length})</h5>
+    <div className="d-flex gap-2">
+        <Button variant="outline-primary" size="sm" onClick={handleDownloadPdf}>
+            <i className="bi bi-download me-1"></i> Download PDF
+        </Button>
+        <Button variant="success" size="sm" onClick={openForm}>
+            + Add New
+        </Button>
+    </div>
+</div>
 
             <div className="flex-grow-1 overflow-auto px-4 py-3">
                 <div className="table-responsive">
@@ -478,7 +502,7 @@ export default function VciCustomer() {
                 style={{
                     width: "600px",
                     height: "calc(100vh - 58px)",
-                    top: "58px",
+                    top: "61px",
                     right: showForm ? "0" : "-800px",
                     transition: "right 0.4s ease-in-out",
                     overflowY: "auto",
@@ -602,9 +626,8 @@ export default function VciCustomer() {
                                 <input
                                     type="text"
                                     readOnly
-                                    className={`form-control custom-placeholder ${
-                                        errors.dob ? "is-invalid" : ""
-                                    }`}
+                                    className={`form-control custom-placeholder ${errors.dob ? "is-invalid" : ""
+                                        }`}
                                     value={
                                         formData.dob
                                             ? new Date(formData.dob + "T00:00:00").toLocaleDateString("en-GB")
@@ -653,7 +676,11 @@ export default function VciCustomer() {
                                                     toast.error("Date of Birth cannot be in the future.", { autoClose: 1500 });
                                                     return;
                                                 }
-                                                const localDateStr = date.toISOString().slice(0, 10);
+
+                                                // Fix timezone issue
+                                                const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                                                const localDateStr = localDate.toISOString().split("T")[0];
+
                                                 setFormData((prev) => ({
                                                     ...prev,
                                                     dob: localDateStr,
@@ -662,6 +689,7 @@ export default function VciCustomer() {
                                                 setShowCalendar(false);
                                             }}
                                             onCancel={() => setShowCalendar(false)}
+                                            allowFuture={false}
                                             maxDate={new Date()}
                                         />
 
@@ -826,7 +854,7 @@ export default function VciCustomer() {
                                 styles={customSelectStyles}
                                 components={{ Option: SimpleOption }}
                                 classNamePrefix="react-select"
-                                isDisabled={!formData.state} 
+                                isDisabled={!formData.state}
                                 errors={errors}
                             />
                             {errors.district && <div style={errorStyle}>{errors.district}</div>}
@@ -848,7 +876,7 @@ export default function VciCustomer() {
                             </Form.Control.Feedback>
                         </div>
                     </div>
-                    
+
                     <div className="d-flex justify-content-end py-3 px-2">
                         <Button variant="secondary" className="me-2" onClick={closeForm}>
                             Cancel

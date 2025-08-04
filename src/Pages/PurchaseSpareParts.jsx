@@ -231,40 +231,63 @@ export default function PurchaseSparepartsPage() {
         });
     };
 
-    const handleRowChange = (index, field, value) => {
-        setSparePartsRows((rows) => {
-            const copy = [...rows];
-            copy[index] = {
-                ...copy[index],
-                [field]: value
-            };
-            return copy;
-        });
-        setFormErrors((prevErrors) => {
-            const newErrors = {
-                ...prevErrors
-            };
-            delete newErrors[`${field}-${index}`];
-            return newErrors;
-        });
-    };
+const handleRowChange = (index, field, value) => {
+    setSparePartsRows((rows) => {
+        const copy = [...rows];
+        copy[index] = {
+            ...copy[index],
+            [field]: value
+        };
+        return copy;
+    });
 
-    const handleInputChange = (e) => {
-        const {
-            name,
-            value
-        } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value
-        }));
-        setFormErrors((prev) => ({
-            ...prev,
-            [name]: ""
-        }));
-    };
+    setFormErrors((prevErrors) => {
+        const newErrors = { ...prevErrors
+        };
+        const row = sparePartsRows[index];
 
-    const handleDateChange = (e) => {
+        if (field === 'sparepart_id') {
+            if (!value) {
+                newErrors[`sparepart-${index}`] = "Spare part is required.";
+            } else {
+                delete newErrors[`sparepart-${index}`];
+            }
+        }
+
+        if (field === 'quantity') {
+            const quantity = parseInt(value, 10);
+            if (!value || isNaN(quantity) || quantity < 0) {
+                newErrors[`quantity-${index}`] = "Quantity must be a non-negative number.";
+            } else {
+                delete newErrors[`quantity-${index}`];
+            }
+        }
+        return newErrors;
+    });
+};
+const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+        ...prev,
+        [name]: value
+    }));
+
+    // Explicitly re-validate the changed field
+    setFormErrors((prev) => {
+        const newErrors = { ...prev };
+
+        // We need to use the correct error key, which seems to be 'invoice_no'
+        const errorKey = name === 'invoiceNo' ? 'invoice_no' : name;
+
+        if (!value) {
+            newErrors[errorKey] = `${name.charAt(0).toUpperCase() + name.slice(1).replace('No', ' No.')} is required.`;
+        } else {
+            // Remove the error if the value is present
+            delete newErrors[errorKey];
+        }
+        return newErrors;
+    });
+};const handleDateChange = (e) => {
         const {
             value
         } = e.target;
