@@ -135,22 +135,28 @@ export default function PurchaseSparepartsPage() {
         }
     }, []);
 
-    const fetchAvailableSpareparts = useCallback(async () => {
-        try {
-            const {
-                data
-            } = await axios.get(`${API_BASE_URL}/spareparts`, {
-                headers: {
-                    Accept: "application/json"
-                },
-            });
-            let rows = Array.isArray(data) ? data : data.data ?? [];
-            setAvailableSpareparts(rows);
-        } catch (err) {
-            console.error("Error loading spareparts master list:", err);
-        }
-    }, []);
-
+const fetchAvailableSpareparts = useCallback(async () => {
+    try {
+        const {
+            data
+        } = await axios.get(`${API_BASE_URL}/spareparts`, {
+            headers: {
+                Accept: "application/json"
+            },
+        });
+        
+        let rows = Array.isArray(data) ? data : data.data ?? [];
+        
+        // Filter out items where is_active is not "Enable"
+        const activeSpareparts = rows.filter(
+            (sparepart) => sparepart.is_active === "Enable"
+        );
+        
+        setAvailableSpareparts(activeSpareparts);
+    } catch (err) {
+        console.error("Error loading spareparts master list:", err);
+    }
+}, []);
     const fetchPurchases = useCallback(async () => {
         setLoading(true);
         try {
