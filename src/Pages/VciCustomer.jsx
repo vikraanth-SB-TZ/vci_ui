@@ -10,7 +10,6 @@ import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import MiniCalendar from "./MiniCalendar";
-import { saveAs } from "file-saver"; 
 import { API_BASE_URL } from "../api";
 
 function initialForm() {
@@ -408,7 +407,6 @@ const handleDownloadPdf = async () => {
         const response = await axios.get(`${API_BASE_URL}/pdf`, {
             responseType: 'blob',
         });
-        saveAs(response.data, 'customers.pdf');
         toast.dismiss("pdf-download-progress");
         toast.success("PDF downloaded successfully!", { autoClose: 1500 });
     } catch (error) {
