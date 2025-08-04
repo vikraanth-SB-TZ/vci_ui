@@ -300,55 +300,42 @@ export default function ReturnSparePartsPage() {
       setLoading(false);
     }
   };
-  const handleDelete = async (id) => {
-    const result = await MySwal.fire({
-      title: "Are you sure?",
-      text: "Do you really want to delete this spare part?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    });
+const handleDelete = async (id) => {
+  if (!id || isNaN(id)) {
+    toast.error("Invalid return ID. Cannot delete.");
+    return;
+  }
 
-    if (!result.isConfirmed) return;
+  const result = await MySwal.fire({
+    title: "Are you sure?",
+    text: "Do you really want to delete this spare part return?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  });
 
-    try {
-      if ($.fn.DataTable.isDataTable(tableRef.current)) {
-        $(tableRef.current).DataTable().destroy();
-      }
+  if (!result.isConfirmed) return;
 
-      await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`);
-      toast.success("Spare part deleted successfully!");
+  try {
+    await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`);
+    toast.success("Spare part return deleted successfully!");
 
-      if (editingPart?.id === id) closeForm();
-
-      const updatedSpareparts = spareparts.filter(part => part.id !== id);
-      setSpareparts(updatedSpareparts);
-
-      setTimeout(() => {
-        if ($.fn.DataTable.isDataTable(tableRef.current)) {
-          $(tableRef.current).DataTable().destroy();
-        }
-        if (updatedSpareparts.length > 0) {
-          $(tableRef.current).DataTable({
-            ordering: true,
-            paging: true,
-            searching: true,
-            lengthChange: true,
-            columnDefs: [{ targets: 0, className: "text-center" }],
-          });
-        }
-      }, 0);
-    } catch (error) {
-      console.error("Error deleting:", error);
-      if (error.response?.data?.message) {
-        toast.error(`Failed to delete spare part: ${error.response.data.message}`);
-      } else {
-        toast.error("Failed to delete spare part.");
-      }
+    if (editingReturn?.id === id) {
+      setEditingReturn(null);
+      setShowForm(false);
     }
-  };
+
+    const updatedReturns = returns.filter(item => item.id !== id);
+    setReturns(updatedReturns);
+  } catch (error) {
+    console.error("Error deleting:", error);
+    const errorMsg = error.response?.data?.message || "Failed to delete spare part return.";
+    toast.error(errorMsg);
+  }
+};
+
 
 
   const handleShowForm = (returnedItem = null) => {
