@@ -908,6 +908,11 @@ export default function PurchaseSparepartsPage() {
                   type="button"
                   onClick={handleAddRow}
                   className="add-row-btn"
+                  disabled={sparePartsRows.length >= availableSpareparts.length}
+                  style={{
+                    opacity: sparePartsRows.length >= availableSpareparts.length ? 0.6 : 1,
+                    cursor: sparePartsRows.length >= availableSpareparts.length ? "not-allowed" : "pointer",
+                  }}
                 >
                   + Add Row
                 </button>
@@ -953,11 +958,19 @@ export default function PurchaseSparepartsPage() {
                                 isInvalid={!!formErrors[`sparepart-${index}`]}
                               >
                                 <option value="">Select Spare part</option>
-                                {availableSpareparts.map((sparepart) => (
-                                  <option key={sparepart.id} value={sparepart.id}>
-                                    {sparepart.name}
-                                  </option>
-                                ))}
+                                {availableSpareparts
+                                  .filter(
+                                    (sparepart) =>
+                                      row.sparepart_id === String(sparepart.id) || // allow current selection
+                                      !sparePartsRows.some(
+                                        (r, i) => i !== index && String(r.sparepart_id) === String(sparepart.id)
+                                      ) // exclude if selected in other rows
+                                  )
+                                  .map((sparepart) => (
+                                    <option key={sparepart.id} value={sparepart.id}>
+                                      {sparepart.name}
+                                    </option>
+                                  ))}
                               </Form.Select>
                               <Form.Control.Feedback type="invalid" className="d-block mt-0">
                                 {formErrors[`sparepart-${index}`]}
