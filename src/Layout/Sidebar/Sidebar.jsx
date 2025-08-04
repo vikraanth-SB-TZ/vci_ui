@@ -31,13 +31,11 @@ export default function Sidebar({ collapsed }) {
   const handleLinkClick = (link) => navigate(`/${link}`);
 
   const linkClass = (link) =>
-    `sidebar-link d-flex align-items-center gap-2 text-decoration-none rounded ${
-      isActive(link) ? "active-parent active-link" : ""
+    `sidebar-link d-flex align-items-center gap-2 text-decoration-none rounded ${isActive(link) ? "active-parent active-link" : ""
     }`;
 
   const subLinkClass = (link) =>
-    `sidebar-sublink d-block text-decoration-none ps-4 ${
-      location.pathname === `/${link}` ? "active" : ""
+    `sidebar-sublink d-block text-decoration-none ps-4 ${location.pathname === `/${link}` ? "active" : ""
     }`;
 
   return (
@@ -113,46 +111,55 @@ export default function Sidebar({ collapsed }) {
         </div>
 
         {/* Basics */}
-        <div className="sidebar-link-titles">{!collapsed && "Basics"}</div>
+        <div className="sidebar-link-titles pb-2">{!collapsed && "Basics"}</div>
 
         {/* Metadata Dropdown */}
         <div>
-          <button
-            onClick={() => setMetadataOpen(!metadataOpen)}
-            className="bg-transparent border-0 w-100 text-start p-0"
-          >
-            <div className={linkClass("metadata")}>
-              <img
-                src={isActive("metadata") ? "/Metadata_G.png" : "/Metadata.png"}
-                alt="Metadata"
-                style={{
-                  width: "18px",
-                  filter: isActive("metadata")
-                    ? "none"
-                    : "brightness(0) invert(1)",
-                }}
-              />
-              {!collapsed && (
-                <span
-                  style={{
-                    color: isActive("metadata") ? "#28a745" : "white",
-                  }}
-                >
-                  Metadata
-                </span>
-              )}
-              {!collapsed && (
-                <span
-                  className="ms-auto me-4"
-                  style={{
-                    color: isActive("metadata") ? "#28a745" : "white",
-                  }}
-                >
-                  {metadataOpen ? "▾" : "▸"}
-                </span>
-              )}
-            </div>
-          </button>
+       <button
+  onClick={() => setMetadataOpen(!metadataOpen)}
+  className="bg-transparent border-0 w-100 text-start p-0"
+>
+  <div
+    className="d-flex align-items-center"
+    style={{
+      backgroundColor: isActive("metadata") ? "#278C582E" : "transparent",
+      borderRadius: "12px",
+      padding: "8px 8px",
+      display: "flex",
+      alignItems: "center",
+    }}
+  >
+    <img
+      src={isActive("metadata") ? "/Metadata_G.png" : "/Metadata.png"}
+      alt="Metadata"
+      style={{
+        width: "18px",
+        filter: isActive("metadata") ? "none" : "brightness(0) invert(1)",
+      }}
+    />
+    {!collapsed && (
+      <span
+        style={{
+          color: isActive("metadata") ? "#28a745" : "white",
+          marginLeft: "10px",
+        }}
+      >
+        Metadata
+      </span>
+    )}
+    {!collapsed && (
+      <span
+        className="ms-auto me-4"
+        style={{
+          color: isActive("metadata") ? "#28a745" : "white",
+        }}
+      >
+        {metadataOpen ? "▾" : "▸"}
+      </span>
+    )}
+  </div>
+</button>
+
 
           {!collapsed && metadataOpen && (
             <div className="ms-2">
@@ -197,9 +204,14 @@ export default function Sidebar({ collapsed }) {
             className="bg-transparent border-0 w-100 text-start p-0"
           >
             <div
-              className={`d-flex align-items-center gap-2 py-1 px-2 rounded ${
-                isActive("components") ? "bg-light-green border-green" : ""
-              }`}
+              className="d-flex align-items-center"
+              style={{
+                backgroundColor: isActive("components") ? "#278C582E" : "transparent",
+                borderRadius: "12px",
+                padding: "8px 8px",
+                display: "flex",
+                alignItems: "center",
+              }}
             >
               <img
                 src={
@@ -219,19 +231,22 @@ export default function Sidebar({ collapsed }) {
                 <span
                   style={{
                     color: isActive("components") ? "#28a745" : "white",
+                    marginLeft: "10px",
                   }}
                 >
                   Components
                 </span>
               )}
-              <span
-                className="ms-auto me-4"
-                style={{
-                  color: isActive("components") ? "#28a745" : "white",
-                }}
-              >
-                {componentsOpen ? "▾" : "▸"}
-              </span>
+              {!collapsed && (
+                <span
+                  className="ms-auto me-4"
+                  style={{
+                    color: isActive("components") ? "#28a745" : "white",
+                  }}
+                >
+                  {componentsOpen ? "▾" : "▸"}
+                </span>
+              )}
             </div>
           </button>
 
@@ -276,40 +291,51 @@ export default function Sidebar({ collapsed }) {
 
         {/* Product Dropdown */}
         <div className="mb-2">
-          <button
-            onClick={() => setProductOpen(!productOpen)}
-            className="bg-transparent border-0 w-100 text-start p-0"
-          >
-            <div className={linkClass("product")}>
-              <img
-                src={isActive("product") ? "/Product_G.png" : "/Product.png"}
-                alt="Product"
-                style={{
-                  width: "18px",
-                  filter: isActive("product")
-                    ? "none"
-                    : "brightness(0) invert(1)",
-                }}
-              />
-              {!collapsed && (
-                <span
-                  style={{
-                    color: isActive("product") ? "#28a745" : "white",
-                  }}
-                >
-                  Product
-                </span>
-              )}
-              <span
-                className="ms-auto me-4"
-                style={{
-                  color: isActive("product") ? "#28a745" : "white",
-                }}
-              >
-                {productOpen ? "▾" : "▸"}
-              </span>
-            </div>
-          </button>
+       <button
+  onClick={() => setProductOpen(!productOpen)}
+  className="bg-transparent border-0 w-100 text-start p-0"
+>
+  <div
+    className="d-flex align-items-center"
+    style={{
+      backgroundColor: isActive("product") ? "#278C582E" : "transparent",
+      borderRadius: "12px",
+      padding: "8px 8px",
+      display: "flex",
+      alignItems: "center",
+    }}
+  >
+    <img
+      src={isActive("product") ? "/Product_G.png" : "/Product.png"}
+      alt="Product"
+      style={{
+        width: "18px",
+        filter: isActive("product") ? "none" : "brightness(0) invert(1)",
+      }}
+    />
+    {!collapsed && (
+      <span
+        style={{
+          color: isActive("product") ? "#28a745" : "white",
+          marginLeft: "10px",
+        }}
+      >
+        Product
+      </span>
+    )}
+    {!collapsed && (
+      <span
+        className="ms-auto me-4"
+        style={{
+          color: isActive("product") ? "#28a745" : "white",
+        }}
+      >
+        {productOpen ? "▾" : "▸"}
+      </span>
+    )}
+  </div>
+</button>
+
           {!collapsed && productOpen && (
             <div className="ms-2">
               <a
@@ -426,8 +452,8 @@ export default function Sidebar({ collapsed }) {
             )}
           </a>
 
-          
-   <a
+
+          <a
             href="#"
             onClick={(e) => {
               e.preventDefault();
@@ -438,7 +464,7 @@ export default function Sidebar({ collapsed }) {
             <img
               src={
                 isActive("purchaseReturn")
-                
+
                   ? "/Purchase_Order_G.png"
                   : "/Purchase Order 1.png"
               }
