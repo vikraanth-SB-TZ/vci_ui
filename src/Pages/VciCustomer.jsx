@@ -404,19 +404,31 @@ export default function VciCustomer() {
 const handleDownloadPdf = async () => {
     try {
         toast.info("Generating PDF, please wait...", { autoClose: false, toastId: "pdf-download-progress" });
+
         const response = await axios.get(`${API_BASE_URL}/pdf`, {
             responseType: 'blob',
         });
+
+        // Create a blob URL
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+
+        // Create a temporary anchor and trigger download
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'customers.pdf'); // Set the desired filename
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
         toast.dismiss("pdf-download-progress");
         toast.success("PDF downloaded successfully!", { autoClose: 1500 });
     } catch (error) {
         toast.dismiss("pdf-download-progress");
         console.error("Error downloading PDF:", error);
-        if (error.response && error.response.status === 404) {
-            toast.error("PDF download route not found. Please check your backend.", { autoClose: 3000 });
-        } else {
-            toast.error("Failed to download PDF. Please try again.", { autoClose: 3000 });
-        }
+        toast.error("Failed to download PDF. Please try again.", { autoClose: 3000 });
     }
 };
 
