@@ -193,55 +193,57 @@ export default function EditSalePage() {
 
 
   useEffect(() => {
-    const qty = parseInt(formData.quantity || 0, 10);
+    const qty = formData.quantity === '' ? '' : parseInt(formData.quantity, 10);
     const current = formData.serial_numbers;
     const availableCount = availableSerials.filter(
       sn => !current.some(c => c.serial_no === sn.serial_no)
     ).length;
     const totalAvailable = current.length + availableCount;
 
-    if (qty > totalAvailable) {
-      setTimeout(() => {
-        setQuantityError(`Only ${totalAvailable} serials are available, but you requested ${qty}.`);
-      },100);
-      const needed = totalAvailable - current.length;
-      const toAdd = availableSerials
-        .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
-        .slice(0, needed);
-
-      const newSerials = [...current, ...toAdd];
-
-      setFormData(prev => ({
-        ...prev,
-        serial_numbers: newSerials,
-        quantity: newSerials.length
-      }));
-
-    }
-    else {
-      setQuantityError('');
-
-      if (current.length > qty) {
-        const trimmed = current.slice(0, qty);
-        setFormData(prev => ({
-          ...prev,
-          serial_numbers: trimmed,
-          quantity: trimmed.length
-        }));
-      } else if (current.length < qty) {
-        const needed = qty - current.length;
+    if (typeof qty === 'number' && !isNaN(qty)) {
+      if (qty > totalAvailable) {
+        setTimeout(() => {
+          setQuantityError(`Only ${totalAvailable} serials are available, but you requested ${qty}.`);
+        }, 100);
+        const needed = totalAvailable - current.length;
         const toAdd = availableSerials
           .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
           .slice(0, needed);
 
-        if (toAdd.length > 0) {
+        const newSerials = [...current, ...toAdd];
+
+        setFormData(prev => ({
+          ...prev,
+          serial_numbers: newSerials,
+          quantity: newSerials.length
+        }));
+      } else {
+        setQuantityError('');
+
+        if (current.length > qty) {
+          const trimmed = current.slice(0, qty);
           setFormData(prev => ({
             ...prev,
-            serial_numbers: [...current, ...toAdd],
-            quantity: current.length + toAdd.length
+            serial_numbers: trimmed,
+            quantity: trimmed.length
           }));
+        } else if (current.length < qty) {
+          const needed = qty - current.length;
+          const toAdd = availableSerials
+            .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
+            .slice(0, needed);
+
+          if (toAdd.length > 0) {
+            setFormData(prev => ({
+              ...prev,
+              serial_numbers: [...current, ...toAdd],
+              quantity: current.length + toAdd.length
+            }));
+          }
         }
       }
+    } else {
+      setQuantityError('');
     }
   }, [formData.quantity, availableSerials]);
 
