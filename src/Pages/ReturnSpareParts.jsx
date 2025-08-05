@@ -334,7 +334,7 @@ export default function ReturnSparePartsPage() {
         $(tableRef.current).DataTable().destroy();
       }
 
-      await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`);
+      await axios.delete(`${API_BASE_URL}/sparepart-return/${id}`);
       toast.success("Spare part deleted successfully!");
 
       if (editingPart?.id === id) closeForm();
