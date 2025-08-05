@@ -77,7 +77,7 @@ export default function SaleReturnDetails() {
     axios.put(`http://localhost:8000/api/update/${id}`, payload)
       .then(() => {
         toast.success('Return updated successfully!', { autoClose: 3000 });
-        setTimeout(() => navigate('/returns'), 1500); // Add a small delay for the toast to be seen
+        setTimeout(() => navigate('/salesReturn'), 1500); // Add a small delay for the toast to be seen
       })
       .catch(err => {
         const msg = err.response?.data?.error || 'Update failed';
@@ -98,7 +98,12 @@ export default function SaleReturnDetails() {
   return (
     <Container className="py-5">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
-      <h3 className="mb-4 fw-bold">Sale Return Details</h3>
+
+    <div className="d-flex justify-content-between align-items-center mb-4">
+            <h4 className="mb-4 fw-bold text-dark">Sale Return Details</h4>
+            <Button variant="outline-secondary" onClick={() => navigate('/salesReturn')}>
+                    <i className="bi bi-arrow-left" /> Back
+                  </Button></div>
 
       <Form onSubmit={handleSave} className="border p-4 rounded shadow-sm bg-white">
         {/* Row 1 */}

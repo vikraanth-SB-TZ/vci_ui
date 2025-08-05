@@ -65,7 +65,7 @@ export default function EditPurchasePage() {
   const handleDeleteSerial = (indexToRemove) => {
     const updated = serials.filter((_, index) => index !== indexToRemove);
     setSerials(updated);
-    toast.info('Serial removed');
+    toast.success('Serial removed');
   };
 
   const handleAddNewSerials = () => {
@@ -126,7 +126,7 @@ export default function EditPurchasePage() {
       });
   };
 
-  if (loading) return <div className="p-4"><Spinner animation="border" /></div>;
+  // if (loading) return <div className="p-4"><Spinner animation="border" /></div>;
   if (!purchase) return <div className="p-4 text-danger">{error}</div>;
 
   return (

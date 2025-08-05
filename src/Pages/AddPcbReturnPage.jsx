@@ -76,7 +76,7 @@ export default function PurchaseReturnPage() {
                 className="me-2"
                 onClick={() => navigate(-1)}
               >
-                Cancel
+                <i className="bi bi-arrow-left" />  Back
               </Button>
       </div>
       <Form.Group>
