@@ -128,7 +128,7 @@ export default function VciCustomer() {
             name = e.target.name;
             value = e.target.value;
 
-            if (["first_name", "last_name"].includes(name)) {
+            if (["first_name", "last_name", "city"].includes(name)) {
                 if (!/^[A-Za-z\s]*$/.test(value)) {
                     setErrors(prev => ({ ...prev, [name]: "Only alphabets are allowed." }));
                     return;

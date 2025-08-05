@@ -127,14 +127,14 @@ export default function Vendor() {
             name = e.target.name;
             value = e.target.value;
 
-            // ✅ Allow only letters and spaces for first_name and last_name
-            if ((name === "first_name" || name === "last_name")) {
+
+            if ((name === "first_name" || name === "last_name" || name === "city")) {
                 if (!/^[a-zA-Z\s]*$/.test(value)) {
                     // Show error below the field
                     setErrors(prev => ({ ...prev, [name]: "Only alphabets are allowed." }));
-                    return; // Block update
+                    return; 
                 } else {
-                    // Clear error if input is valid
+
                     if (errors[name]) {
                         setErrors(prev => ({ ...prev, [name]: "" }));
                     }
