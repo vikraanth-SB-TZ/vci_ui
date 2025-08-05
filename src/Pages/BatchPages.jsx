@@ -156,7 +156,7 @@ export default function BatchPage() {
           </Button>
           <Button
             size="sm"
-            onClick={() => handleShowForm()}
+            onClick={handleAddNewClick}
             style={{
               backgroundColor: '#2FA64F',
               borderColor: '#2FA64F',
