@@ -176,7 +176,7 @@ export default function CategoryPage() {
           <thead>
             <tr>
               <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
-              <th>Category</th>
+              <th>VCI Category</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -238,10 +238,10 @@ export default function CategoryPage() {
             </Button>
           </div>
           <Form.Group className="mb-3">
-            <Form.Label className="fw-medium">Category Name</Form.Label>
+            <Form.Label className="fw-medium">VCI Series</Form.Label>
             <Form.Control
               type="text"
-              placeholder="Enter Category Name"
+              placeholder="Enter Series"
               value={categoryName}
               onChange={(e) => setCategoryName(e.target.value)}
             />
