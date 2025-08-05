@@ -7,10 +7,9 @@ import "datatables.net";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 import { API_BASE_URL } from "../api";
-
 
 export default function ProductPage() {
   const [products, setProducts] = useState([]);
@@ -122,13 +121,13 @@ export default function ProductPage() {
 
   const handleDelete = async (id) => {
     const result = await MySwal.fire({
-      title: 'Are you sure?',
-      text: 'Do you really want to delete this product?',
-      icon: 'warning',
+      title: "Are you sure?",
+      text: "Do you really want to delete this product?",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
     });
 
     if (!result.isConfirmed) return;
@@ -139,19 +138,18 @@ export default function ProductPage() {
       }
 
       await axios.delete(`${API_BASE_URL}/products/${id}`);
-      toast.success('Product deleted!');
+      toast.success("Product deleted!");
       await fetchProducts();
     } catch (error) {
-      toast.error('Failed to delete product!');
+      toast.error("Failed to delete product!");
     }
   };
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     let updatedData = { ...productData, [name]: value };
 
-    // If test = Issue, set Sale Status automatically
+    // Auto update Sale Status if Test = Issue
     if (name === "test" && value === "Issue") {
       updatedData.sale_status = "Reserved";
     }
@@ -213,9 +211,11 @@ export default function ProductPage() {
       await fetchProducts();
       setShowModal(false);
     } catch (error) {
-      if (error.response?.status === 422) {
-        const errors = error.response.data.errors;
-        Object.values(errors).forEach((msg) => toast.error(msg[0]));
+      console.log("Save product error:", error.response?.data); // <-- Debug log
+      if (error.response?.status === 422 && error.response.data?.errors) {
+        Object.values(error.response.data.errors).forEach((msg) => toast.error(msg[0]));
+      } else if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
       } else {
         toast.error("Failed to save product!");
       }
@@ -224,7 +224,6 @@ export default function ProductPage() {
 
   return (
     <div className="p-4">
-
       {/* Header */}
       <div className="d-flex justify-content-between mb-3">
         <h5 className="fw-bold">Products ({products.length.toString().padStart(2, "0")})</h5>
@@ -236,15 +235,13 @@ export default function ProductPage() {
             size="sm"
             onClick={handleAddNewClick}
             style={{
-              backgroundColor: '#2FA64F',
-              borderColor: '#2FA64F',
-              color: '#fff'
-
+              backgroundColor: "#2FA64F",
+              borderColor: "#2FA64F",
+              color: "#fff",
             }}
           >
             + Add New
           </Button>
-
         </div>
       </div>
 
@@ -286,7 +283,7 @@ export default function ProductPage() {
                   <td>{p.serial_no || "—"}</td>
                   <td>{p.manufacture_no || "—"}</td>
                   <td>{p.firmware_version || "—"}</td>
-                  <td style={{ textAlign: "center" }} >{p.hsn_code || "—"}</td>
+                  <td style={{ textAlign: "center" }}>{p.hsn_code || "—"}</td>
                   <td>{p.test || "—"}</td>
                   <td>{p.sale_status || "—"}</td>
                   <td>
@@ -304,18 +301,10 @@ export default function ProductPage() {
         </table>
       </div>
 
-      {/* Side Offcanvas Modal with Top Offset */}
-      <Offcanvas
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        placement="end"
-        backdrop="static"
-        className="custom-offcanvas"
-      >
+      {/* Side Offcanvas Modal */}
+      <Offcanvas show={showModal} onHide={() => setShowModal(false)} placement="end" backdrop="static" className="custom-offcanvas">
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title className="fw-bold">
-            {isEditing ? "Edit Product" : "Add New Product"}
-          </Offcanvas.Title>
+          <Offcanvas.Title className="fw-bold">{isEditing ? "Edit Product" : "Add New Product"}</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body>
           <Form className="row g-3">
@@ -345,12 +334,7 @@ export default function ProductPage() {
 
             <Form.Group className="col-md-6">
               <Form.Label>Serial No.</Form.Label>
-              <Form.Control
-                name="serial_no"
-                value={productData.serial_no}
-                onChange={handleChange}
-                placeholder="Enter Serial No."
-              />
+              <Form.Control name="serial_no" value={productData.serial_no} onChange={handleChange} placeholder="Enter Serial No." />
             </Form.Group>
 
             <Form.Group className="col-md-6">
@@ -375,12 +359,7 @@ export default function ProductPage() {
 
             <Form.Group className="col-md-6">
               <Form.Label>HSN Code</Form.Label>
-              <Form.Control
-                name="hsn_code"
-                value={productData.hsn_code}
-                onChange={handleChange}
-                placeholder="Enter HSN Code"
-              />
+              <Form.Control name="hsn_code" value={productData.hsn_code} onChange={handleChange} placeholder="Enter HSN Code" />
             </Form.Group>
 
             <Form.Group className="col-md-6">
