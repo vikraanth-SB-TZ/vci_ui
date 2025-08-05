@@ -243,7 +243,7 @@ export default function EditPurchasePage() {
           </Button>
         </Form.Group>
 
-        <Form.Group className="mb-3 col-md-6">
+        {/* <Form.Group className="mb-3 col-md-6">
           <Form.Label className="text-muted mb-1">All Serial Numbers</Form.Label>
           <Form.Control
             as="textarea"
@@ -252,7 +252,7 @@ export default function EditPurchasePage() {
             value={serials.map(s => s.serial_no).join('\n')}
             readOnly
           />
-        </Form.Group>
+        </Form.Group> */}
 
         <div className="mb-3">
           <Form.Label className="fw-bold">Serial Details</Form.Label>
@@ -286,7 +286,7 @@ export default function EditPurchasePage() {
         variant="danger"
         onClick={() => handleDeleteSerial(index)}
       >
-        Del
+        <i className="bi bi-trash"></i>
       </Button>
     </Col>
   </Row>
