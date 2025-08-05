@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Form, Row, Col, Button, Container } from 'react-bootstrap';
+import { Form, Row, Col, Button, Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 export default function SaleReturnDetails() {
@@ -21,136 +21,137 @@ export default function SaleReturnDetails() {
 
   const [isReturned, setIsReturned] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = (e) => {
+    e.preventDefault();
     const payload = { ...formData, returned: isReturned };
     console.log('Saving:', payload);
     // TODO: Add API call here
   };
 
   return (
-    <Container className="py-5 d-flex justify-content-center">
-      <Card
-        className="p-4 shadow-lg w-100"
-        style={{
-          maxWidth: '960px',
-          backgroundColor: 'rgba(245, 245, 245, 0.6)',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          borderRadius: '16px',
-          border: '1px solid rgba(220, 220, 220, 0.4)',
-        }}
-      >
-        <h4 className="fw-bold mb-4 text-center text-secondary">
-          Sale Return Details (Read-Only)
-        </h4>
+    <Container className="py-5">
+      <h3 className="mb-4  fw-bold">Sale Return Details</h3>
 
-        {/* Rows */}
+      <Form onSubmit={handleSave} className="border p-4 rounded shadow-sm bg-white">
+
+        {/* Row 1: Customer / Batch / Category */}
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
-              <Form.Label className="text-muted">Customer</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.customer_name} />
+              <Form.Label>Customer</Form.Label>
+              <Form.Control
+                readOnly
+                value={formData.customer_name}
+                className="bg-light border-0 text-muted"
+              />
             </Form.Group>
           </Col>
           <Col md={4}>
             <Form.Group>
-              <Form.Label className="text-muted">Batch</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.batch} />
+              <Form.Label>Batch</Form.Label>
+              <Form.Control
+                readOnly
+                value={formData.batch}
+                className="bg-light border-0 text-muted"
+              />
             </Form.Group>
           </Col>
           <Col md={4}>
             <Form.Group>
-              <Form.Label className="text-muted">Category</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.category} />
+              <Form.Label>Category</Form.Label>
+              <Form.Control
+                readOnly
+                value={formData.category}
+                className="bg-light border-0 text-muted"
+              />
             </Form.Group>
           </Col>
         </Row>
 
-        {/* <Row className="mb-3">
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label className="text-muted">Quantity</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.quantity} />
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label className="text-muted">From Serial Number</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.from_serial_no} />
-            </Form.Group>
-          </Col>
-          <Col md={4}>
-            <Form.Group>
-              <Form.Label className="text-muted">Shipment Name</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.shipment_name} />
-            </Form.Group>
-          </Col>
-        </Row> */}
-
+        {/* Row 2: Product Serial / Shipment Date / Delivery Date */}
         <Row className="mb-3">
           <Col md={4}>
             <Form.Group>
-              <Form.Label className="text-muted">Product Serial No.</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.product_serial_no} />
+              <Form.Label>Product Serial No.</Form.Label>
+              <Form.Control
+                readOnly
+                value={formData.product_serial_no}
+                className="bg-light border-0 text-muted"
+              />
             </Form.Group>
           </Col>
           <Col md={4}>
             <Form.Group>
-              <Form.Label className="text-muted">Shipment Date</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.shipment_date} />
+              <Form.Label>Shipment Date</Form.Label>
+              <Form.Control
+                readOnly
+                value={formData.shipment_date}
+                className="bg-light border-0 text-muted"
+              />
             </Form.Group>
           </Col>
           <Col md={4}>
             <Form.Group>
-              <Form.Label className="text-muted">Delivery Date</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.delivery_date} />
+              <Form.Label>Delivery Date</Form.Label>
+              <Form.Control
+                readOnly
+                value={formData.delivery_date}
+                className="bg-light border-0 text-muted"
+              />
             </Form.Group>
           </Col>
         </Row>
 
-        {/* <Row className="mb-3">
+        {/* Row 3: Tracking No / Notes */}
+        <Row className="mb-3">
           <Col md={6}>
             <Form.Group>
-              <Form.Label className="text-muted">Tracking No.</Form.Label>
-              <Form.Control readOnly plaintext defaultValue={formData.tracking_no} />
+              <Form.Label>Tracking No.</Form.Label>
+              <Form.Control
+                readOnly
+                value={formData.tracking_no}
+                className="bg-light border-0 text-muted"
+              />
             </Form.Group>
           </Col>
           <Col md={6}>
             <Form.Group>
-              <Form.Label className="text-muted">Notes</Form.Label>
+              <Form.Label>Notes</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={2}
                 readOnly
                 value={formData.notes}
-                className="bg-transparent text-muted"
-                style={{ border: 'none' }}
+                className="bg-light border-0 text-muted"
               />
             </Form.Group>
           </Col>
-        </Row> */}
+        </Row>
 
-        <Row className="mb-4">
-          <Col>
+        {/* Row 4: Checkbox and Button */}
+        <Row className="align-items-center mt-4">
+          <Col md={6}>
             <Form.Check
               type="checkbox"
               label="Mark as Returned"
-              className="fw-semibold"
               checked={isReturned}
               onChange={(e) => setIsReturned(e.target.checked)}
+              className="fs-5 fw-semibold"
             />
           </Col>
-        </Row>
+          <Col md={6} className="text-end">
+      
 
-        <div className="text-end">
-          <Button variant="success" className="me-2 px-4" onClick={handleSave}>
-            Save Changes
-          </Button>
-          <Button variant="outline-secondary" className="px-4" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
-        </div>
-      </Card>
+  <Button type="submit" variant="success" className="me-2">
+    Update
+  </Button>
+  <Button variant="secondary" onClick={() => navigate(-1)}>
+    Cancel
+  </Button>
+</Col>
+
+        </Row>
+      </Form>
     </Container>
   );
 }
