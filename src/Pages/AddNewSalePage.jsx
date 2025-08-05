@@ -8,6 +8,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import ProductModal from './ProductModal';
 import { API_BASE_URL } from '../api';
 
+
+
+
 export default function AddNewSalePage() {
 
   const hasFetched = useRef(false);
@@ -17,6 +20,7 @@ export default function AddNewSalePage() {
   const [categories, setCategories] = useState([]);
   const [serialError, setSerialError] = useState('');
   const [errors, setErrors] = useState({});
+  const [formErrors, setFormErrors] = useState({});
   const [formData, setFormData] = useState({
     customer_id: '',
     batch_id: '',
@@ -36,21 +40,31 @@ export default function AddNewSalePage() {
 
 
   const validateForm = () => {
-    const newErrors = {};
+  const newFormErrors = {};
 
-    if (!formData.customer_id) newErrors.customer_id = "This field is required";
-    if (!formData.batch_id) newErrors.batch_id = "Batch is required";
-    if (!formData.category_id) newErrors.category_id = "Category is required";
-    if (!formData.quantity) newErrors.quantity = "Quantity is required";
-    if (!formData.shipment_name) newErrors.shipment_name = "Shipment Name is required";
-    if (formData.serial_numbers.length === 0) newErrors.serial_numbers = "Serial numbers are required";
-    if (!formData.shipment_date) newErrors.shipment_date = "Shipment Date is required";
-    if (!formData.delivery_date) newErrors.delivery_date = "Delivery Date is required";
-    if (!formData.tracking_no) newErrors.tracking_no = "Tracking No is required";
+  if (!formData.customer_id) newFormErrors['customer_id'] = "Customer is required";
+  if (!formData.batch_id) newFormErrors['batch_id'] = "Batch is required";
+  if (!formData.category_id) newFormErrors['category_id'] = "Category is required";
+  if (!formData.quantity) newFormErrors['quantity'] = "Quantity is required";
+  if (!formData.shipment_name) newFormErrors['shipment_name'] = "Shipment Name is required";
+  if (!formData.shipment_date) newFormErrors['shipment_date'] = "Shipment Date is required";
+  if (!formData.delivery_date) newFormErrors['delivery_date'] = "Delivery Date is required";
+  if (!formData.tracking_no) newFormErrors['tracking_no'] = "Tracking Number is required";
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  if (formData.serial_numbers.length === 0) {
+    newFormErrors['serial_numbers'] = "Serial numbers are required";
+  } else {
+    formData.serial_numbers.forEach((serial, idx) => {
+      if (!serial || serial.trim() === '') {
+        newFormErrors[`serial-${idx}`] = "Serial is required";
+      }
+    });
+  }
+
+  setFormErrors(newFormErrors);
+  return Object.keys(newFormErrors).length === 0;
+};
+
 
   const handleAddProducts = (selectedProducts) => {
     const newSerials = selectedProducts.map(p => p.serial_no);
@@ -111,6 +125,14 @@ export default function AddNewSalePage() {
     const updated = { ...formData, [name]: value };
     setFormData(updated);
 
+    if (formErrors[name]) {
+  setFormErrors(prev => {
+    const newErrors = { ...prev };
+    delete newErrors[name];
+    return newErrors;
+  });
+}
+
     if (['quantity', 'from_serial', 'batch_id', 'category_id'].includes(name)) {
       const { quantity, from_serial, batch_id, category_id } = updated;
 
@@ -152,12 +174,29 @@ export default function AddNewSalePage() {
     }
   };
 
+  // const handleCustomerChange = (selected) => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     customer_id: selected?.value || ''
+  //   }));
+  // };
+
   const handleCustomerChange = (selected) => {
-    setFormData(prev => ({
-      ...prev,
-      customer_id: selected?.value || ''
-    }));
-  };
+  const value = selected?.value || '';
+  setFormData(prev => ({
+    ...prev,
+    customer_id: value
+  }));
+
+  if (formErrors['customer_id']) {
+    setFormErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors['customer_id'];
+      return newErrors;
+    });
+  }
+};
+
 
   const handleSerialChange = (index, value) => {
     const updatedSerials = [...formData.serial_numbers];
@@ -277,13 +316,19 @@ export default function AddNewSalePage() {
                   })
                 }}
               />
-              {errors.customer_id && <div className="text-danger small mt-1">{errors.customer_id}</div>}
+                        {formErrors['customer_id'] && (
+            <div className="text-danger small">{formErrors['customer_id']}</div>
+          )}
+
+              {/* {errors.customer_id && <div className="text-danger small mt-1">{errors.customer_id}</div>} */}
             </Form.Group>
           </Col>
 
           <Col md={4}>
             <Form.Label>Batch</Form.Label>
-            <Form.Select size="sm" name="batch_id" value={formData.batch_id} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}>
+            <Form.Select size="sm" name="batch_id" value={formData.batch_id} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}
+             isInvalid={!!formErrors['batch_id']}
+            >
               <option value="">Select Batch</option>
               {batches.map((b) => (
                 <option key={b.id} value={b.id}>{b.batch}</option>
@@ -291,18 +336,26 @@ export default function AddNewSalePage() {
               ))}
 
             </Form.Select>
-            {errors.batch_id && <div className="text-danger small mt-1">{errors.batch_id}</div>}
+            {/* {errors.batch_id && <div className="text-danger small mt-1">{errors.batch_id}</div>} */}
+            <Form.Control.Feedback type="invalid">
+  {formErrors['batch_id']}
+</Form.Control.Feedback>
           </Col>
 
           <Col md={4}>
             <Form.Label>Category</Form.Label>
-            <Form.Select size="sm" name="category_id" value={formData.category_id} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}>
+            <Form.Select size="sm" name="category_id" value={formData.category_id} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}
+                isInvalid={!!formErrors['category_id']}
+                >
               <option value="">Select Category</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.category}</option>
               ))}
             </Form.Select>
-            {errors.category_id && <div className="text-danger small mt-1">{errors.category_id}</div>}
+            {/* {errors.category_id && <div className="text-danger small mt-1">{errors.category_id}</div>} */}
+                <Form.Control.Feedback type="invalid">
+            {formErrors['category_id']}
+          </Form.Control.Feedback>
 
           </Col>
         </Row>
@@ -315,6 +368,7 @@ export default function AddNewSalePage() {
               name="quantity"
               value={formData.quantity}
               onChange={handleChange}
+               isInvalid={!!formErrors['quantity']}
               placeholder="Enter Quantity"
               style={{ boxShadow: 'none', borderColor: '#ced4da' }}
             // readOnly={formData.serial_numbers.length > 0}
@@ -330,8 +384,13 @@ export default function AddNewSalePage() {
           </Col>
           <Col md={4} sm={6} xs={12}>
             <Form.Label>Shipment Name</Form.Label>
-            <Form.Control size="sm" name="shipment_name" value={formData.shipment_name} onChange={handleChange} placeholder="Enter Shipment Name" style={{ boxShadow: 'none', borderColor: '#ced4da' }} />
-            {errors.shipment_name && <div className="text-danger small mt-1">{errors.shipment_name}</div>}
+            <Form.Control size="sm" name="shipment_name" value={formData.shipment_name} onChange={handleChange} placeholder="Enter Shipment Name" style={{ boxShadow: 'none', borderColor: '#ced4da' }} 
+              isInvalid={!!formErrors['shipment_name']}
+            />
+            {/* {errors.shipment_name && <div className="text-danger small mt-1">{errors.shipment_name}</div>} */}
+             <Form.Control.Feedback type="invalid">
+            {formErrors['shipment_name']}
+          </Form.Control.Feedback>
 
           </Col>
         </Row>
@@ -358,6 +417,11 @@ export default function AddNewSalePage() {
                 className="shadow-none bg-transparent border-0 p-0 flex-grow-1"
                 style={{ minWidth: 0 }}
               />
+    {formErrors[`serial-${idx}`] && (
+  <div className="text-danger small mt-1 ms-1">
+    {formErrors[`serial-${idx}`]}
+  </div>
+)}
               <Button
                 variant="link"
                 size="sm"
@@ -380,20 +444,34 @@ export default function AddNewSalePage() {
         <Row className="mb-3">
           <Col md={4}>
             <Form.Label>Shipment Date</Form.Label>
-            <Form.Control size="sm" type="date" name="shipment_date" value={formData.shipment_date} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }} />
-            {errors.shipment_date && <div className="text-danger small mt-1">{errors.shipment_date}</div>}
+            <Form.Control size="sm" type="date" name="shipment_date" value={formData.shipment_date} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }} 
+              isInvalid={!!formErrors['shipment_date']}
+            />
+            {/* {errors.shipment_date && <div className="text-danger small mt-1">{errors.shipment_date}</div>} */}
+             <Form.Control.Feedback type="invalid">
+            {formErrors['shipment_date']}
+          </Form.Control.Feedback>
 
           </Col>
           <Col md={4}>
             <Form.Label>Delivery Date</Form.Label>
-            <Form.Control size="sm" type="date" name="delivery_date" value={formData.delivery_date} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }} />
-            {errors.delivery_date && <div className="text-danger small mt-1">{errors.delivery_date}</div>}
-
+            <Form.Control size="sm" type="date" name="delivery_date" value={formData.delivery_date} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}
+               isInvalid={!!formErrors['delivery_date']}
+            />
+            {/* {errors.delivery_date && <div className="text-danger small mt-1">{errors.delivery_date}</div>} */}
+               <Form.Control.Feedback type="invalid">
+            {formErrors['delivery_date']}
+          </Form.Control.Feedback>
           </Col>
           <Col md={4}>
             <Form.Label>Tracking No.</Form.Label>
-            <Form.Control size="sm" name="tracking_no" value={formData.tracking_no} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }} />
-            {errors.tracking_no && <div className="text-danger small mt-1">{errors.tracking_no}</div>}
+            <Form.Control size="sm" name="tracking_no" value={formData.tracking_no} onChange={handleChange} style={{ boxShadow: 'none', borderColor: '#ced4da' }}
+              isInvalid={!!formErrors['tracking_no']}
+            />
+            {/* {errors.tracking_no && <div className="text-danger small mt-1">{errors.tracking_no}</div>} */}
+             <Form.Control.Feedback type="invalid">
+            {formErrors['tracking_no']}
+          </Form.Control.Feedback>
 
           </Col>
         </Row>

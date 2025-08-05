@@ -37,7 +37,7 @@ export default function EditPurchasePage() {
 
   const fetchDropdownData = async () => {
     try {
-      const res = await axios.get('${API_BASE_URL}/form-dropdowns');
+      const res = await axios.get(`${API_BASE_URL}/form-dropdowns`);
       const data = res.data.data;
 
       setDropdowns({
