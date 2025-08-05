@@ -139,6 +139,7 @@ export default function EditSalePage() {
         sn => !originalSerials.some(p => p.serial_no === sn.serial_no)
       );
 
+
       setAvailableSerials(uniqueAvailable);
     } catch (error) {
       console.error('Serial fetch failed:', error);
@@ -146,7 +147,7 @@ export default function EditSalePage() {
   };
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/form-dropdowns')
+    axios.get(`${API_BASE_URL}/form-dropdowns`)
       .then(res => {
         const { customers, batches, categories } = res.data.data;
         setCustomers(customers);
@@ -155,7 +156,7 @@ export default function EditSalePage() {
       })
       .catch(err => console.error('Dropdown fetch error:', err));
 
-    axios.get(`http://localhost:8000/api/sales/${id}/edit`)
+    axios.get(`${API_BASE_URL}/sales/${id}/edit`)
       .then(res => {
         const sale = res.data.sale;
         const currentSerials = res.data.current_product_ids || [];
@@ -180,11 +181,17 @@ export default function EditSalePage() {
       .catch(err => console.error('Error loading sale data:', err));
   }, [id]);
 
+
+
   useEffect(() => {
     if (formData.batch_id && formData.category_id && formData.from_serial && formData.quantity) {
       fetchSerialNumbers();
     }
   }, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
+
+  
+
+
 
   useEffect(() => {
   const qty = parseInt(formData.quantity || 0, 10);
@@ -227,14 +234,19 @@ export default function EditSalePage() {
 
     const finalSerials = uniqueSerials.slice(0, requiredQty);
 
-    if (finalSerials.length < requiredQty) {
-      alert(`Only ${finalSerials.length} serials assigned. Please assign ${requiredQty}.`);
-      return;
-    }
+//     if (availableSerials.length + originalSerials.length < requiredQty) {
+//   toast.error(`Only ${availableSerials.length + originalSerials.length} serials are available. You requested ${requiredQty}.`);
+//   return;
+// }
+
+    // if (finalSerials.length < requiredQty) {
+    //   alert(`Only ${finalSerials.length} serials assigned. Please assign ${requiredQty}.`);
+    //   return;
+    // }
 
 
 
-    axios.put(`http://localhost:8000/api/salesUpdate/${id}`, updatedFormData)
+    axios.put(`${API_BASE_URL}/salesUpdate/${id}`, updatedFormData)
       .then(() => {
         toast.success('Sale updated successfully!');
         setTimeout(() => navigate('/salesOrder'), 1500);
@@ -363,7 +375,7 @@ export default function EditSalePage() {
     </div>
   ))}
 
-  {/* Dynamically show extra serial fields based on quantity */}
+  {/* Dynamically show extra serial fields based on quantity
   {Array.from({
     length: Math.max(0, parseInt(formData.quantity || 0) - formData.serial_numbers.length)
   }).map((_, i) => (
@@ -382,7 +394,7 @@ export default function EditSalePage() {
         placeholder="Pending"
       />
     </div>
-  ))}
+  ))} */}
 </div>
 
         {/* 
