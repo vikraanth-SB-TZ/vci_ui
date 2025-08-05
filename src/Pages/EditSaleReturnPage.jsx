@@ -1,138 +1,156 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Form, Table } from 'react-bootstrap';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { API_BASE_URL } from "../api";
+import React, { useState } from 'react';
+import { Card, Form, Row, Col, Button, Container } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
-export default function EditSaleReturnPage() {
-  const { id } = useParams();
+export default function SaleReturnDetails() {
   const navigate = useNavigate();
-  const [returnData, setReturnData] = useState(null);
-  const [reason, setReason] = useState('');
-  const [products, setProducts] = useState([]);
 
-useEffect(() => {
-  axios.get(`${API_BASE_URL}/sale-returns/view/${id}`)
-    .then(res => {
-      const data = res.data;
-      setReturnData(data);
-      setReason(data.reason || '');
-      // const formattedProducts = (data.products || []).map(p => ({
-      //   ...p,
-      //   selected: true //  mark as selected initially
-      // }));
-      // setProducts(formattedProducts);
+  const [formData] = useState({
+    customer_name: 'John Doe',
+    batch: 'Batch-001',
+    category: 'Electronics',
+    quantity: '5',
+    from_serial_no: 'A1001',
+    shipment_name: 'Blue Dart',
+    product_serial_no: 'XJY-9382',
+    shipment_date: '02-08-2025',
+    delivery_date: '04-08-2025',
+    tracking_no: 'TRK12345678',
+    notes: 'Delivered in good condition',
+  });
 
-      const formattedProducts = (data.products || []).map(p => ({
-  ...p,
-  selected: p.selected || false  //  already returned = true, others = false
-}));
-setProducts(formattedProducts);
+  const [isReturned, setIsReturned] = useState(false);
 
-    })
-  .catch(err => {
-  toast.error('Failed to load return details ');
-  console.error('Error fetching return details:', err);
-});
-
-}, [id]);
-
-
-const handleSave = () => {
-  const selectedProducts = products.filter(p => p.selected);
-
-  axios.put(`${API_BASE_URL}/update/${id}`, {
-    reason,
-    products: selectedProducts.map(p => ({
-      sale_item_id: p.sale_item_id,
-      product_id: p.product_id,
-      remark: p.remark || '',
-    }))
-  }).then(() => {
-    setTimeout(() => {
-      toast.success('Return updated successfully ', { autoClose: 3000 });
-    }, 1000);
-    navigate('/salesReturn');
- }).catch(err => {
-  const msg = err.response?.data?.error || 'Update failed ';
-  toast.error(msg, { autoClose: 3000 });
-  console.error(err);
-});
-
-};
-
-
-  if (!returnData) return <div className="p-4">Loading...</div>;
+  const handleSave = () => {
+    const payload = { ...formData, returned: isReturned };
+    console.log('Saving:', payload);
+    // TODO: Add API call here
+  };
 
   return (
-    <div className="p-4 bg-white vh-100">
-      <h5>Edit Return - {returnData.return_invoice_no}</h5>
+    <Container className="py-5 d-flex justify-content-center">
+      <Card
+        className="p-4 shadow-lg w-100"
+        style={{
+          maxWidth: '960px',
+          backgroundColor: 'rgba(245, 245, 245, 0.6)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          borderRadius: '16px',
+          border: '1px solid rgba(220, 220, 220, 0.4)',
+        }}
+      >
+        <h4 className="fw-bold mb-4 text-center text-secondary">
+          Sale Return Details (Read-Only)
+        </h4>
 
-      <Form.Group className="my-3">
-        <Form.Label>Reason</Form.Label>
-        <Form.Control
-          as="textarea"
-          rows={2}
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        />
-      </Form.Group>
+        {/* Rows */}
+        <Row className="mb-3">
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label className="text-muted">Customer</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.customer_name} />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label className="text-muted">Batch</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.batch} />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label className="text-muted">Category</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.category} />
+            </Form.Group>
+          </Col>
+        </Row>
 
-    <Table bordered size="sm">
-  <thead>
-    <tr>
-      <th>S.No</th>
-      <th>Serial No</th>
-      <th>Remark</th>
-      <th>Returned</th> {/* ✅ New column for checkbox */}
-    </tr>
-  </thead>
-  <tbody>
-    {products.map((prod, idx) => (
-      <tr key={prod.product_id}>
-        <td>{idx + 1}</td>
-        <td>{prod.serial_no}</td>
-        <td>
-          <Form.Control
-            size="sm"
-            value={prod.remark || ''}
-            onChange={(e) => {
-              const updated = [...products];
-              updated[idx].remark = e.target.value;
-              setProducts(updated);
-            }}
-          />
-        </td>
-        <td className="text-center">
-          <Form.Check
-            type="checkbox"
-            checked={prod.selected || false}
-            onChange={(e) => {
-              const updated = [...products];
-              updated[idx].selected = e.target.checked;
-              setProducts(updated);
-            }}
-          />
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</Table>
+        {/* <Row className="mb-3">
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label className="text-muted">Quantity</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.quantity} />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label className="text-muted">From Serial Number</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.from_serial_no} />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label className="text-muted">Shipment Name</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.shipment_name} />
+            </Form.Group>
+          </Col>
+        </Row> */}
 
-  <div className='text-end'>
-      <Button variant="success" onClick={handleSave}>Save Changes</Button>{' '}
-         <Button
-                     variant="secondary"
-                 
-                     className="me-2"
-                     onClick={() => navigate(-1)}
-                   >
-                     Cancel
-                   </Button></div>
+        <Row className="mb-3">
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label className="text-muted">Product Serial No.</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.product_serial_no} />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label className="text-muted">Shipment Date</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.shipment_date} />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label className="text-muted">Delivery Date</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.delivery_date} />
+            </Form.Group>
+          </Col>
+        </Row>
 
-<ToastContainer position="top-right" autoClose={3000} />
-    </div>
+        {/* <Row className="mb-3">
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="text-muted">Tracking No.</Form.Label>
+              <Form.Control readOnly plaintext defaultValue={formData.tracking_no} />
+            </Form.Group>
+          </Col>
+          <Col md={6}>
+            <Form.Group>
+              <Form.Label className="text-muted">Notes</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                readOnly
+                value={formData.notes}
+                className="bg-transparent text-muted"
+                style={{ border: 'none' }}
+              />
+            </Form.Group>
+          </Col>
+        </Row> */}
+
+        <Row className="mb-4">
+          <Col>
+            <Form.Check
+              type="checkbox"
+              label="Mark as Returned"
+              className="fw-semibold"
+              checked={isReturned}
+              onChange={(e) => setIsReturned(e.target.checked)}
+            />
+          </Col>
+        </Row>
+
+        <div className="text-end">
+          <Button variant="success" className="me-2 px-4" onClick={handleSave}>
+            Save Changes
+          </Button>
+          <Button variant="outline-secondary" className="px-4" onClick={() => navigate(-1)}>
+            Cancel
+          </Button>
+        </div>
+      </Card>
+    </Container>
   );
 }
