@@ -9,6 +9,9 @@ import "datatables.net";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_BASE_URL } from "../api";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+const MySwal = withReactContent(Swal);
 
 export default function SalesListPage() {
   const navigate = useNavigate();
@@ -79,18 +82,69 @@ export default function SalesListPage() {
     }
   }, [filteredData, loading]);
 
+  // const handleDelete = async (id) => {
+  //   try {
+  //     if ($.fn.DataTable.isDataTable(tableRef.current)) {
+  //       $(tableRef.current).DataTable().destroy();
+  //     }
+
+  //     await axios.delete(`${API_BASE_URL}/sales/${id}/del`);
+  //     toast.success("Sale deleted successfully.");
+  //     fetchSales(); // will re-fetch and reinitialize
+  //   } catch (err) {
+  //     console.error("Delete failed:", err);
+  //     toast.error("Failed to delete sale.");
+  //   }
+  // };
+
+  
   const handleDelete = async (id) => {
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this spare part?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!result.isConfirmed) return;
+
     try {
       if ($.fn.DataTable.isDataTable(tableRef.current)) {
         $(tableRef.current).DataTable().destroy();
       }
 
       await axios.delete(`${API_BASE_URL}/sales/${id}/del`);
-      toast.success("Sale deleted successfully.");
-      fetchSales(); // will re-fetch and reinitialize
-    } catch (err) {
-      console.error("Delete failed:", err);
-      toast.error("Failed to delete sale.");
+      toast.success("Sales deleted successfully!");
+
+      if (editingPart?.id === id) closeForm();
+
+      const updatedSpareparts = spareparts.filter(part => part.id !== id);
+      setSpareparts(updatedSpareparts);
+
+      setTimeout(() => {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+          $(tableRef.current).DataTable().destroy();
+        }
+        if (updatedSpareparts.length > 0) {
+          $(tableRef.current).DataTable({
+            ordering: true,
+            paging: true,
+            searching: true,
+            lengthChange: true,
+            columnDefs: [{ targets: 0, className: "text-center" }],
+          });
+        }
+      }, 0);
+    } catch (error) {
+      console.error("Error deleting:", error);
+      if (error.response?.data?.message) {
+        toast.error(`Failed to delete spare part: ${error.response.data.message}`);
+      } else {
+        toast.error("Failed to delete spare part.");
+      }
     }
   };
 

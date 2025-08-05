@@ -9,6 +9,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { API_BASE_URL } from "../api";
 
 export default function AddPurchasePage() {
+  const [formErrors, setFormErrors] = useState({});
+
   const [dropdowns, setDropdowns] = useState({
     vendors: [],
     batches: [],
@@ -23,7 +25,39 @@ export default function AddPurchasePage() {
     invoice_date: '',
     serial_numbers: '',
   });
+//
+  const validateForm = () => {
+  const errors = {};
 
+  if (!formData.vendor_id) errors.vendor_id = 'Vendor is required';
+  if (!formData.batch_id) errors.batch_id = 'Batch is required';
+  if (!formData.category_id) errors.category_id = 'Category is required';
+  if (!formData.invoice_no.trim()) errors.invoice_no = 'Invoice number is required';
+  if (!formData.invoice_date) errors.invoice_date = 'Invoice date is required';
+  if (parsedSerials.length === 0) errors.serial_numbers = 'At least one serial number is required';
+
+  const serialCount = {};
+  const duplicateSerials = [];
+
+  parsedSerials.forEach(serial => {
+    serialCount[serial] = (serialCount[serial] || 0) + 1;
+  });
+
+  for (const [serial, count] of Object.entries(serialCount)) {
+    if (count > 1) {
+      duplicateSerials.push(serial);
+    }
+  }
+
+  if (duplicateSerials.length > 0) {
+    errors.serial_numbers = `Duplicate serials found: ${duplicateSerials.join(', ')}`;
+  }
+  setParsedSerials(serials);
+  setFormErrors(errors);
+  return Object.keys(errors).length === 0;
+};
+
+//
   const [parsedSerials, setParsedSerials] = useState([]);
   const navigate = useNavigate();
 
@@ -71,45 +105,70 @@ export default function AddPurchasePage() {
     fetchDropdownData();
   }, []);
 
+  // const handleChange = (e) => {
+  //   setFormData({ ...formData, [e.target.name]: e.target.value });
+  // };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const { name, value } = e.target;
+  setFormData(prev => ({ ...prev, [name]: value }));
+
+  if (formErrors[name]) {
+    setFormErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
+  }
+};
+
+
+  // const handleSelectChange = (selected, field) => {
+  //   setFormData({ ...formData, [field]: selected ? selected.value : null });
+  // };
 
   const handleSelectChange = (selected, field) => {
-    setFormData({ ...formData, [field]: selected ? selected.value : null });
-  };
+  setFormData(prev => ({ ...prev, [field]: selected ? selected.value : null }));
+
+  if (formErrors[field]) {
+    setFormErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+    });
+  }
+};
+
+
+  // const handleSerialChange = (e) => {
+  //   const value = e.target.value;
+  //   setFormData({ ...formData, serial_numbers: value });
+
+  //   const serials = value.split('\n').map(s => s.trim()).filter(s => s);
+  //   setParsedSerials(serials);
+  // };
 
   const handleSerialChange = (e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, serial_numbers: value });
+  const value = e.target.value;
+  setFormData(prev => ({ ...prev, serial_numbers: value }));
 
-    const serials = value.split('\n').map(s => s.trim()).filter(s => s);
-    setParsedSerials(serials);
-  };
+  // const serials = value.split('\n').map(s => s.trim()).filter(s => s);
+  // setParsedSerials(serials);
+
+  if (formErrors.serial_numbers) {
+    setFormErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.serial_numbers;
+      return newErrors;
+    });
+  }
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    
-  // ✅ Frontend validation
-  if (!formData.vendor_id) {
-    return toast.error('Vendor is required');
-  }
-  if (!formData.batch_id) {
-    return toast.error('Batch is required');
-  }
-  if (!formData.category_id) {
-    return toast.error('Category is required');
-  }
-  if (!formData.invoice_no.trim()) {
-    return toast.error('Invoice number is required');
-  }
-  if (!formData.invoice_date) {
-    return toast.error('Invoice date is required');
-  }
-  if (parsedSerials.length === 0) {
-    return toast.error('At least one serial number is required');
-  }
+  if (!validateForm()) return;
+  
 //
   const hasDuplicates = parsedSerials.some((item, idx) => parsedSerials.indexOf(item) !== idx);
   if (hasDuplicates) {
@@ -179,6 +238,9 @@ if (duplicateSerials.length > 0) {
               onChange={(selected) => handleSelectChange(selected, 'vendor_id')}
               placeholder="Select vendor"
             />
+            {formErrors.vendor_id && (
+  <div className="text-danger small mt-1">{formErrors.vendor_id}</div>
+)}
           </Col>
           <Col md={4}>
             <Form.Label>Batch</Form.Label>
@@ -187,7 +249,11 @@ if (duplicateSerials.length > 0) {
               options={dropdowns.batches.map(b => ({ label: b.name || b.batch, value: b.id }))}
               onChange={(selected) => handleSelectChange(selected, 'batch_id')}
               placeholder="Select batch"
+
             />
+                            {formErrors.batch_id && (
+    <div className="text-danger small mt-1">{formErrors.batch_id}</div>
+  )}
           </Col>
           <Col md={4}>
             <Form.Label>Category</Form.Label>
@@ -197,6 +263,10 @@ if (duplicateSerials.length > 0) {
               onChange={(selected) => handleSelectChange(selected, 'category_id')}
               placeholder="Select category"
             />
+
+              {formErrors.category_id && (
+    <div className="text-danger small mt-1">{formErrors.category_id}</div>
+  )}
           </Col>
         </Row>
 
@@ -210,7 +280,11 @@ if (duplicateSerials.length > 0) {
               onChange={handleChange}
               placeholder="Enter invoice number"
               required
+                isInvalid={!!formErrors.invoice_no}
             />
+            <Form.Control.Feedback type="invalid">
+  {formErrors.invoice_no}
+</Form.Control.Feedback>
           </Col>
           <Col md={6}>
             <Form.Label>Invoice Date</Form.Label>
@@ -235,7 +309,11 @@ if (duplicateSerials.length > 0) {
               onChange={handleSerialChange}
               placeholder="Enter one serial number per line"
               required
+               isInvalid={!!formErrors.serial_numbers}
             />
+            <Form.Control.Feedback type="invalid">
+  {formErrors.serial_numbers}
+</Form.Control.Feedback>
           </Col>
         </Row>
 

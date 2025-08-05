@@ -146,7 +146,7 @@ export default function EditSalePage() {
   };
 
   useEffect(() => {
-    axios.get( `${API_BASE_URL}/form-dropdowns`)
+    axios.get('http://localhost:8000/api/form-dropdowns')
       .then(res => {
         const { customers, batches, categories } = res.data.data;
         setCustomers(customers);
@@ -155,7 +155,7 @@ export default function EditSalePage() {
       })
       .catch(err => console.error('Dropdown fetch error:', err));
 
-    axios.get(`${API_BASE_URL}/sales/${id}/edit`)
+    axios.get(`http://localhost:8000/api/sales/${id}/edit`)
       .then(res => {
         const sale = res.data.sale;
         const currentSerials = res.data.current_product_ids || [];
@@ -186,6 +186,25 @@ export default function EditSalePage() {
     }
   }, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
 
+  useEffect(() => {
+  const qty = parseInt(formData.quantity || 0, 10);
+  const current = formData.serial_numbers;
+
+  if (availableSerials.length && current.length < qty) {
+    const needed = qty - current.length;
+    const toAdd = availableSerials.filter(
+      sn => !current.some(c => c.serial_no === sn.serial_no)
+    ).slice(0, needed);
+
+    if (toAdd.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        serial_numbers: [...current, ...toAdd],
+      }));
+    }
+  }
+}, [formData.quantity, availableSerials]);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -215,7 +234,7 @@ export default function EditSalePage() {
 
 
 
-    axios.put(`${API_BASE_URL}/salesUpdate/${id}`, updatedFormData)
+    axios.put(`http://localhost:8000/api/salesUpdate/${id}`, updatedFormData)
       .then(() => {
         toast.success('Sale updated successfully!');
         setTimeout(() => navigate('/salesOrder'), 1500);
@@ -307,43 +326,64 @@ export default function EditSalePage() {
         <Form.Label className="mb-2 text-dark fw-normal">
           Product Serial No. (Already Sold for this Sale)
           <Button variant="outline-secondary" className="ms-2" onClick={() => setShowModal(true)}>
-            Add Product
+            Product
           </Button>
         </Form.Label>
-        <div className="w-100 d-flex flex-wrap gap-2 mb-3">
-          {formData.serial_numbers.map((item, idx) => (
-            <div
-              key={idx}
-              className="d-flex align-items-center border rounded-3 px-2 py-1"
-              style={{ width: '105px', backgroundColor: '#F8F9FA', position: 'relative' }}
-            >
-              <Form.Control
-                type="text"
-                size="sm"
-                value={item.serial_no}
-                onChange={(e) => handleSerialChange(idx, e.target.value)}
-                className="shadow-none bg-transparent border-0 p-0 flex-grow-1"
-                style={{ minWidth: 0 }}
-              />
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => handleRemoveSerial(idx)}
-                style={{
-                  color: '#dc3545',
-                  textDecoration: 'none',
-                  fontWeight: 'bold',
-                  fontSize: '0.8rem',
-                  marginLeft: '2px',
-                  padding: 0
-                }}
-              >
-                ×
-              </Button>
-            </div>
-          ))}
-        </div>
+       <div className="w-100 d-flex flex-wrap gap-2 mb-3">
+  {/* Already added serials */}
+  {formData.serial_numbers.map((item, idx) => (
+    <div
+      key={idx}
+      className="d-flex align-items-center border rounded-3 px-2 py-1"
+      style={{ width: '105px', backgroundColor: '#F8F9FA', position: 'relative' }}
+    >
+      <Form.Control
+        type="text"
+        size="sm"
+        value={item.serial_no}
+        onChange={(e) => handleSerialChange(idx, e.target.value)}
+        className="shadow-none bg-transparent border-0 p-0 flex-grow-1"
+        style={{ minWidth: 0 }}
+      />
+      <Button
+        variant="link"
+        size="sm"
+        onClick={() => handleRemoveSerial(idx)}
+        style={{
+          color: '#dc3545',
+          textDecoration: 'none',
+          fontWeight: 'bold',
+          fontSize: '0.8rem',
+          marginLeft: '2px',
+          padding: 0
+        }}
+      >
+        ×
+      </Button>
+    </div>
+  ))}
 
+  {/* Dynamically show extra serial fields based on quantity */}
+  {Array.from({
+    length: Math.max(0, parseInt(formData.quantity || 0) - formData.serial_numbers.length)
+  }).map((_, i) => (
+    <div
+      key={`extra-${i}`}
+      className="d-flex align-items-center border rounded-3 px-2 py-1"
+      style={{ width: '105px', backgroundColor: '#e9ecef', opacity: 0.7 }}
+    >
+      <Form.Control
+        type="text"
+        size="sm"
+        value=""
+        readOnly
+        className="shadow-none bg-transparent border-0 p-0 flex-grow-1"
+        style={{ minWidth: 0 }}
+        placeholder="Pending"
+      />
+    </div>
+  ))}
+</div>
 
         {/* 
        {availableSerials.length > 0 && (
