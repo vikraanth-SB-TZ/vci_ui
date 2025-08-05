@@ -39,14 +39,14 @@ export default function Vendor() {
     const [formData, setFormData] = useState(initialForm());
     const [isEditing, setIsEditing] = useState(false);
     const [states, setStates] = useState([]);
-    const [districtsForTable, setDistrictsForTable] = useState([]); 
-    const [districtsForForm, setDistrictsForForm] = useState([]); 
+    const [districtsForTable, setDistrictsForTable] = useState([]);
+    const [districtsForForm, setDistrictsForForm] = useState([]);
     const [errors, setErrors] = useState({});
     const [showCalendar, setShowCalendar] = useState(false);
     const toastIdRef = useRef(null); // Ref to store the toast ID
 
     const tableRef = useRef(null);
-    
+
     // const apiBase = "http://127.0.0.1:8000/api";
 
     useEffect(() => {
@@ -75,7 +75,7 @@ export default function Vendor() {
     useEffect(() => {
         if (!loading && vendors.length > 0) {
             $(tableRef.current).DataTable({
-                destroy: true, 
+                destroy: true,
                 ordering: true,
                 paging: true,
                 searching: true,
@@ -94,7 +94,7 @@ export default function Vendor() {
         if (formData.state) {
             fetchDistrictsForForm(formData.state);
         } else {
-            setDistrictsForForm([]); 
+            setDistrictsForForm([]);
         }
     }, [formData.state]);
 
@@ -132,7 +132,7 @@ export default function Vendor() {
                 if (!/^[a-zA-Z\s]*$/.test(value)) {
                     // Show error below the field
                     setErrors(prev => ({ ...prev, [name]: "Only alphabets are allowed." }));
-                    return; 
+                    return;
                 } else {
 
                     if (errors[name]) {
@@ -158,15 +158,15 @@ export default function Vendor() {
     };
 
     const handleEmailBlur = () => {
-    const email = formData.email.trim();
+        const email = formData.email.trim();
 
-    if (!email) {
-        setErrors((prev) => ({ ...prev, email: "Email is required." }));
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setErrors((prev) => ({ ...prev, email: "Email format is invalid." }));
-    } else {
-        setErrors((prev) => ({ ...prev, email: "" }));
-    }
+        if (!email) {
+            setErrors((prev) => ({ ...prev, email: "Email is required." }));
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setErrors((prev) => ({ ...prev, email: "Email format is invalid." }));
+        } else {
+            setErrors((prev) => ({ ...prev, email: "" }));
+        }
     };
 
     const validateForm = () => {
@@ -194,70 +194,70 @@ export default function Vendor() {
         if (!formData.district) newErrors.district = "District is required.";
         if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
         else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+        e.preventDefault();
+        if (!validateForm()) return;
 
-    const payload = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        gender: formData.gender,
-        mobile: formData.mobile,
-        alter_mobile: formData.altMobile,
-        email: formData.email,
-        company_name: formData.company_name,
-        address: formData.address,
-        city: formData.city,
-        state_id: formData.state ? parseInt(formData.state, 10) : null,
-        district_id: formData.district ? parseInt(formData.district, 10) : null,
-        pincode: formData.pincode,
-        gst_no: formData.gst,
-        date_of_birth: formData.dob,
-    };
+        const payload = {
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            gender: formData.gender,
+            mobile: formData.mobile,
+            alter_mobile: formData.altMobile,
+            email: formData.email,
+            company_name: formData.company_name,
+            address: formData.address,
+            city: formData.city,
+            state_id: formData.state ? parseInt(formData.state, 10) : null,
+            district_id: formData.district ? parseInt(formData.district, 10) : null,
+            pincode: formData.pincode,
+            gst_no: formData.gst,
+            date_of_birth: formData.dob,
+        };
 
-    const request = isEditing
-        ? axios.put(`${API_BASE_URL}/vendors/${formData.id}`, payload)
-        : axios.post(`${API_BASE_URL}/vendors`, payload);
+        const request = isEditing
+            ? axios.put(`${API_BASE_URL}/vendors/${formData.id}`, payload)
+            : axios.post(`${API_BASE_URL}/vendors`, payload);
 
-    request
-        .then((res) => {
-        const newVendor = res.data?.data || payload;
+        request
+            .then((res) => {
+                const newVendor = res.data?.data || payload;
 
-        toast.success(isEditing ? "Vendor updated successfully!" : "Vendor added successfully!", {
-            autoClose: 1500,
-        });
+                toast.success(isEditing ? "Vendor updated successfully!" : "Vendor added successfully!", {
+                    autoClose: 1500,
+                });
 
-        if (isEditing) {
-            setVendors((prev) =>
-            prev.map((v) => (v.id === formData.id ? { ...v, ...newVendor } : v))
-            );
-        } else {
-            
-            setVendors((prev) => [...prev, newVendor]);
-        }
+                if (isEditing) {
+                    setVendors((prev) =>
+                        prev.map((v) => (v.id === formData.id ? { ...v, ...newVendor } : v))
+                    );
+                } else {
 
-        closeForm(); 
-        })
-        .catch((err) => {
-        const newErrors = {};
-        const { message, errors: backendErrors } = err?.response?.data || {};
-        if (backendErrors) {
-            for (const key in backendErrors) {
-            newErrors[key] = Array.isArray(backendErrors[key])
-                ? backendErrors[key][0]
-                : backendErrors[key];
-            toast.error(newErrors[key], { autoClose: 1500 });
-            }
-        } else {
-            toast.error(message || "Failed to save vendor.", { autoClose: 1500 });
-        }
-        setErrors(newErrors);
-        });
+                    setVendors((prev) => [...prev, newVendor]);
+                }
+
+                closeForm();
+            })
+            .catch((err) => {
+                const newErrors = {};
+                const { message, errors: backendErrors } = err?.response?.data || {};
+                if (backendErrors) {
+                    for (const key in backendErrors) {
+                        newErrors[key] = Array.isArray(backendErrors[key])
+                            ? backendErrors[key][0]
+                            : backendErrors[key];
+                        toast.error(newErrors[key], { autoClose: 1500 });
+                    }
+                } else {
+                    toast.error(message || "Failed to save vendor.", { autoClose: 1500 });
+                }
+                setErrors(newErrors);
+            });
     };
 
     const stateOptions = states.map(state => ({
@@ -348,11 +348,10 @@ export default function Vendor() {
             fontWeight: 400,
             fontSize: "16px",
             borderRadius: "4px",
-            border: `1px solid ${
-                state.selectProps.name && state.selectProps.errors?.[state.selectProps.name]
+            border: `1px solid ${state.selectProps.name && state.selectProps.errors?.[state.selectProps.name]
                     ? "#dc3545"
                     : "#D3DBD5"
-            }`,
+                }`,
             boxShadow: "none",
             "&:hover": {
                 borderColor: "#D3DBD5",
@@ -430,42 +429,48 @@ export default function Vendor() {
     return (
         <div className="vh-80 d-flex flex-column position-relative bg-light">
             <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-            <h5 className="mb-0 fw-bold">Vendors ({vendors.length})</h5>
+                <h5 className="mb-0 fw-bold">Vendors ({vendors.length})</h5>
 
-            <div className="d-flex gap-2">
-                <Button
-                variant="outline-secondary"
-                size="sm"
-                onClick={() => {
-                    setLoading(true);
-                    axios
-                    .get(`${apiBase}/vendors`)
-                    .then((res) => {
-                        const rows = Array.isArray(res.data.data) ? res.data.data : res.data;
-                        setVendors(rows);
-                        toast.success("Vendors reloaded!", {
-                        toastId: "vendors-loaded-refresh",
-                        autoClose: 1500,
-                        });
-                    })
-                    .catch(() => {
-                        toast.error("Failed to reload vendors.", { autoClose: 1500 });
-                    })
-                    .finally(() => setLoading(false));
-                }}
-                disabled={loading}
-                >
-                {loading ? (
-                    <Spinner animation="border" size="sm" />
-                ) : (
-                    <i className="bi bi-arrow-clockwise"></i>
-                )}
-                </Button>
+                <div className="d-flex gap-2">
+                    <Button
+                        variant="outline-secondary"
+                        size="sm"
 
-                <Button variant="success" size="sm" onClick={openForm}>
-                + Add New
-                </Button>
-            </div>
+                        onClick={() => {
+                            setLoading(true);
+                            axios
+                                .get(`${apiBase}/vendors`)
+                                .then((res) => {
+                                    const rows = Array.isArray(res.data.data) ? res.data.data : res.data;
+                                    setVendors(rows);
+                                    toast.success("Vendors reloaded!", {
+                                        toastId: "vendors-loaded-refresh",
+                                        autoClose: 1500,
+                                    });
+                                })
+                                .catch(() => {
+                                    toast.error("Failed to reload vendors.", { autoClose: 1500 });
+                                })
+                                .finally(() => setLoading(false));
+                        }}
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <Spinner animation="border" size="sm" />
+                        ) : (
+                            <i className="bi bi-arrow-clockwise"></i>
+                        )}
+                    </Button>
+
+                    <Button variant="success" size="sm" onClick={openForm} style={{
+                        backgroundColor: '#2FA64F',
+                        borderColor: '#2FA64F',
+                        color: '#fff',
+
+                    }}>
+                        + Add New
+                    </Button>
+                </div>
             </div>
 
             <div className="flex-grow-1 overflow-auto px-4 py-3">
@@ -648,99 +653,98 @@ export default function Vendor() {
                         </div>
                         {/* Date of Birth */}
                         <div className="col-6 mb-2">
-                        <Form.Label
-                            className="mb-1"
-                            style={{
-                            color: "#393C3AE5",
-                            width: "325px",
-                            fontFamily: "Product Sans, sans-serif",
-                            fontWeight: 400,
-                            }}
-                        >
-                            Date of Birth
-                        </Form.Label>
-                        <div style={{ position: "relative" }}>
-                            <input
-                            type="text"
-                            readOnly
-                            className={`form-control custom-placeholder ${
-                                errors.dob ? "is-invalid" : ""
-                            }`}
-                            value={
-                                formData.dob
-                                ? new Date(formData.dob + "T00:00:00").toLocaleDateString("en-GB")
-                                : ""
-                            }
-                            placeholder="Select Date of Birth"
-                            onClick={() => setShowCalendar((prev) => !prev)} // Toggle calendar
-                            style={{ cursor: "pointer" }}
-                            />
-
-                            {/* Calendar icon */}
-                            <img
-                            src="/Calendar.png"
-                            alt="calendar icon"
-                            style={{
-                                position: "absolute",
-                                right: "10px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                width: "18px",
-                                height: "18px",
-                                pointerEvents: "none",
-                            }}
-                            />
-
-                            {/* Error */}
-                            {errors.dob && <div style={errorStyle}>{errors.dob}</div>}
-
-                            {/* Calendar dropdown */}
-                            {showCalendar && (
-                            <div
+                            <Form.Label
+                                className="mb-1"
                                 style={{
-                                position: "absolute",
-                                zIndex: 2000,
-                                top: "100%",
-                                left: 0,
-                                background: "white",
-                                boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                                marginTop: "4px",
-                                borderRadius: "6px",
+                                    color: "#393C3AE5",
+                                    width: "325px",
+                                    fontFamily: "Product Sans, sans-serif",
+                                    fontWeight: 400,
                                 }}
                             >
-                                <MiniCalendar
-                                selectedDate={formData.dob ? new Date(formData.dob) : null}
-                                onDateChange={(date) => {
-                                    if (!date) return;
-
-                                    const normalizedDate = new Date(
-                                    date.getFullYear(),
-                                    date.getMonth(),
-                                    date.getDate()
-                                    );
-
-                                    const localDateStr =
-                                    normalizedDate.getFullYear() +
-                                    "-" +
-                                    String(normalizedDate.getMonth() + 1).padStart(2, "0") +
-                                    "-" +
-                                    String(normalizedDate.getDate()).padStart(2, "0");
-
-                                    setFormData((prev) => ({
-                                    ...prev,
-                                    dob: localDateStr,
-                                    }));
-
-                                    setErrors((prev) => ({ ...prev, dob: "" }));
-                                    setShowCalendar(false);
-                                }}
-                                onCancel={() => setShowCalendar(false)}
-                                allowFuture={false} 
+                                Date of Birth
+                            </Form.Label>
+                            <div style={{ position: "relative" }}>
+                                <input
+                                    type="text"
+                                    readOnly
+                                    className={`form-control custom-placeholder ${errors.dob ? "is-invalid" : ""
+                                        }`}
+                                    value={
+                                        formData.dob
+                                            ? new Date(formData.dob + "T00:00:00").toLocaleDateString("en-GB")
+                                            : ""
+                                    }
+                                    placeholder="Select Date of Birth"
+                                    onClick={() => setShowCalendar((prev) => !prev)} // Toggle calendar
+                                    style={{ cursor: "pointer" }}
                                 />
+
+                                {/* Calendar icon */}
+                                <img
+                                    src="/Calendar.png"
+                                    alt="calendar icon"
+                                    style={{
+                                        position: "absolute",
+                                        right: "10px",
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        width: "18px",
+                                        height: "18px",
+                                        pointerEvents: "none",
+                                    }}
+                                />
+
+                                {/* Error */}
+                                {errors.dob && <div style={errorStyle}>{errors.dob}</div>}
+
+                                {/* Calendar dropdown */}
+                                {showCalendar && (
+                                    <div
+                                        style={{
+                                            position: "absolute",
+                                            zIndex: 2000,
+                                            top: "100%",
+                                            left: 0,
+                                            background: "white",
+                                            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                                            marginTop: "4px",
+                                            borderRadius: "6px",
+                                        }}
+                                    >
+                                        <MiniCalendar
+                                            selectedDate={formData.dob ? new Date(formData.dob) : null}
+                                            onDateChange={(date) => {
+                                                if (!date) return;
+
+                                                const normalizedDate = new Date(
+                                                    date.getFullYear(),
+                                                    date.getMonth(),
+                                                    date.getDate()
+                                                );
+
+                                                const localDateStr =
+                                                    normalizedDate.getFullYear() +
+                                                    "-" +
+                                                    String(normalizedDate.getMonth() + 1).padStart(2, "0") +
+                                                    "-" +
+                                                    String(normalizedDate.getDate()).padStart(2, "0");
+
+                                                setFormData((prev) => ({
+                                                    ...prev,
+                                                    dob: localDateStr,
+                                                }));
+
+                                                setErrors((prev) => ({ ...prev, dob: "" }));
+                                                setShowCalendar(false);
+                                            }}
+                                            onCancel={() => setShowCalendar(false)}
+                                            allowFuture={false}
+                                        />
+                                    </div>
+                                )}
                             </div>
-                            )}
                         </div>
-                        </div>   
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={labelStyle}>Mobile No.</Form.Label>
                             <Form.Control
@@ -776,18 +780,18 @@ export default function Vendor() {
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={labelStyle}>Email</Form.Label>
                             <Form.Control
-                            className="custom-placeholder"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            onBlur={handleEmailBlur}
-                            placeholder="Enter Email"
-                            size="sm"
-                            isInvalid={!!errors.email}
-                            style={getInputStyle("email")}
+                                className="custom-placeholder"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                onBlur={handleEmailBlur}
+                                placeholder="Enter Email"
+                                size="sm"
+                                isInvalid={!!errors.email}
+                                style={getInputStyle("email")}
                             />
                             <Form.Control.Feedback type="invalid" style={errorStyle}>
-                            {errors.email}
+                                {errors.email}
                             </Form.Control.Feedback>
                         </div>
                         <div className="col-6 mb-2">
@@ -899,7 +903,7 @@ export default function Vendor() {
                                 styles={customSelectStyles}
                                 components={{ Option: SimpleOption }}
                                 classNamePrefix="react-select"
-                                isDisabled={!formData.state} 
+                                isDisabled={!formData.state}
                                 errors={errors}
                             />
                             {errors.district && <div style={errorStyle}>{errors.district}</div>}
@@ -921,7 +925,7 @@ export default function Vendor() {
                             </Form.Control.Feedback>
                         </div>
                     </div>
-                    
+
                     <div className="d-flex justify-content-end py-3 px-2">
                         <Button variant="secondary" className="me-2" onClick={closeForm}>
                             Cancel

@@ -201,9 +201,14 @@ export default function DistrictPage() {
           <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchDistricts}>
             <i className="bi bi-arrow-clockwise"></i>
           </Button>
-          <Button variant="success" size="sm" onClick={handleAddNewClick}>
-            + Add District
+          <Button
+            size="sm"
+            onClick={handleAddNewClick}
+            style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
+          >
+            + Add New
           </Button>
+
         </div>
       </div>
 

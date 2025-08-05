@@ -94,6 +94,11 @@ const handleGenerateReturnInvoice = (returnId) => {
           <Button
             variant="success"
             size="sm"
+            style={{
+              backgroundColor: '#2FA64F',
+              borderColor: '#2FA64F',
+              color: '#fff',
+            }}
             onClick={() => navigate('/returns/add')}
           >
             + Add Return

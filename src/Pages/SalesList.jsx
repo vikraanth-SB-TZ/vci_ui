@@ -167,6 +167,11 @@ export default function SalesListPage() {
           <Button
             variant="success"
             size="sm"
+            style={{
+              backgroundColor: '#2FA64F',
+              borderColor: '#2FA64F',
+              color: '#fff',
+            }}
             onClick={() => navigate("/sales/add")}
           >
             + Add New

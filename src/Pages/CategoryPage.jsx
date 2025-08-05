@@ -119,31 +119,31 @@ export default function CategoryPage() {
 
   const MySwal = withReactContent(Swal);
 
-const handleDelete = async (id) => {
-  const result = await MySwal.fire({
-    title: 'Are you sure?',
-    text: 'Do you really want to delete this category?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Yes, delete it!',
-  });
+  const handleDelete = async (id) => {
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: 'Do you really want to delete this category?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    });
 
-  if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-  try {
-    if ($.fn.DataTable.isDataTable(tableRef.current)) {
-      $(tableRef.current).DataTable().destroy();
+    try {
+      if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
+      }
+
+      await axios.delete(`${API_BASE_URL}/categories/${id}`);
+      toast.success('Category deleted!');
+      await fetchCategories();
+    } catch (error) {
+      toast.error('Failed to delete category!');
     }
-
-    await axios.delete(`${API_BASE_URL}/categories/${id}`);
-    toast.success('Category deleted!');
-    await fetchCategories();
-  } catch (error) {
-    toast.error('Failed to delete category!');
-  }
-};
+  };
 
 
   return (
@@ -155,9 +155,19 @@ const handleDelete = async (id) => {
           <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchCategories}>
             <i className="bi bi-arrow-clockwise"></i>
           </Button>
-          <Button variant="success" size="sm" onClick={handleAddNewClick}>
+          <Button
+            size="sm"
+            onClick={handleAddNewClick}
+            style={{
+              backgroundColor: '#2FA64F',
+              borderColor: '#2FA64F',
+              color: '#fff',
+
+            }}
+          >
             + Add New
           </Button>
+
         </div>
       </div>
 

@@ -86,28 +86,42 @@ export default function Sidebar({ collapsed }) {
               e.preventDefault();
               handleLinkClick("overview");
             }}
-            className={linkClass("overview")}
+            className="d-flex align-items-center"
+            style={{
+              backgroundColor: isActive("overview") ? "#278C582E" : "transparent",
+              borderRadius: "8px",
+              padding: "12px",
+              textDecoration: "none",
+              marginBottom: "8px",
+              transition: "background-color 0.2s",
+            }}
           >
             <img
               src={isActive("overview") ? "/Overviiew_G.png" : "/squares.png"}
               alt="Overview"
               style={{
                 width: "18px",
-                filter: isActive("overview")
-                  ? "none"
-                  : "brightness(0) invert(1)",
+                height: "18px",
+                filter: isActive("overview") ? "none" : "brightness(0) invert(1)",
+                transition: "filter 0.2s",
               }}
             />
             {!collapsed && (
               <span
                 style={{
-                  color: isActive("overview") ? "#28a745" : "white",
+                  color: isActive("overview") ? "#28a745" : "#ffffff",
+                  marginLeft: "12px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  whiteSpace: "nowrap",
+                  transition: "color 0.2s",
                 }}
               >
                 Overview
               </span>
             )}
           </a>
+
         </div>
 
         {/* Basics */}

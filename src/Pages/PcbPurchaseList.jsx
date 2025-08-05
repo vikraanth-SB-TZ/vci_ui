@@ -87,16 +87,21 @@ const handleGenerateInvoice = (purchaseId) => {
   return (
     <div className="w-100 py-4 bg-white" style={{ minHeight: '100vh', fontFamily: 'Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,Product Sans', fontSize: '14px', fontWeight: '500' }}>
       <div className="d-flex justify-content-between align-items-center mb-3 px-4">
-        <h4 className="fw-semibold text-dark mb-0 fs-4">
-          Purchase List <span className="text-dark fw-semibold">({purchaseData.length})</span>
-        </h4>
+        <h5 className="fw-bold  mb-0 ">
+          Purchase List <span className="text-dark fw-bold">({purchaseData.length})</span>
+        </h5>
 
       <div className="d-flex gap-2">
   <Button variant="outline-secondary p-0" style={{ width: '38px', height: '38px' }} onClick={fetchPurchases}>
     <i className="bi bi-arrow-clockwise fs-5 text-secondary"></i>
   </Button>
-  <Button variant="success" onClick={() => navigate('/purchase/add')}>
-    <i className="bi bi-plus-lg me-1"></i> Add Purchase
+  <Button variant="success" style={{
+                        backgroundColor: '#2FA64F',
+                        borderColor: '#2FA64F',
+                        color: '#fff',
+
+                    }} onClick={() => navigate('/purchase/add')}>
+    <i className="bi bi-plus-lg me-1"></i> Add New
   </Button>
 </div>
 
