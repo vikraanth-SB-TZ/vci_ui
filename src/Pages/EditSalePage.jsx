@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button, Form, Row, Col, Table } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -20,6 +20,8 @@ export default function EditSalePage() {
   const [originalSerials, setOriginalSerials] = useState([]);
   const [availableSerials, setAvailableSerials] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [quantityError, setQuantityError] = useState('');
+  const errorTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
     customer_id: '',
@@ -189,29 +191,59 @@ export default function EditSalePage() {
     }
   }, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
 
-  
-
-
 
   useEffect(() => {
-  const qty = parseInt(formData.quantity || 0, 10);
-  const current = formData.serial_numbers;
-
-  if (availableSerials.length && current.length < qty) {
-    const needed = qty - current.length;
-    const toAdd = availableSerials.filter(
+    const qty = parseInt(formData.quantity || 0, 10);
+    const current = formData.serial_numbers;
+    const availableCount = availableSerials.filter(
       sn => !current.some(c => c.serial_no === sn.serial_no)
-    ).slice(0, needed);
+    ).length;
+    const totalAvailable = current.length + availableCount;
 
-    if (toAdd.length > 0) {
+    if (qty > totalAvailable) {
+      setTimeout(() => {
+        setQuantityError(`Only ${totalAvailable} serials are available, but you requested ${qty}.`);
+      },100);
+      const needed = totalAvailable - current.length;
+      const toAdd = availableSerials
+        .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
+        .slice(0, needed);
+
+      const newSerials = [...current, ...toAdd];
+
       setFormData(prev => ({
         ...prev,
-        serial_numbers: [...current, ...toAdd],
+        serial_numbers: newSerials,
+        quantity: newSerials.length
       }));
-    }
-  }
-}, [formData.quantity, availableSerials]);
 
+    }
+    else {
+      setQuantityError('');
+
+      if (current.length > qty) {
+        const trimmed = current.slice(0, qty);
+        setFormData(prev => ({
+          ...prev,
+          serial_numbers: trimmed,
+          quantity: trimmed.length
+        }));
+      } else if (current.length < qty) {
+        const needed = qty - current.length;
+        const toAdd = availableSerials
+          .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
+          .slice(0, needed);
+
+        if (toAdd.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            serial_numbers: [...current, ...toAdd],
+            quantity: current.length + toAdd.length
+          }));
+        }
+      }
+    }
+  }, [formData.quantity, availableSerials]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -233,18 +265,6 @@ export default function EditSalePage() {
     }
 
     const finalSerials = uniqueSerials.slice(0, requiredQty);
-
-//     if (availableSerials.length + originalSerials.length < requiredQty) {
-//   toast.error(`Only ${availableSerials.length + originalSerials.length} serials are available. You requested ${requiredQty}.`);
-//   return;
-// }
-
-    // if (finalSerials.length < requiredQty) {
-    //   alert(`Only ${finalSerials.length} serials assigned. Please assign ${requiredQty}.`);
-    //   return;
-    // }
-
-
 
     axios.put(`${API_BASE_URL}/salesUpdate/${id}`, updatedFormData)
       .then(() => {
@@ -315,7 +335,18 @@ export default function EditSalePage() {
         <Row className="mb-3 g-2">
           <Col md={4}>
             <Form.Label>Quantity</Form.Label>
-            <Form.Control size="sm" name="quantity" value={formData.quantity} onChange={handleChange} />
+            <Form.Control
+              size="sm"
+              name="quantity"
+              value={formData.quantity}
+              onChange={handleChange}
+              isInvalid={!!quantityError}
+            />
+            {quantityError && (
+              <div className="text-danger mt-1" style={{ fontSize: '0.875rem' }}>
+                {quantityError}
+              </div>
+            )}
           </Col>
 
           <Col md={4}>
@@ -334,89 +365,47 @@ export default function EditSalePage() {
             <Form.Control size="sm" name="shipment_name" value={formData.shipment_name} onChange={handleChange} />
           </Col>
         </Row>
-
+        Product Serial No. (Already Sold for this Sale)
         <Form.Label className="mb-2 text-dark fw-normal">
-          Product Serial No. (Already Sold for this Sale)
           <Button variant="outline-secondary" className="ms-2" onClick={() => setShowModal(true)}>
-            Product
+            Add Product
           </Button>
         </Form.Label>
-       <div className="w-100 d-flex flex-wrap gap-2 mb-3">
-  {/* Already added serials */}
-  {formData.serial_numbers.map((item, idx) => (
-    <div
-      key={idx}
-      className="d-flex align-items-center border rounded-3 px-2 py-1"
-      style={{ width: '105px', backgroundColor: '#F8F9FA', position: 'relative' }}
-    >
-      <Form.Control
-        type="text"
-        size="sm"
-        value={item.serial_no}
-        onChange={(e) => handleSerialChange(idx, e.target.value)}
-        className="shadow-none bg-transparent border-0 p-0 flex-grow-1"
-        style={{ minWidth: 0 }}
-      />
-      <Button
-        variant="link"
-        size="sm"
-        onClick={() => handleRemoveSerial(idx)}
-        style={{
-          color: '#dc3545',
-          textDecoration: 'none',
-          fontWeight: 'bold',
-          fontSize: '0.8rem',
-          marginLeft: '2px',
-          padding: 0
-        }}
-      >
-        ×
-      </Button>
-    </div>
-  ))}
+        <div className="w-100 d-flex flex-wrap gap-2 mb-3">
+          {/* Already added serials */}
+          {formData.serial_numbers.map((item, idx) => (
+            <div
+              key={idx}
+              className="d-flex align-items-center border rounded-3 px-2 py-1"
+              style={{ width: '105px', backgroundColor: '#F8F9FA', position: 'relative' }}
+            >
+              <Form.Control
+                type="text"
+                size="sm"
+                value={item.serial_no}
+                onChange={(e) => handleSerialChange(idx, e.target.value)}
+                className="shadow-none bg-transparent border-0 p-0 flex-grow-1"
+                style={{ minWidth: 0 }}
+              />
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => handleRemoveSerial(idx)}
+                style={{
+                  color: '#dc3545',
+                  textDecoration: 'none',
+                  fontWeight: 'bold',
+                  fontSize: '0.8rem',
+                  marginLeft: '2px',
+                  padding: 0
+                }}
+              >
+                ×
+              </Button>
+            </div>
+          ))}
 
-  {/* Dynamically show extra serial fields based on quantity
-  {Array.from({
-    length: Math.max(0, parseInt(formData.quantity || 0) - formData.serial_numbers.length)
-  }).map((_, i) => (
-    <div
-      key={`extra-${i}`}
-      className="d-flex align-items-center border rounded-3 px-2 py-1"
-      style={{ width: '105px', backgroundColor: '#e9ecef', opacity: 0.7 }}
-    >
-      <Form.Control
-        type="text"
-        size="sm"
-        value=""
-        readOnly
-        className="shadow-none bg-transparent border-0 p-0 flex-grow-1"
-        style={{ minWidth: 0 }}
-        placeholder="Pending"
-      />
-    </div>
-  ))} */}
-</div>
-
-        {/* 
-       {availableSerials.length > 0 && (
-  <>
-    <Form.Label className="mb-2 text-dark fw-normal">Available Product Serials</Form.Label>
-    <Row className="mb-3">
-      {availableSerials.map((sn, idx) => (
-        <Col key={idx} md={3} className="mb-2">
-          <Form.Control
-            type="text"
-            size="sm"
-            value={sn.serial_no}
-            disabled
-            className="shadow-none bg-light border-0 text-muted"
-          />
-        </Col>
-      ))}
-    </Row>
-  </>
-)} */}
-
+        </div>
 
         <Row className="mb-3">
           <Col md={4}>
