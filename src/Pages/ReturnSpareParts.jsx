@@ -303,7 +303,7 @@ export default function ReturnSparePartsPage() {
     } catch (error) {
       if (error.response) {
         console.error("Server responded with error:", error.response.status, error.response.data);
-        toast.error(`Server error (${error.response.status}): ${error.response.data?.message ?? "Please check form data or server logs."}`);
+        toast.error(error.response.data.error);
         setFormErrors(error.response.data.errors || {});
       } else if (error.request) {
         console.error("No response received:", error.request);
