@@ -21,25 +21,46 @@ export default function DashboardLayout({ onLogout }) {
   };
 
   return (
-    <header className="bg-white p-2 border-bottom">
+    <header className="p-2 border-bottom"
+      style={{ backgroundColor: '#2E3A590A' }}>
       <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
-        <InputGroup style={{ maxWidth: "300px", backgroundColor: "#F8F9FA", marginInlineStart:"20px", borderRadius:"10px" }}>
-          <InputGroup.Text style={{ backgroundColor: "#F8F9FA", border: "none" }}>
-            <img
-              src="/image.png" 
-              alt="search"
-              style={{ width: "16px", height: "16px", opacity: 0.6, }}
-            />
-          </InputGroup.Text>
-          <Form.Control
-            placeholder="Search"
-            style={{
-              backgroundColor: "#F8F9FA",
-              border: "none",
-              boxShadow: "none",
-            }}
-          />
-        </InputGroup>
+       <InputGroup
+  style={{
+    maxWidth: "300px",
+    backgroundColor: "#F4F4F8",
+    marginInlineStart: "20px",
+    borderRadius: "6px",
+    border: "1px solid #ced4da", // solid visible border
+    overflow: "hidden" // to keep border radius neat
+  }}
+>
+  <InputGroup.Text
+    style={{
+      backgroundColor: "#F4F4F8",
+      border: "none"
+    }}
+  >
+    <img
+      src="/image.png"
+      alt="search"
+      style={{
+        
+        width: "16px",
+        height: "16px",
+        opacity: 0.6
+      }}
+    />
+  </InputGroup.Text>
+  <Form.Control
+    placeholder="Search"
+    style={{
+     backgroundColor: "#F4F4F8",
+      border: "none",
+      boxShadow: "none"
+      
+    }}
+  />
+</InputGroup>
 
         <div className="d-flex align-items-center gap-3 position-relative">
           {/* Email display */}

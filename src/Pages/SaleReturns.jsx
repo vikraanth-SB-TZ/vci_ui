@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Button, Row, Col, Table } from 'react-bootstrap';
+import { Form, Button, Row, Col, Table, Card } from 'react-bootstrap';
 import Select from 'react-select';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
@@ -15,7 +15,6 @@ export default function SaleReturns() {
     const [reason, setReason] = useState('');
     const navigate = useNavigate();
 
-    // 🔹 Load all invoices for dropdown
     useEffect(() => {
         axios.get(`${API_BASE_URL}/invoice`)
             .then(res => {
@@ -25,19 +24,16 @@ export default function SaleReturns() {
                 }));
                 setInvoices(invoiceOptions);
             })
-            .catch(() => {
-                toast.error('Failed to load invoices');
-            });
+            .catch(() => toast.error('Failed to load invoices'));
     }, []);
 
-    // 🔹 Handle invoice change
     const handleInvoiceChange = (option) => {
         setSelectedInvoice(option);
         setSerials([]);
         setSaleId(null);
 
         axios.get(`${API_BASE_URL}/sale-return/invoice/${option.label}`)
-            .then((res) => {
+            .then(res => {
                 const data = res.data.products.map(item => ({
                     ...item,
                     checked: false,
@@ -46,9 +42,7 @@ export default function SaleReturns() {
                 setSerials(data);
                 setSaleId(res.data.sale_id);
             })
-            .catch(() => {
-                toast.error('No serial numbers found for this invoice');
-            });
+            .catch(() => toast.error('No serial numbers found for this invoice'));
     };
 
     const handleCheckboxChange = (idx) => {
@@ -57,124 +51,166 @@ export default function SaleReturns() {
         setSerials(updated);
     };
 
-    const handleSubmit = () => {
-    const selectedProducts = serials.filter(item => item.checked);
-
-    if (selectedProducts.length === 0) {
-        toast.error('Please select at least one product to return.');
-        return;
-    }
-
-    const payload = {
-        sale_id: saleId,
-        reason: reason,
-        products: selectedProducts.map(item => ({
-            sale_item_id: item.sale_item_id,
-            product_id: item.product_id,
-            remark: item.remark
-        }))
-    };
-
-    axios.post(`${API_BASE_URL}/sale-return-store`, payload)
-        .then(() => {
-            toast.success('Return processed successfully!');
-            // Reset state
-            setSelectedInvoice(null);
-            setSaleId(null);
-            setSerials([]);
-            setReason('');
-        })
-        .catch(err => {
-            toast.error('Failed to process return');
-            console.error(err.response?.data || err.message);
-        });
-};
-
-
     const handleRemarkChange = (idx, value) => {
         const updated = [...serials];
         updated[idx].remark = value;
         setSerials(updated);
     };
 
+    const handleSubmit = () => {
+        const selectedProducts = serials.filter(item => item.checked);
+        if (selectedProducts.length === 0) {
+            toast.error('Please select at least one product to return.');
+            return;
+        }
+
+        const payload = {
+            sale_id: saleId,
+            reason,
+            products: selectedProducts.map(item => ({
+                sale_item_id: item.sale_item_id,
+                product_id: item.product_id,
+                remark: item.remark
+            }))
+        };
+
+        axios.post(`${API_BASE_URL}/sale-return-store`, payload)
+            .then(() => {
+                toast.success('Return processed successfully!');
+                setSelectedInvoice(null);
+                setSaleId(null);
+                setSerials([]);
+                setReason('');
+            })
+            .catch(err => {
+                toast.error('Failed to process return');
+                console.error(err.response?.data || err.message);
+            });
+    };
+
     return (
-     <div className="p-4 bg-white vh-100">
+        <div className="container py-4">
+            <h4 className="mb-4 fw-bold text-dark">Sales Return</h4>
 
-            <h5>Sale Return</h5>
-
-            <Row className="mb-3">
-                <Col md={6}>
-                    <Form.Label>Select Invoice</Form.Label>
-                    <Select
-                        options={invoices}
-                        value={selectedInvoice}
-                        onChange={handleInvoiceChange}
-                        placeholder="Select Invoice"
-                    />
-                </Col>
-            </Row>
-
-            <Row className="mb-3">
-                <Col>
-                    <Form.Label>Reason</Form.Label>
-                    <Form.Control
-                        as="textarea"
-                        rows={2}
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                        placeholder="Optional reason"
-                    />
-                </Col>
-            </Row>
-
-            {serials.length > 0 && (
-                <Table hover size="sm">
-                    <thead>
-                        <tr>
-                            <th  className='fw-semibold'>Sno</th>
-                            <th  className='fw-semibold'>Serial No</th>
-                            <th  className='fw-semibold'>Remark</th>
-                            <th  className='fw-semibold'>Return?</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {serials.map((item, idx) => (
-                            <tr key={idx}>
-                                <td>{idx + 1}</td>
-                                <td>{item.serial_no}</td>
-                                <td>
-                                    <Form.Control
-                                        type="text"
-                                        value={item.remark}
-                                        onChange={(e) => handleRemarkChange(idx, e.target.value)}
+            <Card className="shadow-sm border-0">
+                <Card.Body>
+                    {/* Top 2-column Layout */}
+                    <Row className="mb-4">
+                        {/* Left Side: Invoice & Reason */}
+                        <Col md={6}>
+                            <section className="mb-4">
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="fw-semibold">Invoice No.</Form.Label>
+                                    <Select
+                                        options={invoices}
+                                        value={selectedInvoice}
+                                        onChange={handleInvoiceChange}
+                                        placeholder="Search invoice..."
+                                        classNamePrefix="react-select"
                                     />
-                                </td>
-                                <td className="text-center">
-                                    <Form.Check
-                                        type="checkbox"
-                                        checked={item.checked}
-                                        onChange={() => handleCheckboxChange(idx)}
-                                    />
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
-            )}
-           <div className="text-end mt-3">
-                <Button
-                            variant="secondary"
-                        
-                            className="me-2"
-                            onClick={() => navigate(-1)}
-                          >
+                                </Form.Group>
+                            </section>
+
+                            <section>
+                                <h6 className="fw-semibold mb-2">Reason for Return</h6>
+                                <Form.Control
+                                    as="textarea"
+                                    rows={3}
+                                    value={reason}
+                                    onChange={(e) => setReason(e.target.value)}
+                                    placeholder="Write reason if any..."
+                                />
+                            </section>
+
+                        </Col>
+
+                        {/* Right Side: Product Details */}
+                        <Col md={6}>
+                            <section>
+                                <h6 className="fw-semibold mb-2">Product Details</h6>
+                                <div
+                                    style={{
+                                        backgroundColor: '#e3e3e6',
+                                        padding: '14px 18px',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        lineHeight: '1.6',
+                                    }}
+                                >
+                                    <Row className="gx-4 gy-2 text-muted">
+                                        <Col md={6}><span className="text-dark fw-semibold">Customer:</span> ABC Customer</Col>
+                                        <Col md={6}><span className="text-dark fw-semibold">Batch:</span> Batch #123</Col>
+                                        {/* <Col md={6}><span className="text-dark fw-semibold">Category:</span> Electronics</Col> */}
+                                        {/* <Col md={6}><span className="text-dark fw-semibold">Quantity:</span> 10</Col> */}
+                                        <Col md={6}><span className="text-dark fw-semibold">From Serial:</span> SN1001</Col>
+                                        <Col md={6}><span className="text-dark fw-semibold">Shipment:</span> FedEx Express</Col>
+                                        <Col md={6}><span className="text-dark fw-semibold">Product Serial No.:</span> PSN-56789</Col>
+                                        <Col md={6}><span className="text-dark fw-semibold">Ship Date:</span> 04-08-2025</Col>
+                                        <Col md={6}><span className="text-dark fw-semibold">Delivery Date:</span> 06-08-2025</Col>
+                                        {/* <Col md={6}><span className="text-dark fw-semibold">Tracking No.:</span> TRK987654321</Col> */}
+                                        {/* <Col md={12}><span className="text-dark fw-semibold">Notes:</span> Package slightly damaged upon return</Col> */}
+                                    </Row>
+                                </div>
+                            </section>
+                        </Col>
+                    </Row>
+
+                    {/* Returnable Products Table */}
+                    {serials.length > 0 && (
+                        <section className="mb-4">
+                            <h6 className="fw-semibold mb-2">Returnable Products</h6>
+                            <div className="table-responsive">
+                                <Table bordered hover size="sm" className="align-middle">
+                                    <thead className="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Serial No</th>
+                                            <th>Remark</th>
+                                            <th className="text-center">Return?</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {serials.map((item, idx) => (
+                                            <tr key={idx}>
+                                                <td>{idx + 1}</td>
+                                                <td>{item.serial_no}</td>
+                                                <td>
+                                                    <Form.Control
+                                                        size="sm"
+                                                        type="text"
+                                                        value={item.remark}
+                                                        onChange={(e) => handleRemarkChange(idx, e.target.value)}
+                                                        placeholder="Enter remark"
+                                                    />
+                                                </td>
+                                                <td className="text-center">
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        checked={item.checked}
+                                                        onChange={() => handleCheckboxChange(idx)}
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </div>
+                        </section>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="d-flex justify-content-end gap-2 mt-3">
+                        <Button variant="outline-secondary" onClick={() => navigate(-1)}>
                             Cancel
-                          </Button>
-            <Button variant="success" className='text-end' onClick={handleSubmit}>
-                Return
-            </Button>
-            </div>
-             <ToastContainer position="top-right" autoClose={3000} />
+                        </Button>
+                        <Button variant="success" onClick={handleSubmit}>
+                            Submit Return
+                        </Button>
+                    </div>
+                </Card.Body>
+            </Card>
+
+            <ToastContainer position="top-right" autoClose={3000} />
         </div>
     );
 }
