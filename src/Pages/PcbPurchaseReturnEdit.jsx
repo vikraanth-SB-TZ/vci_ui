@@ -67,7 +67,16 @@ export default function EditPurchaseReturnPage() {
   return (
     <div className="bg-white min-vh-100 p-4">
       <h5>Edit Purchase Return</h5>
-
+     <div className='text-end pt-0'>
+             <Button
+                variant="secondary"
+            
+                className="me-2"
+                onClick={() => navigate(-1)}
+              >
+                <i className="bi bi-arrow-left" />  Back
+              </Button>
+      </div>
 
 
       <Form.Group>

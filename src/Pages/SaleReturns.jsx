@@ -102,8 +102,11 @@ export default function SaleReturns() {
 
     return (
         <div className="container py-4">
+              <div className="d-flex justify-content-between align-items-center mb-4">
             <h4 className="mb-4 fw-bold text-dark">Sales Return</h4>
-
+            <Button variant="outline-secondary" onClick={() => navigate('/salesReturn')}>
+                    <i className="bi bi-arrow-left" /> Back
+                  </Button></div>
             <Card className="shadow-sm border-0">
                 <Card.Body>
                     {/* Top 2-column Layout */}

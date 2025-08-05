@@ -72,23 +72,23 @@ export default function Vendor() {
         loadInitialData();
     }, []);
 
-    useEffect(() => {
-        if (!loading && vendors.length > 0) {
-            $(tableRef.current).DataTable({
-                destroy: true,
-                ordering: true,
-                paging: true,
-                searching: true,
-                lengthChange: true,
-                columnDefs: [{ targets: 0, className: "text-center" }],
-            });
-        }
-        return () => {
-            if ($.fn.DataTable.isDataTable(tableRef.current)) {
-                $(tableRef.current).DataTable().destroy();
-            }
-        };
-    }, [vendors, loading]);
+    // useEffect(() => {
+    //     if (!loading && vendors.length > 0) {
+    //         $(tableRef.current).DataTable({
+    //             destroy: true,
+    //             ordering: true,
+    //             paging: true,
+    //             searching: true,
+    //             lengthChange: true,
+    //             columnDefs: [{ targets: 0, className: "text-center" }],
+    //         });
+    //     }
+    //     return () => {
+    //         if ($.fn.DataTable.isDataTable(tableRef.current)) {
+    //             $(tableRef.current).DataTable().destroy();
+    //         }
+    //     };
+    // }, [vendors, loading]);
 
     useEffect(() => {
         if (formData.state) {
@@ -307,21 +307,14 @@ export default function Vendor() {
             : axios.post(`${API_BASE_URL}/vendors`, payload);
 
         request
-            .then((res) => {
+            .then(async(res) => {
                 const newVendor = res.data?.data || payload;
 
                 toast.success(isEditing ? "Vendor updated successfully!" : "Vendor added successfully!", {
                     autoClose: 1500,
                 });
 
-                if (isEditing) {
-                    setVendors((prev) =>
-                        prev.map((v) => (v.id === formData.id ? { ...v, ...newVendor } : v))
-                    );
-                } else {
-
-                    setVendors((prev) => [...prev, newVendor]);
-                }
+                await refreshVendors();
 
                 closeForm();
             })
@@ -503,6 +496,36 @@ export default function Vendor() {
         return state ? state.state : '';
     };
 
+    const refreshVendors = async () => {
+    setLoading(true);
+    try {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+        $(tableRef.current).DataTable().destroy();
+        }
+
+        const res = await axios.get(`${API_BASE_URL}/vendors`);
+        const rows = Array.isArray(res.data.data) ? res.data.data : res.data;
+        setVendors(rows);
+
+        setTimeout(() => {
+        if (tableRef.current) {
+            $(tableRef.current).DataTable({
+            ordering: true,
+            paging: true,
+            searching: true,
+            lengthChange: true,
+            columnDefs: [{ targets: 0, className: "text-center" }],
+            });
+        }
+        }, 100); // wait for DOM update
+    } catch (err) {
+        toast.error("Failed to reload vendors.", { autoClose: 1500 });
+    } finally {
+        setLoading(false);
+    }
+    };
+
+
     const getDistrictNameById = (districtId) => {
         const district = districtsForTable.find(d => String(d.id) === String(districtId));
         return district ? district.district : '';
@@ -515,35 +538,17 @@ export default function Vendor() {
 
                 <div className="d-flex gap-2">
                     <Button
-                        variant="outline-secondary"
-                        size="sm"
-
-                        onClick={() => {
-                            setLoading(true);
-                            axios
-                                .get(`${apiBase}/vendors`)
-                                .then((res) => {
-                                    const rows = Array.isArray(res.data.data) ? res.data.data : res.data;
-                                    setVendors(rows);
-                                    toast.success("Vendors reloaded!", {
-                                        toastId: "vendors-loaded-refresh",
-                                        autoClose: 1500,
-                                    });
-                                })
-                                .catch(() => {
-                                    toast.error("Failed to reload vendors.", { autoClose: 1500 });
-                                })
-                                .finally(() => setLoading(false));
-                        }}
-                        disabled={loading}
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={refreshVendors}
+                    disabled={loading}
                     >
-                        {loading ? (
-                            <Spinner animation="border" size="sm" />
-                        ) : (
-                            <i className="bi bi-arrow-clockwise"></i>
-                        )}
+                    {loading ? (
+                        <Spinner animation="border" size="sm" />
+                    ) : (
+                        <i className="bi bi-arrow-clockwise"></i>
+                    )}
                     </Button>
-
                     <Button variant="success" size="sm" onClick={openForm} style={{
                         backgroundColor: '#2FA64F',
                         borderColor: '#2FA64F',
