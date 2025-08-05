@@ -196,7 +196,7 @@ export default function Vendor() {
                 }
             }
             if (name === "email") {
-                const emailRegex = /^\S+@\S+\.\S+$/;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.(com)$/i;
                 if (!value.trim()) {
                     setErrors(prev => ({ ...prev, [name]: "Email is required." }));
                 } else if (!emailRegex.test(value)) {
@@ -204,6 +204,21 @@ export default function Vendor() {
                 } else {
                     setErrors(prev => ({ ...prev, [name]: "" }));
                 }
+            }
+            if (name === "gst") {
+                if (!/^[0-9A-Z]*$/.test(value)) {
+                    return;
+                }
+                if (value.length > 15) {
+                    return;
+                }
+
+                setFormData(prev => ({ ...prev, [name]: value }));
+
+                if (value.length === 15) {
+                    setErrors(prev => ({ ...prev, [name]: "" }));
+                }
+                return;
             }
         }
 
@@ -241,7 +256,7 @@ export default function Vendor() {
         if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
         if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
         if (!formData.email.trim()) newErrors.email = "Email is required.";
-        else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email address is invalid.";
+        else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
         if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
         else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
         if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) newErrors.altMobile = "Alternative mobile number must be 10 digits.";
