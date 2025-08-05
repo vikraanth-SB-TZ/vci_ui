@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Button } from 'react-bootstrap';
+import { Button, Spinner } from 'react-bootstrap'; 
+
 import axios from 'axios';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useNavigate } from 'react-router-dom';
@@ -14,17 +15,24 @@ export default function PurchaseListPage() {
   const navigate = useNavigate();
   const tableRef = useRef(null);
   const hasFetched = useRef(false);
+const [loading, setLoading] = useState(false);
 
   const [purchaseData, setPurchaseData] = useState([]);
 
-  const fetchPurchases = () => {
-    axios.get(`${API_BASE_URL}/purchase`)
-      .then(res => setPurchaseData(res.data))
-      .catch(err => {
-        console.error('Error fetching purchase list:', err);
-        toast.error('Failed to fetch purchase list.');
-      });
-  };
+const fetchPurchases = () => {
+  setLoading(true);
+  axios
+    .get(`${API_BASE_URL}/purchase`)
+    .then(res => setPurchaseData(res.data))
+    .catch(err => {
+      console.error('Error fetching purchase list:', err);
+      toast.error('Failed to fetch purchase list.');
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+};
+
 
   useEffect(() => {
     if (hasFetched.current) return;
@@ -81,9 +89,6 @@ const handleGenerateInvoice = (purchaseId) => {
   }
 };
 
-
-
-
   return (
     <div className="w-100 py-4 bg-white" style={{ minHeight: '100vh', fontFamily: 'Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,Product Sans', fontSize: '14px', fontWeight: '500' }}>
       <div className="d-flex justify-content-between align-items-center mb-3 px-4">
@@ -92,9 +97,21 @@ const handleGenerateInvoice = (purchaseId) => {
         </h5>
 
       <div className="d-flex gap-2">
-  <Button variant="outline-secondary p-0" style={{ width: '38px', height: '38px' }} onClick={fetchPurchases}>
+<Button
+  variant="outline-secondary p-0"
+  style={{ width: '38px', height: '38px' }}
+  onClick={() => {
+    if (!loading) fetchPurchases();
+  }}
+  disabled={loading}
+>
+  {loading ? (
+    <Spinner animation="border" size="sm" className="text-secondary" />
+  ) : (
     <i className="bi bi-arrow-clockwise fs-5 text-secondary"></i>
-  </Button>
+  )}
+</Button>
+
   <Button variant="success" style={{
                         backgroundColor: '#2FA64F',
                         borderColor: '#2FA64F',
@@ -106,61 +123,63 @@ const handleGenerateInvoice = (purchaseId) => {
 </div>
 
       </div>
+    <div className="mx-4 shadow-sm overflow-hidden" style={{ borderRadius: '0.5rem' }}>
+      <div className="table-responsive">
+  <table ref={tableRef} className="table custom-table">
+    <thead>
+      <tr>
+        <th style={{ width: "60px", textAlign: "start" }}>S.No</th>
+        <th>Vendor</th>
+        <th>Invoice No</th>
+        <th>Invoice Date</th>
+        <th>Batch</th>
+        <th>Category</th>
+        <th>Quantity</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {loading ? (
+        <tr>
+          <td colSpan="8" className="text-center py-4">
+            <Spinner animation="border" />
+          </td>
+        </tr>
+      ) : purchaseData.length === 0 ? (
+        <tr>
+          <td colSpan="8" className="text-center py-4 text-muted">
+            No purchase data available
+          </td>
+        </tr>
+      ) : (
+        purchaseData.map((item, index) => (
+          <tr key={item.id}>
+             <td className="fw-normal">{index + 1}</td>
+    <td className="fw-normal">{item.vendor}</td>
+    <td className="fw-normal">{item.invoice_no}</td>
+    <td className="fw-normal">{item.invoice_date}</td>
+    <td className="fw-normal">{item.batch}</td>
+    <td className="fw-normal">{item.category}</td>
+    <td className="fw-normal">{item.quantity}</td>
+            <td className="py-2 pe-1 d-flex gap-2">
+              <Button variant="outline-success" size="sm" onClick={() => handleGenerateInvoice(item.id)}>
+                <i className="bi bi-file-earmark-pdf"></i>
+              </Button>
+              <Button variant="outline-info" size="sm" onClick={() => handleEdit(item)}>
+                <i className="bi bi-pencil-square"></i>
+              </Button>
+              <Button variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>
+                <i className="bi bi-trash"></i>
+              </Button>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
+</div>
 
-      <div className="shadow-sm overflow-hidden mx-4" style={{ borderRadius: '0.5rem' }}>
-        <table ref={tableRef} className="table table-hover table-sm table-border mb-0 w-100">
-          <thead>
-            <tr className="border-bottom border-secondary-subtle">
-              <th className="text-dark fw-semibold py-3 ps-4" style={{ backgroundColor: '#f3f7faff' }}>Sno</th>
-              <th className="text-dark fw-medium py-3" style={{ backgroundColor: '#f3f7faff' }}>Vendor</th>
-              <th className="text-dark fw-medium py-3" style={{ backgroundColor: '#f3f7faff' }}>Invoice no</th>
-              <th className="text-dark fw-medium py-3" style={{ backgroundColor: '#f3f7faff' }}>Invoice Date</th>
-              <th className="text-dark fw-medium py-3" style={{ backgroundColor: '#f3f7faff' }}>Batch</th>
-              <th className="text-dark fw-medium py-3" style={{ backgroundColor: '#f3f7faff' }}>Category</th>
-              <th className="text-dark fw-medium py-3" style={{ backgroundColor: '#f3f7faff' }}>Quantity</th>
-              <th className="text-dark fw-medium py-3" style={{ backgroundColor: '#f3f7faff' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {purchaseData.length === 0 ? (
-              <tr>
-                <td colSpan="8" className="text-center py-4 text-secondary">No purchase data available</td>
-              </tr>
-            ) : (
-              purchaseData.map((item, index) => (
-                <tr key={item.id}>
-                  <td className="py-2 ps-4 text-dark">{String(index + 1).padStart(2, '0')}</td>
-                  <td className="py-2 text-dark">{item.vendor}</td>
-                  <td className="py-2 text-dark">{item.invoice_no}</td>
-                  <td className="py-2 text-dark">{item.invoice_date}</td>
-                  <td className="py-2 text-dark">{item.batch}</td>
-                  <td className="py-2 text-dark">{item.category}</td>
-                  <td className="py-2 text-dark">{item.quantity}</td>
-                  <td className="py-2 pe-1 d-flex gap-2">
-                    <Button variant="outline-success " size="sm" onClick={() => handleGenerateInvoice(item.id)}>
-                      <i className="bi bi-file-earmark-pdf"></i>
-                    </Button>
-                    {/* <Button variant="outline-primary rounded-circle" size="sm">
-                      <i className="bi bi-eye"></i>
-                    </Button> */}
-                    <Button variant="outline-info" size="sm" onClick={() => handleEdit(item)}>
-                      <i className="bi bi-pencil-square"></i>
-                    </Button>
-<Button
-  variant="outline-danger"
-  size="sm"
-  onClick={() => handleDelete(item.id)} 
->
-  <i className="bi bi-trash"></i>
-</Button>
-
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
 
       <ToastContainer position="top-right" autoClose={2500} hideProgressBar={false} newestOnTop />
     </div>
