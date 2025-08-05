@@ -76,7 +76,7 @@ export default function VciCustomer() {
     useEffect(() => {
         if (!loading && customers.length > 0) {
             $(tableRef.current).DataTable({
-                destroy: true, // This is crucial for re-initialization
+                destroy: true, 
                 ordering: true,
                 paging: true,
                 searching: true,
@@ -95,7 +95,7 @@ export default function VciCustomer() {
         if (formData.state) {
             fetchDistrictsForForm(formData.state);
         } else {
-            setDistrictsForForm([]); // Clear form districts if state is not selected
+            setDistrictsForForm([]); 
         }
     }, [formData.state]);
 
@@ -121,14 +121,11 @@ export default function VciCustomer() {
         if (selectName) {
             name = selectName;
             value = e ? e.value : "";
-            if (selectName === "state") {
-                setFormData(prev => ({ ...prev, district: "" }));
-            }
         } else {
             name = e.target.name;
             value = e.target.value;
 
-            if (["first_name", "last_name", "city"].includes(name)) {
+            if (["first_name", "last_name", "city", "company_name", "address"].includes(name)) {
                 if (!/^[A-Za-z\s]*$/.test(value)) {
                     setErrors(prev => ({ ...prev, [name]: "Only alphabets are allowed." }));
                     return;
@@ -137,36 +134,108 @@ export default function VciCustomer() {
                 }
             }
 
+            if ((name === "mobile" || name === "altMobile")) {
+                if (!/^\d*$/.test(value)) {
+                    return;  
+                }
 
-            if ((name === "mobile" || name === "altMobile") && /\D/.test(value)) {
-                if (!toast.isActive(toastIdRef.current)) {
-                    toastIdRef.current = toast.error(`${name === "mobile" ? "Mobile" : "Alt Mobile"} should contain only numbers`, {
-                        autoClose: 1500,
-                    });
+                if (value.length > 10) {
+                    return;
+                }
+
+                setFormData(prev => ({ ...prev, [name]: value }));
+
+                if (value.length === 10) {
+                    setErrors(prev => ({ ...prev, [name]: "" }));
                 }
                 return;
-            } else if (toast.isActive(toastIdRef.current)) {
-                toast.dismiss(toastIdRef.current);
             }
+
+            if (name === "pincode") {
+                if (!/^\d*$/.test(value)) {
+                    return; 
+                }
+
+                if (value.length > 6) {
+                    return;
+                }
+
+                setFormData(prev => ({ ...prev, [name]: value }));
+
+                if (value.length === 6) {
+                    setErrors(prev => ({ ...prev, [name]: "" }));
+                }
+                return;
+            }
+
+
         }
 
+        // Set the form value
         setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Clear error if value is valid
+        if (value && errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: "" }));
+        }
+
+        // Reset district if state changes
+        if (name === "state") {
+            setFormData(prev => ({ ...prev, district: "" }));
+        }
     };
 
     const handleBlur = (e) => {
         const { name, value } = e.target;
 
+        if (!value.trim()) {
+            setErrors(prev => ({ ...prev, [name]: `${name.replace("_", " ")} is required.` }));
+            return;
+        }
+
         if (name === "email") {
-            const emailRegex = /^\S+@\S+\.\S+$/;
-            if (!value.trim()) {
-                setErrors(prev => ({ ...prev, [name]: "Email is required." }));
-            } else if (!emailRegex.test(value)) {
-                setErrors(prev => ({ ...prev, [name]: "Enter a valid email address." }));
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                setErrors(prev => ({ ...prev, email: "Enter a valid email address." }));
+            } else {
+                setErrors(prev => ({ ...prev, email: "" }));
+            }
+        }
+
+        if (name === "mobile" || name === "altMobile") {
+            if (!/^\d{10}$/.test(value)) {
+                setErrors(prev => ({ ...prev, [name]: "Must be exactly 10 digits." }));
+            } else {
+                setErrors(prev => ({ ...prev, [name]: "" }));
+            }
+        }
+
+        if (name === "pincode") {
+            if (!/^\d{6}$/.test(value)) {
+                setErrors(prev => ({ ...prev, [name]: "Pincode must be exactly 6 digits." }));
+            } else {
+                setErrors(prev => ({ ...prev, [name]: "" }));
+            }
+        }
+
+        if (["gender", "state", "district"].includes(name)) {
+            if (!value) {
+                setErrors(prev => ({ ...prev, [name]: `${name.charAt(0).toUpperCase() + name.slice(1)} is required.` }));
             } else {
                 setErrors(prev => ({ ...prev, [name]: "" }));
             }
         }
     };
+
+    const handleSelectBlur = (fieldName) => {
+        const value = formData[fieldName];
+        if (!value) {
+            setErrors(prev => ({ ...prev, [fieldName]: `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required.` }));
+        } else {
+            setErrors(prev => ({ ...prev, [fieldName]: "" }));
+        }
+    };
+
 
     const validateForm = () => {
         const newErrors = {};
@@ -640,6 +709,7 @@ const handleDownloadPdf = async () => {
                                 name="gender"
                                 value={genderOptions.find(option => option.value === formData.gender) || null}
                                 onChange={(selectedOption) => handleChange(selectedOption, "gender")}
+                                onBlur={() => handleSelectBlur("gender")}
                                 options={genderOptions}
                                 placeholder="Select Gender"
                                 isClearable={true}
@@ -821,6 +891,7 @@ const handleDownloadPdf = async () => {
                                 name="company_name"
                                 value={formData.company_name}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
                                 placeholder="Enter Company Name"
                                 size="sm"
                                 isInvalid={!!errors.company_name}
@@ -837,6 +908,7 @@ const handleDownloadPdf = async () => {
                                 name="address"
                                 value={formData.address}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
                                 placeholder="Enter Address"
                                 size="sm"
                                 isInvalid={!!errors.address}
@@ -868,6 +940,7 @@ const handleDownloadPdf = async () => {
                                 name="state"
                                 value={stateOptions.find(option => option.value === formData.state) || null}
                                 onChange={(selectedOption) => handleChange(selectedOption, "state")}
+                                onBlur={() => handleSelectBlur("state")}
                                 options={stateOptions}
                                 placeholder="Select State"
                                 isClearable={true}
