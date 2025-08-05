@@ -71,9 +71,21 @@ export default function PcbPurchaseReturn() {
         <h5 className="fw-bold">Purchase Return List ({returns.length})</h5>
         <div className="d-flex gap-2">
 
-          <Button variant="outline-secondary" size="sm" onClick={fetchReturns}>
-            <i className="bi bi-arrow-clockwise"></i>
-          </Button>
+         <Button
+  variant="outline-secondary"
+  size="sm"
+  onClick={() => {
+    if (!loading) fetchReturns();
+  }}
+  disabled={loading}
+>
+  {loading ? (
+    <Spinner animation="border" size="sm" className="text-secondary" />
+  ) : (
+    <i className="bi bi-arrow-clockwise"></i>
+  )}
+</Button>
+
           <Button
   variant="success"
   size="sm"
