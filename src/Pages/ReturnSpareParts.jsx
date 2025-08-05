@@ -152,7 +152,6 @@ export default function ReturnSparePartsPage() {
       const newErrors = { ...prevErrors };
       delete newErrors[`${field}-${index}`];
 
-      // If user is filling anything in rows, clear the general error too
       if (field === "sparepart_id" || field === "quantity") {
         delete newErrors.items;
       }
@@ -222,149 +221,150 @@ export default function ReturnSparePartsPage() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
+const handleFormSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    const items = sparePartsRows
-      .map((row) => ({
-        sparepart_id: row.sparepart_id,
-        quantity: parseInt(row.quantity, 10),
-      }))
-      .filter((i) => i.sparepart_id && i.quantity > 0);
+  const items = sparePartsRows
+    .map((row) => ({
+      sparepart_id: row.sparepart_id,
+      quantity: parseInt(row.quantity, 10),
+    }))
+    .filter((i) => i.sparepart_id && i.quantity > 0);
 
-    const payload = {
-      vendor_id: formData.vendor_id,
-      batch_id: formData.batch_id,
-      invoice_no: formData.invoiceNo,
-      return_date: returnDate,
-      notes: formData.notes || null,
-      items: items,
-    };
-
-    if (!validateForm(payload, sparePartsRows)) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      let data;
-      if (editingReturn) {
-        const resp = await axios.put(
-          `${API_BASE_URL}/sparepart-returns/${editingReturn.id}`,
-          payload, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-        );
-        data = resp.data;
-        if (data?.message) {
-          setReturns((prevReturns) =>
-            prevReturns.map((item) =>
-              String(item.id) === String(editingReturn.id) ? { ...item, ...payload, id: editingReturn.id } : item
-            )
-          );
-          toast.success("Return updated successfully!");
-        } else {
-          toast.error(data?.message || "Failed to update return.");
-        }
-      } else {
-        const resp = await axios.post(
-          `${API_BASE_URL}/sparepart-returns`,
-          payload, {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-        );
-        data = resp.data;
-        if (data?.message) {
-          setReturns((prevReturns) => [...prevReturns, { ...payload, id: data.id }]);
-          toast.success("Return added successfully!");
-        } else {
-          toast.error(data?.message || "Failed to add return.");
-        }
-      }
-
-      setShowForm(false);
-      setEditingReturn(null);
-      setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-      setReturnDate(new Date().toISOString().split("T")[0]);
-      setFormErrors({});
-      setFormData({
-        vendor_id: "",
-        batch_id: "",
-        invoiceNo: "",
-        notes: "",
-      });
-
-    } catch (error) {
-      if (error.response) {
-        console.error("Server responded with error:", error.response.status, error.response.data);
-        toast.error(error.response.data.error);
-        setFormErrors(error.response.data.errors || {});
-      } else if (error.request) {
-        console.error("No response received:", error.request);
-        toast.error("No response from server");
-      } else {
-        console.error("Request setup error:", error.message);
-        toast.error("An error occurred before sending the request");
-      }
-    } finally {
-      setLoading(false);
-    }
+  const payload = {
+    vendor_id: formData.vendor_id,
+    batch_id: formData.batch_id,
+    invoice_no: formData.invoiceNo,
+    return_date: returnDate,
+    notes: formData.notes || null,
+    items: items,
   };
-  const handleDelete = async (id) => {
-    const result = await MySwal.fire({
-      title: "Are you sure?",
-      text: "Do you really want to delete this spare part?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
+
+  if (!validateForm(payload, sparePartsRows)) {
+    setLoading(false);
+    return;
+  }
+
+  try {
+    let data;
+const isEditMode = !!editingReturn?.id && !isNaN(editingReturn.id);
+
+    if (isEditMode) {
+   const updateId = String(editingReturn.id).trim();
+
+if (!updateId || updateId === "undefined" || isNaN(updateId)) {
+  toast.error("Invalid ID for updating. Please try again.");
+  return;
+}
+
+      const resp = await axios.put(
+        `${API_BASE_URL}/sparepart-returns/${updateId}`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      data = resp.data;
+
+      if (data?.message) {
+       setReturns((prevReturns) =>
+  prevReturns.map((item) =>
+    String(item.id) === updateId ? { ...item, ...payload, id: item.id } : item
+  )
+);
+
+        toast.success("Sparepart return updated successfully.");
+      } else {
+        toast.error(data?.message || "Failed to update return.");
+      }
+    } else {
+      // ADD mode
+      const resp = await axios.post(
+        `${API_BASE_URL}/sparepart-returns`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      data = resp.data;
+
+      if (data?.message) {
+       setReturns((prevReturns) => [
+  ...prevReturns,
+  { ...payload, id: data.id }, // Ensure this is a valid ID
+]);
+
+        toast.success("Sparepart return added successfully.");
+      } else {
+        toast.error(data?.message || "Failed to add return.");
+      }
+    }
+
+    // Reset form on success
+    setShowForm(false);
+    setEditingReturn(null);
+    setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+    setReturnDate(new Date().toISOString().split("T")[0]);
+    setFormErrors({});
+    setFormData({
+      vendor_id: "",
+      batch_id: "",
+      invoiceNo: "",
+      notes: "",
     });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      if ($.fn.DataTable.isDataTable(tableRef.current)) {
-        $(tableRef.current).DataTable().destroy();
-      }
-
-      await axios.delete(`${API_BASE_URL}/sparepart-return/${id}`);
-      toast.success("Spare part deleted successfully!");
-
-      if (editingPart?.id === id) closeForm();
-
-      const updatedSpareparts = spareparts.filter(part => part.id !== id);
-      setSpareparts(updatedSpareparts);
-
-      setTimeout(() => {
-        if ($.fn.DataTable.isDataTable(tableRef.current)) {
-          $(tableRef.current).DataTable().destroy();
-        }
-        if (updatedSpareparts.length > 0) {
-          $(tableRef.current).DataTable({
-            ordering: true,
-            paging: true,
-            searching: true,
-            lengthChange: true,
-            columnDefs: [{ targets: 0, className: "text-center" }],
-          });
-        }
-      }, 0);
-    } catch (error) {
-      console.error("Error deleting:", error);
-      if (error.response?.data?.message) {
-        toast.error(`Failed to delete spare part: ${error.response.data.message}`);
-      } else {
-        toast.error("Failed to delete spare part.");
-      }
+  } catch (error) {
+    if (error.response) {
+      console.error("Server responded with error:", error.response.status, error.response.data);
+      toast.error(error.response.data.error || "Server error occurred.");
+      setFormErrors(error.response.data.errors || {});
+    } else if (error.request) {
+      console.error("No response received:", error.request);
+      toast.error("No response from server.");
+    } else {
+      console.error("Request setup error:", error.message);
+      toast.error("An error occurred before sending the request.");
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
+const handleDelete = async (id) => {
+  if (!id || isNaN(id)) {
+    toast.error("Invalid spare part return ID.");
+    return;
+  }
+
+  const result = await MySwal.fire({
+    title: "Are you sure?",
+    text: "Do you really want to delete this spare part?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+  });
+
+  if (result.isConfirmed) {
+    try {
+      await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`);
+      toast.success("Spare part return deleted successfully.");
+      await fetchAllData(); // ✅ Corrected
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete spare part return.");
+    }
+  }
+};
+
 
 
   const handleShowForm = (returnedItem = null) => {
@@ -391,13 +391,14 @@ export default function ReturnSparePartsPage() {
       setReturnDate(returnedItem.return_date);
       setFormData({
         vendor_id: String(returnedItem.vendor_id),
+        batch_id: String(returnedItem.batch_id),
         invoiceNo: returnedItem.invoice_no,
         notes: returnedItem.notes || ""
       });
     } else {
       setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
       setReturnDate(new Date().toISOString().split("T")[0]);
-      setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
+      setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", notes: "" });
       setInvoiceSpareparts([]); // Clear spare part options for a new form
     }
     setShowForm(true);
@@ -474,13 +475,15 @@ export default function ReturnSparePartsPage() {
                       >
                         <i className="bi bi-pencil-square me-1"></i>
                       </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(returned.id)}
-                      >
-                        <i className="bi bi-trash me-1"></i>
-                      </Button>
+{console.log("Returned ID:", returned.id)}
+<Button
+  variant="outline-danger"
+  size="sm"
+  onClick={() => handleDelete(returned.id)}
+>
+  <i className="bi bi-trash me-1"></i>
+</Button>
+
                     </td>
                   </tr>
                 ))
