@@ -168,18 +168,30 @@ export default function VciCustomer() {
                 return;
             }
 
+            if (name === "gst") {
+                if (!/^[0-9A-Z]*$/.test(value)) {
+                    return;
+                }
+                if (value.length > 15) {
+                    return;
+                }
+
+                setFormData(prev => ({ ...prev, [name]: value }));
+
+                if (value.length === 15) {
+                    setErrors(prev => ({ ...prev, [name]: "" }));
+                }
+                return;
+            }
 
         }
 
-        // Set the form value
         setFormData(prev => ({ ...prev, [name]: value }));
 
-        // Clear error if value is valid
         if (value && errors[name]) {
             setErrors(prev => ({ ...prev, [name]: "" }));
         }
 
-        // Reset district if state changes
         if (name === "state") {
             setFormData(prev => ({ ...prev, district: "" }));
         }
@@ -193,8 +205,8 @@ export default function VciCustomer() {
             return;
         }
 
-        if (name === "email") {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+       if (name === "email") {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.(com)$/i;
             if (!emailRegex.test(value)) {
                 setErrors(prev => ({ ...prev, email: "Enter a valid email address." }));
             } else {
@@ -242,7 +254,7 @@ export default function VciCustomer() {
         if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
         if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
         if (!formData.email.trim()) newErrors.email = "Email is required.";
-        else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email address is invalid.";
+        else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
         if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
         else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
         if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) newErrors.altMobile = "Alternative mobile number must be 10 digits.";
