@@ -61,12 +61,12 @@ export default function EditPurchasePage() {
     setPurchase({ ...purchase, [name]: value });
   };
 
-  
-    const handleDeleteSerial = (indexToRemove) => {
-  const updated = serials.filter((_, index) => index !== indexToRemove);
-  setSerials(updated);
+
+  const handleDeleteSerial = (indexToRemove) => {
+    const updated = serials.filter((_, index) => index !== indexToRemove);
+    setSerials(updated);
     toast.info('Serial removed');
-};
+  };
 
   const handleAddNewSerials = () => {
     const input = newSerialsInput.trim();
@@ -133,8 +133,8 @@ export default function EditPurchasePage() {
     <div className="w-100 py-4 px-4 bg-white" style={{ minHeight: '100vh' }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="mb-0">Edit Purchase</h4>
-        <Button variant="light" onClick={() => navigate('/purchaseOrder')}>
-          <i className="bi bi-x-lg">Back</i>
+        <Button variant="outline-secondary" onClick={() => navigate('/purchaseOrder')}>
+          <i className="bi bi-arrow-left" /> Back
         </Button>
       </div>
 
@@ -236,7 +236,7 @@ export default function EditPurchasePage() {
           <Button
             size="sm"
             className="mt-2"
-            variant="primary"
+            variant="success"
             onClick={handleAddNewSerials}
           >
             Add Serials
@@ -256,50 +256,50 @@ export default function EditPurchasePage() {
 
         <div className="mb-3">
           <Form.Label className="fw-bold">Serial Details</Form.Label>
-{serials.map((item, index) => (
-  <Row className="mb-2" key={index}>
-    <Col md={3}>
-      <Form.Control value={item.serial_no} readOnly />
-    </Col>
-    <Col md={3}>
-      <Form.Control
-        size="sm"
-        placeholder="Remark"
-        value={item.remark || ''}
-        onChange={(e) => handleInputChange(index, 'remark', e.target.value)}
-      />
-    </Col>
-    <Col md={3}>
-      <Form.Select
-        size="sm"
-        value={item.quality_check || ''}
-        onChange={(e) => handleInputChange(index, 'quality_check', e.target.value)}
-      >
-        <option value="">-- Select --</option>
-        <option value="ok">OK</option>
-        <option value="Issue">Issue</option>
-      </Form.Select>
-    </Col>
-    <Col md={3}>
-      <Button
-        size="sm"
-        variant="danger"
-        onClick={() => handleDeleteSerial(index)}
-      >
-        <i className="bi bi-trash"></i>
-      </Button>
-    </Col>
-  </Row>
-))}
+          {serials.map((item, index) => (
+            <Row className="mb-2" key={index}>
+              <Col md={3}>
+                <Form.Control value={item.serial_no} readOnly />
+              </Col>
+              <Col md={3}>
+                <Form.Control
+                  size="sm"
+                  placeholder="Remark"
+                  value={item.remark || ''}
+                  onChange={(e) => handleInputChange(index, 'remark', e.target.value)}
+                />
+              </Col>
+              <Col md={3}>
+                <Form.Select
+                  size="sm"
+                  value={item.quality_check || ''}
+                  onChange={(e) => handleInputChange(index, 'quality_check', e.target.value)}
+                >
+                  <option value="">-- Select --</option>
+                  <option value="ok">OK</option>
+                  <option value="Issue">Issue</option>
+                </Form.Select>
+              </Col>
+              <Col md={3}>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  onClick={() => handleDeleteSerial(index)}
+                >
+                  <i className="bi bi-trash"></i>
+                </Button>
+              </Col>
+            </Row>
+          ))}
 
         </div>
 
         <ToastContainer position="top-right" autoClose={3000} />
 
         <div className="d-flex justify-content-end">
-             <Button variant="secondary" className="me-2" onClick={() => navigate('/purchaseOrder')}>
-                      Cancel
-                    </Button>
+          <Button variant="secondary" className="me-2" onClick={() => navigate('/purchaseOrder')}>
+            Cancel
+          </Button>
           <Button type="submit" variant="success">Update</Button>
         </div>
       </Form>
