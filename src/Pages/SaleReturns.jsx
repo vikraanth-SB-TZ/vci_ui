@@ -13,6 +13,8 @@ export default function SaleReturns() {
     const [saleId, setSaleId] = useState(null);
     const [serials, setSerials] = useState([]);
     const [reason, setReason] = useState('');
+    const [saleInfo, setSaleInfo] = useState(null);
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -41,6 +43,16 @@ export default function SaleReturns() {
                 }));
                 setSerials(data);
                 setSaleId(res.data.sale_id);
+
+               setSaleInfo({
+  customer_name: res.data.customer.first_name,
+  batch_name: res.data.batch,
+  category_name: res.data.category,
+  shipment_name: res.data.shipment_name,
+  shipment_date: res.data.shipment_date,
+  delivery_date: res.data.delivery_date,
+});
+
             })
             .catch(() => toast.error('No serial numbers found for this invoice'));
     };
@@ -138,15 +150,25 @@ export default function SaleReturns() {
                                     }}
                                 >
                                     <Row className="gx-4 gy-2 text-muted">
-                                        <Col md={6}><span className="text-dark fw-semibold">Customer:</span> ABC Customer</Col>
-                                        <Col md={6}><span className="text-dark fw-semibold">Batch:</span> Batch #123</Col>
-                                        {/* <Col md={6}><span className="text-dark fw-semibold">Category:</span> Electronics</Col> */}
+                                       <Col md={6}>
+                                    <span className="text-dark fw-semibold">Customer:</span> {saleInfo?.customer_name || ''}
+                                     </Col>
+                                        <Col md={6}>
+                                     <span className="text-dark fw-semibold">Batch:</span> {saleInfo?.batch_name || ''}
+                                       </Col>
+                                        <Col md={6}><span className="text-dark fw-semibold">Category:</span>{saleInfo?.category_name || ''}</Col>
                                         {/* <Col md={6}><span className="text-dark fw-semibold">Quantity:</span> 10</Col> */}
-                                        <Col md={6}><span className="text-dark fw-semibold">From Serial:</span> SN1001</Col>
-                                        <Col md={6}><span className="text-dark fw-semibold">Shipment:</span> FedEx Express</Col>
-                                        <Col md={6}><span className="text-dark fw-semibold">Product Serial No.:</span> PSN-56789</Col>
-                                        <Col md={6}><span className="text-dark fw-semibold">Ship Date:</span> 04-08-2025</Col>
-                                        <Col md={6}><span className="text-dark fw-semibold">Delivery Date:</span> 06-08-2025</Col>
+                                        {/* <Col md={6}><span className="text-dark fw-semibold">From Serial:</span> SN1001</Col> */}
+                                   <Col md={6}>
+                                   <span className="text-dark fw-semibold">Shipment Name:</span> {saleInfo?.shipment_name || ''}
+                                   </Col>
+                                        {/* <Col md={6}><span className="text-dark fw-semibold">Product Serial No.:</span> PSN-56789</Col> */}
+                                       <Col md={6}>
+                                  <span className="text-dark fw-semibold">Shipment Date:</span> {saleInfo?.shipment_date || ''}
+                                    </Col>
+                                        <Col md={6}>
+                                   <span className="text-dark fw-semibold">Delivery Date:</span> {saleInfo?.delivery_date || ''}
+                                    </Col>
                                         {/* <Col md={6}><span className="text-dark fw-semibold">Tracking No.:</span> TRK987654321</Col> */}
                                         {/* <Col md={12}><span className="text-dark fw-semibold">Notes:</span> Package slightly damaged upon return</Col> */}
                                     </Row>
