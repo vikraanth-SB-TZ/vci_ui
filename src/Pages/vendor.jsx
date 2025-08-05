@@ -114,15 +114,35 @@ export default function Vendor() {
             });
     };
 
+
+    const handleMobileBlur = (e) => {
+        const { name, value } = e.target;
+
+        if (value.trim().length !== 10) {
+            setErrors((prev) => ({ ...prev, [name]: "Must be exactly 10 digits." }));
+        } else {
+            setErrors((prev) => ({ ...prev, [name]: "" }));
+        }
+    };
+
     const handleChange = (e, selectName = null) => {
         let name, value;
 
         if (selectName) {
             name = selectName;
             value = e ? e.value : "";
+
+            setFormData(prev => ({ ...prev, [name]: value }));
+
+            
+            if (value && errors[name]) {
+                setErrors(prev => ({ ...prev, [name]: "" }));
+            }
+
             if (selectName === "state") {
                 setFormData(prev => ({ ...prev, district: "" }));
             }
+            return; 
         } else {
             name = e.target.name;
             value = e.target.value;
@@ -130,9 +150,9 @@ export default function Vendor() {
 
             if ((name === "first_name" || name === "last_name" || name === "city")) {
                 if (!/^[a-zA-Z\s]*$/.test(value)) {
-                    // Show error below the field
+                    
                     setErrors(prev => ({ ...prev, [name]: "Only alphabets are allowed." }));
-                    return;
+                    return; 
                 } else {
 
                     if (errors[name]) {
@@ -141,20 +161,67 @@ export default function Vendor() {
                 }
             }
 
-            // ✅ Allow only digits in mobile and altMobile
-            if ((name === "mobile" || name === "altMobile")) {
+            if (name === "mobile" || name === "altMobile") {
                 if (!/^\d*$/.test(value)) {
-                    setErrors(prev => ({ ...prev, [name]: "Only digits are allowed." }));
-                    return;
-                } else {
-                    if (errors[name]) {
-                        setErrors(prev => ({ ...prev, [name]: "" }));
+                    return; 
+                }
+
+                if (value.length > 10) {
+                    return; 
+                }
+
+                setFormData(prev => ({ ...prev, [name]: value }));
+
+
+                if (errors[name]) {
+                    setErrors(prev => ({ ...prev, [name]: "" }));
+                }
+
+                return;
+            }
+            if (["company_name", "address"].includes(name)) {
+                if (value.trim()) {
+                    setErrors((prev) => ({ ...prev, [name]: "" }));
+                }
+            }
+
+            if (name === "pincode") {
+                if (/^\d{0,6}$/.test(value)) {
+                    if (value.trim()) {
+                        setErrors((prev) => ({ ...prev, [name]: "" }));
                     }
+                } else {
+                    setErrors((prev) => ({ ...prev, [name]: "Pincode must be 6 digits." }));
+                    return;
+                }
+            }
+            if (name === "email") {
+                const emailRegex = /^\S+@\S+\.\S+$/;
+                if (!value.trim()) {
+                    setErrors(prev => ({ ...prev, [name]: "Email is required." }));
+                } else if (!emailRegex.test(value)) {
+                    setErrors(prev => ({ ...prev, [name]: "Enter a valid email address." }));
+                } else {
+                    setErrors(prev => ({ ...prev, [name]: "" }));
                 }
             }
         }
 
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleBlur = (e) => {
+        const { name, value } = e.target;
+
+        if (value.trim()) {
+            setErrors(prev => ({ ...prev, [name]: "" }));
+        } else {
+            setErrors(prev => ({ ...prev, [name]: `${formatLabel(name)} is required.` }));
+        }
+    };
+
+    const formatLabel = (field) => {
+        return field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     };
 
     const handleEmailBlur = () => {
@@ -752,6 +819,7 @@ export default function Vendor() {
                                 name="mobile"
                                 value={formData.mobile}
                                 onChange={handleChange}
+                                onBlur={handleMobileBlur}
                                 placeholder="Enter Mobile No."
                                 size="sm"
                                 isInvalid={!!errors.mobile}
@@ -768,6 +836,7 @@ export default function Vendor() {
                                 name="altMobile"
                                 value={formData.altMobile}
                                 onChange={handleChange}
+                                onBlur={handleMobileBlur}
                                 placeholder="Enter Alternative Mobile No."
                                 size="sm"
                                 isInvalid={!!errors.altMobile}
@@ -834,6 +903,7 @@ export default function Vendor() {
                                 name="company_name"
                                 value={formData.company_name}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
                                 placeholder="Enter Company Name"
                                 size="sm"
                                 isInvalid={!!errors.company_name}
@@ -850,6 +920,7 @@ export default function Vendor() {
                                 name="address"
                                 value={formData.address}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
                                 placeholder="Enter Address"
                                 size="sm"
                                 isInvalid={!!errors.address}
@@ -915,6 +986,7 @@ export default function Vendor() {
                                 name="pincode"
                                 value={formData.pincode}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
                                 placeholder="Enter Pincode"
                                 size="sm"
                                 isInvalid={!!errors.pincode}
