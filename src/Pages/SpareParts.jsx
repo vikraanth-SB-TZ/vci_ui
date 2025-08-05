@@ -196,7 +196,7 @@ export default function App() {
           newData[index] = { ...newData[index], ...payload };
         }
       } else {
-        newData.push(response.data.data); 
+        newData.push(response.data.data);
       }
 
       setSpareparts(newData);
@@ -373,9 +373,18 @@ export default function App() {
                 <i className="bi bi-arrow-clockwise"></i>
               )}
             </Button>
-            <Button variant="success" size="sm" onClick={openForm}>
+            <Button
+              size="sm"
+              onClick={openForm}
+              style={{
+                backgroundColor: '#2FA64F',
+                borderColor: '#2FA64F',
+                color: '#fff'
+              }}
+            >
               + Add New
             </Button>
+
           </div>
         </div>
         <div className="flex-grow-1 px-4 py-3" style={{ overflowX: "auto", overflowY: "auto" }}>
@@ -414,9 +423,9 @@ export default function App() {
                       <td>{part.quantity_per_vci}</td>
                       <td>{part.notes || "-"}</td>
                       <td>
-                       <span className={`badge ${part.is_active === 'Enable' ? 'bg-success' : 'bg-danger'}`}>
-  {part.is_active}
-</span>
+                        <span className={`badge ${part.is_active === 'Enable' ? 'bg-success' : 'bg-danger'}`}>
+                          {part.is_active}
+                        </span>
 
                       </td>
                       <td>
@@ -443,24 +452,24 @@ export default function App() {
             </table>
           </div>
         </div>
-       {showForm && (
-  <div className={drawerClass} style={{ 
-         
-          position: "fixed",
-    top: "63px",
-    right: showForm ? "0" : "-600px", // triggers slide
-    opacity: showForm ? 1 : 0,         // fade in/out
-    visibility: showForm ? "visible" : "hidden", // optional: prevent tabbing
-    pointerEvents: showForm ? "auto" : "none",   // prevent clicks when hidden
-    width: "600px",
-    height: "100vh",
-    backgroundColor: "#fff",
-    boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
-    zIndex: 2000,
-    padding: "30px",
-    overflowY: "auto",
-    borderLeft: "1px solid #dee2e6",
-    transition: "right 3s ease-in-out, opacity 2s ease-in-out", // smooth slow
+        {showForm && (
+          <div className={drawerClass} style={{
+
+            position: "fixed",
+            top: "63px",
+            right: showForm ? "0" : "-600px", // triggers slide
+            opacity: showForm ? 1 : 0,         // fade in/out
+            visibility: showForm ? "visible" : "hidden", // optional: prevent tabbing
+            pointerEvents: showForm ? "auto" : "none",   // prevent clicks when hidden
+            width: "600px",
+            height: "100vh",
+            backgroundColor: "#fff",
+            boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
+            zIndex: 2000,
+            padding: "30px",
+            overflowY: "auto",
+            borderLeft: "1px solid #dee2e6",
+            transition: "right 3s ease-in-out, opacity 2s ease-in-out", // smooth slow
           }}>
             <div className="d-flex justify-content-between align-items-start mb-4">
               <h5 className="fw-bold mb-0">{editingPart ? "Edit Spare Part" : "Add New Spare Part"}</h5>
@@ -491,7 +500,7 @@ export default function App() {
               <div className="row">
                 <div className="mb-3 col-6">
                   <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Spare Part Name</Form.Label>
-                    <span style={{ color: "red", marginLeft: "5px" }}>*</span>
+                  <span style={{ color: "red", marginLeft: "5px" }}>*</span>
 
                   <Form.Control
                     type="text"
@@ -563,9 +572,9 @@ export default function App() {
                     ) : (
                       <>
                         <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                        Opening Stock<span style={{ color: "red", marginLeft: "5px" }}>*</span>
+                          Opening Stock<span style={{ color: "red", marginLeft: "5px" }}>*</span>
 
-                          
+
                         </Form.Label>
                         <Form.Control
                           type="number"
@@ -599,30 +608,30 @@ export default function App() {
                   </div>
                 </div>
               </div>
-<div
-  className="save-button-footer d-flex justify-content-end"
-  style={{
-    position: "sticky",
-    bottom: "0",
-    backgroundColor: "#fff",
-    padding: "20px 30px",
-    borderTop: "1px solid #F2F2F2",
-  }}
->
-  <Button
-    type="submit"
-    variant="success"
-    style={{
-      width: "auto",
-      height: "50px",
-      borderRadius: "6px",
-      minWidth: "120px",
-    }}
-  >
-    {editingPart ? "Update" : "Save"}
-  </Button>
-</div>   
-         </form>
+              <div
+                className="save-button-footer d-flex justify-content-end"
+                style={{
+                  position: "sticky",
+                  bottom: "0",
+                  backgroundColor: "#fff",
+                  padding: "20px 30px",
+                  borderTop: "1px solid #F2F2F2",
+                }}
+              >
+                <Button
+                  type="submit"
+                  variant="success"
+                  style={{
+                    width: "auto",
+                    height: "50px",
+                    borderRadius: "6px",
+                    minWidth: "120px",
+                  }}
+                >
+                  {editingPart ? "Update" : "Save"}
+                </Button>
+              </div>
+            </form>
           </div>
         )}
         <style>{`

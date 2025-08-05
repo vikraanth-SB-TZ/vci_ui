@@ -461,7 +461,12 @@ const handleDownloadPdf = async () => {
         <Button variant="outline-primary" size="sm" onClick={handleDownloadPdf}>
             <i className="bi bi-download me-1"></i> Download PDF
         </Button>
-        <Button variant="success" size="sm" onClick={openForm}>
+        <Button variant="success" size="sm"style={{
+                        backgroundColor: '#2FA64F',
+                        borderColor: '#2FA64F',
+                        color: '#fff',
+
+                    }} onClick={openForm}>
             + Add New
         </Button>
     </div>

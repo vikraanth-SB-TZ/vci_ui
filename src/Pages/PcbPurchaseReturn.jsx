@@ -77,7 +77,14 @@ export default function PcbPurchaseReturn() {
           <Button
   variant="success"
   size="sm"
+  style={{
+                        backgroundColor: '#2FA64F',
+                        borderColor: '#2FA64F',
+                        color: '#fff',
+
+                    }}
   onClick={() => navigate("/pcb-purchase-return/add")}
+
 >
   + Add Return
 </Button>

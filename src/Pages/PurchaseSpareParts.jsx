@@ -621,9 +621,19 @@ const handleInputChange = (e) => {
                             <i className="bi bi-arrow-clockwise"></i>
                         )}
                     </Button>
-                    <Button variant="success" size="sm" onClick={() => handleShowForm()}>
-                        + Add New
-                    </Button>
+                   <Button
+  size="sm"
+  onClick={() => handleShowForm()}
+  style={{
+    backgroundColor: '#2FA64F',
+    borderColor: '#2FA64F',
+    color: '#fff'
+    
+  }}
+>
+  + Add New
+</Button>
+
                 </div>
             </div>
             <div className="flex-grow-1 overflow-auto px-4 py-3">
