@@ -3,10 +3,10 @@ import { Button, Spinner, Card, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { API_BASE_URL } from "../api";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+
+import { API_BASE_URL } from "../api";
 import Breadcrumb from "./Components/Breadcrumb";
 import Search from "./Components/Search";
 import Pagination from "./Components/Pagination";
@@ -23,25 +23,23 @@ export default function ReturnListPage() {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
 
+  useEffect(() => {
+    fetchReturns();
+  }, []);
+
   const fetchReturns = async () => {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/saleReturns`);
-      if (res.data.data) {
-        setReturnData(res.data.data);
-      }
-    } catch (err) {
+      if (res.data?.data) setReturnData(res.data.data);
+    } catch {
       toast.error("Failed to fetch return data.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchReturns();
-  }, []);
-
-  const handleDeleteReturn = async (returnId) => {
+  const handleDeleteReturn = async (id) => {
     const result = await MySwal.fire({
       title: "Are you sure?",
       text: "Do you really want to delete this return?",
@@ -55,47 +53,40 @@ export default function ReturnListPage() {
     if (!result.isConfirmed) return;
 
     try {
-      await axios.delete(`${API_BASE_URL}/sale-returns-del/${returnId}`);
+      await axios.delete(`${API_BASE_URL}/sale-returns-del/${id}`);
       toast.success("Return deleted successfully!");
-
-      const newData = returnData.filter((item) => item.id !== returnId);
-      setReturnData(newData);
-
-      if ((page - 1) * perPage >= newData.length && page > 1) {
+      const updated = returnData.filter((item) => item.id !== id);
+      setReturnData(updated);
+      if ((page - 1) * perPage >= updated.length && page > 1) {
         setPage(page - 1);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete return.");
     }
   };
 
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
   const handleGenerateReturnInvoice = (id) => {
-    const pdfWindow = window.open(`${API_BASE_URL}/sale-returns/${id}/invoice-pdf`, "_blank");
-    if (!pdfWindow || pdfWindow.closed || typeof pdfWindow.closed === "undefined") {
+    const win = window.open(`${API_BASE_URL}/sale-returns/${id}/invoice-pdf`, "_blank");
+    if (!win || win.closed || typeof win.closed === "undefined") {
       toast.error("Popup blocked! Please allow popups to view invoice.");
     }
   };
 
-  const handleSort = (field) => {
-    const direction = sortField === field && sortDirection === "asc" ? "desc" : "asc";
-    setSortField(field);
-    setSortDirection(direction);
-  };
+  const filtered = returnData.filter((item) =>
+    Object.values(item).join(" ").toLowerCase().includes(search.toLowerCase())
+  );
 
-  const filteredData = returnData.filter((item) => {
-    const values = Object.values(item).join(" ").toLowerCase();
-    return values.includes(search.toLowerCase());
-  });
-
-  const sortedData = [...filteredData].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     if (!sortField) return 0;
-
-    if (sortField === "sno") {
-      const indexA = returnData.indexOf(a);
-      const indexB = returnData.indexOf(b);
-      return sortDirection === "asc" ? indexA - indexB : indexB - indexA;
-    }
-
     const valA = a[sortField]?.toString().toLowerCase() || "";
     const valB = b[sortField]?.toString().toLowerCase() || "";
     if (valA < valB) return sortDirection === "asc" ? -1 : 1;
@@ -103,72 +94,64 @@ export default function ReturnListPage() {
     return 0;
   });
 
-  const paginatedData = sortedData.slice((page - 1) * perPage, page * perPage);
+  const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
   return (
     <div className="px-4 py-2">
       <Breadcrumb title="Return List" />
+
       <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
         <div className="row mb-3">
-          <div className="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <div className="d-flex align-items-center">
-              <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
-              <Form.Select
+          <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+            <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+            <Form.Select
+              size="sm"
+              style={{ width: "100px" }}
+              value={perPage}
+              onChange={(e) => {
+                setPerPage(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              {[5, 10, 25, 50].map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </Form.Select>
+          </div>
+
+          <div className="col-md-6 text-md-end">
+            <div className="d-inline-block mb-2">
+              <Button
+                variant="outline-secondary"
                 size="sm"
-                style={{ width: "100px" }}
-                value={perPage}
-                onChange={(e) => {
-                  setPerPage(Number(e.target.value));
-                  setPage(1);
-                }}
+                className="me-2"
+                onClick={fetchReturns}
               >
-                {[10, 25, 50, 100].map((val) => (
-                  <option key={val} value={val}>
-                    {val}
-                  </option>
-                ))}
-              </Form.Select>
+                <i className="bi bi-arrow-clockwise"></i>
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => navigate("/returns/add")}
+                style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
+              >
+                + Add Return
+              </Button>
             </div>
-
-            <div className="col-md-6 text-md-end">
-              <div className="mt-2 d-inline-block mb-2">
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  className="me-2"
-                  onClick={fetchReturns}
-                >
-                  <i className="bi bi-arrow-clockwise"></i>
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => navigate("/returns/add")}
-                  style={{
-                    backgroundColor: "#2FA64F",
-                    borderColor: "#2FA64F",
-                    color: "#fff",
-                  }}
-                >
-                  + Add Return
-                </Button>
-              </div>
-
-              <Search
-                search={search}
-                setSearch={setSearch}
-                perPage={perPage}
-                setPerPage={setPerPage}
-                setPage={setPage}
-              />
-            </div>
+            <Search
+              search={search}
+              setSearch={setSearch}
+              perPage={perPage}
+              setPerPage={setPerPage}
+              setPage={setPage}
+            />
           </div>
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle">
-            <thead>
+          <table className="table align-middle mb-0">
+            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
               <tr>
-                <th style={{ width: "70px", textAlign: "center",backgroundColor: "#2E3A59", color: "white" }}>S.No</th>
+                <th style={{ width: "70px", textAlign: "center",backgroundColor: "#2E3A59", color: "white"   }}>S.No</th>
                 {[
                   { label: "Invoice No", field: "invoice_no" },
                   { label: "Invoice Date", field: "invoice_date" },
@@ -180,12 +163,12 @@ export default function ReturnListPage() {
                   <th
                     key={field}
                     onClick={() => handleSort(field)}
-                    style={{ backgroundColor: "#2E3A59", color: "white", cursor: "pointer" }}
+                    style={{ cursor: "pointer" , backgroundColor: "#2E3A59", color: "white"  }}
                   >
                     {label} {sortField === field && (sortDirection === "asc" ? "▲" : "▼")}
                   </th>
                 ))}
-                <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Action</th>
+                <th style={{ width: "130px", backgroundColor: "#2E3A59", color: "white"  }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -195,7 +178,7 @@ export default function ReturnListPage() {
                     <Spinner animation="border" />
                   </td>
                 </tr>
-              ) : paginatedData.length === 0 ? (
+              ) : paginated.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="text-center py-4 text-muted">
                     <img
@@ -206,37 +189,39 @@ export default function ReturnListPage() {
                   </td>
                 </tr>
               ) : (
-                paginatedData.map((item, index) => (
+                paginated.map((item, index) => (
                   <tr key={item.id}>
-                    <td>{(page - 1) * perPage + index + 1}</td>
+                    <td className="text-center">{(page - 1) * perPage + index + 1}</td>
                     <td>{item.invoice_no}</td>
                     <td>{item.invoice_date}</td>
                     <td>{item.return_invoice_no}</td>
                     <td>{item.return_invoice_date}</td>
                     <td>{item.quantity}</td>
                     <td>{item.reason}</td>
-                    <td className="d-flex gap-2">
+                    <td>
                       <Button
                         variant=""
                         size="sm"
+                        className="me-1"
                         onClick={() => handleGenerateReturnInvoice(item.id)}
-                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                        style={{ borderColor: '#2E3A59', color: '#2E3A59' }}
                       >
                         <i className="bi bi-file-earmark-pdf"></i>
                       </Button>
                       <Button
                         variant=""
                         size="sm"
+                        className="me-1"
                         onClick={() => navigate(`/returns/edit/${item.id}`)}
-                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                        style={{ borderColor: '#2E3A59', color: '#2E3A59' }}
                       >
                         <i className="bi bi-pencil-square"></i>
                       </Button>
                       <Button
-                        variant=""
+                        variant="outline-primary"
                         size="sm"
                         onClick={() => handleDeleteReturn(item.id)}
-                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                        style={{ borderColor: '#2E3A59', color: '#2E3A59', backgroundColor: 'transparent' }}
                       >
                         <i className="bi bi-trash"></i>
                       </Button>
@@ -248,14 +233,12 @@ export default function ReturnListPage() {
           </table>
         </div>
 
-        {!loading && sortedData.length > 0 && !isNaN(perPage) && !isNaN(page) && (
-          <Pagination
-            totalItems={sortedData.length}
-            perPage={perPage}
-            currentPage={page}
-            setCurrentPage={setPage}
-          />
-        )}
+        <Pagination
+          page={page}
+          setPage={setPage}
+          perPage={perPage}
+          totalEntries={sorted.length}
+        />
       </Card>
     </div>
   );
