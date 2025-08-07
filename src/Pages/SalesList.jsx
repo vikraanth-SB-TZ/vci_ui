@@ -166,7 +166,8 @@ export default function SalesListPage() {
                     {label} {sortField === field && (sortDirection === "asc" ? "▲" : "▼")}
                   </th>
                 ))}
-                <th style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}>Action</th>
+                <th style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white", paddingLeft: '30px' }}>Action</th>
+                <th style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white", paddingLeft: '30px' }}>Delivery Challan</th>
               </tr>
             </thead>
             <tbody>
@@ -223,6 +224,18 @@ export default function SalesListPage() {
                         style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
                       >
                         <i className="bi bi-trash"></i>
+                      </Button>
+                    </td>
+                    <td style={{textAlign: "center"}}>
+                      <Button
+                        variant=""
+                        size="sm"
+                        onClick={() =>
+                          window.open(`${API_BASE_URL}/delivery-challan/${item.id}/pdf`, "_blank")
+                        }
+                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                      >
+                        <i className="bi bi-file-earmark-pdf"></i>
                       </Button>
                     </td>
                   </tr>
