@@ -10,6 +10,8 @@ import 'datatables.net';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { API_BASE_URL } from "../api";
+import Swal from 'sweetalert2';
+
 
 export default function PurchaseListPage() {
   const navigate = useNavigate();
@@ -66,25 +68,37 @@ const fetchPurchases = () => {
 
   
 function handleDelete(purchaseId) {
-  axios
-    .delete(`${API_BASE_URL}/purchase/${purchaseId}`)
-    .then((res) => {
-      toast.success(res.data.message || 'Purchase deleted successfully');
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "This action cannot be undone.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    reverseButtons: true
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Proceed to delete
+      axios
+        .delete(`${API_BASE_URL}/purchase/${purchaseId}`)
+        .then((res) => {
+          toast.success(res.data.message || 'Purchase deleted successfully');
 
-      // Destroy the existing DataTable instance
-      const $table = $(tableRef.current);
-      if ($.fn.DataTable.isDataTable($table)) {
-        $table.DataTable().destroy();
-      }
+          const $table = $(tableRef.current);
+          if ($.fn.DataTable.isDataTable($table)) {
+            $table.DataTable().destroy();
+          }
 
-      // Update React state
-      setPurchaseData(prev => prev.filter(item => item.id !== purchaseId));
-    })
-    .catch((err) => {
-      toast.error(
-        err.response?.data?.message || 'Failed to delete purchase'
-      );
-    });
+          setPurchaseData(prev => prev.filter(item => item.id !== purchaseId));
+        })
+        .catch((err) => {
+          toast.error(
+            err.response?.data?.message || 'Failed to delete purchase'
+          );
+        });
+    }
+  });
 }
 
 const handleGenerateInvoice = (purchaseId) => {

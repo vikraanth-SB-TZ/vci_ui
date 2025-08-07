@@ -9,6 +9,8 @@ import "react-toastify/dist/ReactToastify.css";
 import $ from "jquery";
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from "../api";
+import Swal from 'sweetalert2';
+
 
 export default function ReturnListPage() {
   const [returnData, setReturnData] = useState([]);
@@ -55,20 +57,40 @@ const handleGenerateReturnInvoice = (returnId) => {
   }
 };
 
-// const handleDeleteReturn = (returnId) => {
-//   if (window.confirm('Are you sure you want to delete this return?')) {
-//     axios
-//       .delete(`http://localhost:8000/api/sale-returns-del/${returnId}`)
-//       .then((res) => {
-//         toast.success('Return deleted successfully');
-//         fetchReturns();
-//       })
-//       .catch((err) => {
-//         console.error('Delete failed:', err);
-//         toast.error('Failed to delete return');
-//       });
-//   }
-// };
+
+const handleDeleteReturn = async (returnId) => {
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: 'Do you really want to delete this return?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    // Destroy DataTable
+    if ($.fn.DataTable.isDataTable(tableRef.current)) {
+      $(tableRef.current).DataTable().destroy();
+    }
+
+    // Delete API call
+    await axios.delete(`${API_BASE_URL}/sale-returns-del/${returnId}`);
+
+    Swal.fire('Deleted!', 'The return has been deleted.', 'success');
+
+    // Refresh data after deletion
+    fetchReturns();
+
+  } catch (err) {
+    console.error('Delete failed:', err);
+    Swal.fire('Failed!', 'Could not delete the return.', 'error');
+  }
+};
+
 
 
   return (
@@ -156,14 +178,14 @@ const handleGenerateReturnInvoice = (returnId) => {
   >
     <i className="bi bi-pencil-square"></i>
   </Button>
-    {/* <Button
+    <Button
     variant="outline-danger"
     size="sm"
     onClick={() => handleDeleteReturn(item.id)}
     title="Delete Return"
   >
     <i className="bi bi-trash"></i>
-  </Button> */}
+  </Button>
 </td>
 
                 </tr>
