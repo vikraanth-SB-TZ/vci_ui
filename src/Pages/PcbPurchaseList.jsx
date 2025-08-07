@@ -66,12 +66,19 @@ const fetchPurchases = () => {
 
   
 function handleDelete(purchaseId) {
-  // if (!window.confirm("Are you sure you want to delete this purchase?")) return;
-
   axios
-    .delete(`${API_BASE_URL}/purchases/${purchaseId}`)
+    .delete(`${API_BASE_URL}/purchase/${purchaseId}`)
     .then((res) => {
       toast.success(res.data.message || 'Purchase deleted successfully');
+
+      // Destroy the existing DataTable instance
+      const $table = $(tableRef.current);
+      if ($.fn.DataTable.isDataTable($table)) {
+        $table.DataTable().destroy();
+      }
+
+      // Update React state
+      setPurchaseData(prev => prev.filter(item => item.id !== purchaseId));
     })
     .catch((err) => {
       toast.error(
@@ -98,9 +105,13 @@ const handleGenerateInvoice = (purchaseId) => {
 
       <div className="d-flex gap-2">
 <Button
-  variant="outline-secondary p-0"
+  variant="outline-secondary"
+  className='p-0'
   style={{ width: '38px', height: '38px' }}
   onClick={() => {
+      // e.preventDefault(); // <== just in case it bubbles
+    // e.stopPropagation();
+      console.log('Refresh clicked');
     if (!loading) fetchPurchases();
   }}
   disabled={loading}
@@ -138,44 +149,45 @@ const handleGenerateInvoice = (purchaseId) => {
         <th>Actions</th>
       </tr>
     </thead>
-    <tbody>
-      {loading ? (
-        <tr>
-          <td colSpan="8" className="text-center py-4">
-            <Spinner animation="border" />
-          </td>
-        </tr>
-      ) : purchaseData.length === 0 ? (
-        <tr>
-          <td colSpan="8" className="text-center py-4 text-muted">
-            No purchase data available
-          </td>
-        </tr>
-      ) : (
-        purchaseData.map((item, index) => (
-          <tr key={item.id}>
-             <td className="fw-normal">{index + 1}</td>
-    <td className="fw-normal">{item.vendor}</td>
-    <td className="fw-normal">{item.invoice_no}</td>
-    <td className="fw-normal">{item.invoice_date}</td>
-    <td className="fw-normal">{item.batch}</td>
-    <td className="fw-normal">{item.category}</td>
-    <td className="fw-normal">{item.quantity}</td>
-            <td className="py-2 pe-1 d-flex gap-2">
-              <Button variant="outline-success" size="sm" onClick={() => handleGenerateInvoice(item.id)}>
-                <i className="bi bi-file-earmark-pdf"></i>
-              </Button>
-              <Button variant="outline-info" size="sm" onClick={() => handleEdit(item)}>
-                <i className="bi bi-pencil-square"></i>
-              </Button>
-              <Button variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>
-                <i className="bi bi-trash"></i>
-              </Button>
-            </td>
-          </tr>
-        ))
-      )}
-    </tbody>
+  <tbody>
+  {loading && purchaseData.length === 0 ? (
+    <tr>
+      <td colSpan="8" className="text-center py-4">
+        <Spinner animation="border" />
+      </td>
+    </tr>
+  ) : purchaseData.length === 0 ? (
+    <tr>
+      <td colSpan="8" className="text-center py-4 text-muted">
+        No purchase data available
+      </td>
+    </tr>
+  ) : (
+    purchaseData.map((item, index) => (
+      <tr key={item.id}>
+        <td className="fw-normal text-center">{index + 1}</td>
+        <td className="fw-normal">{item.vendor}</td>
+        <td className="fw-normal">{item.invoice_no}</td>
+        <td className="fw-normal">{item.invoice_date}</td>
+        <td className="fw-normal">{item.batch}</td>
+        <td className="fw-normal">{item.category}</td>
+        <td className="fw-normal">{item.quantity}</td>
+        <td className="py-2 pe-1 d-flex gap-2">
+          <Button variant="outline-success" size="sm" onClick={() => handleGenerateInvoice(item.id)}>
+            <i className="bi bi-file-earmark-pdf"></i>
+          </Button>
+          <Button variant="outline-info" size="sm" onClick={() => handleEdit(item)}>
+            <i className="bi bi-pencil-square"></i>
+          </Button>
+          <Button variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>
+            <i className="bi bi-trash"></i>
+          </Button>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
+
   </table>
 </div>
 </div>

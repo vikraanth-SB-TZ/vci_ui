@@ -64,6 +64,20 @@ export default function PcbPurchaseReturn() {
   }
 };
 
+const handleDelete = async (id) => {
+  // if (!window.confirm("Are you sure you want to delete this return?")) return;
+
+  try {
+    await axios.delete(`${API_BASE_URL}/pcb-purchase-return/${id}`);
+    toast.success("Return deleted successfully!");
+    fetchReturns(); // Refresh the list
+  } catch (err) {
+    console.error("Delete error:", err);
+    toast.error("Failed to delete return.");
+  }
+};
+
+
 
   return (
     <div className="p-4 bg-white" style={{ minHeight: "100vh" }}>
@@ -156,6 +170,15 @@ export default function PcbPurchaseReturn() {
   >
     <i className="bi bi-pencil-square"></i>
   </Button>
+
+  <Button
+  variant="outline-danger"
+  size="sm"
+  onClick={() => handleDelete(item.id)}
+>
+  <i className="bi bi-trash"></i>
+</Button>
+
 </td>
 
                 </tr>

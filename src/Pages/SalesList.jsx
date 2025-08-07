@@ -99,54 +99,52 @@ export default function SalesListPage() {
 
   
   const handleDelete = async (id) => {
-    const result = await MySwal.fire({
-      title: "Are you sure?",
-      text: "Do you really want to delete this spare part?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    });
+  const result = await MySwal.fire({
+    title: "Are you sure?",
+    text: "Do you really want to delete this sale?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  });
 
-    if (!result.isConfirmed) return;
+  if (!result.isConfirmed) return;
 
-    try {
-      if ($.fn.DataTable.isDataTable(tableRef.current)) {
-        $(tableRef.current).DataTable().destroy();
-      }
-
-      await axios.delete(`${API_BASE_URL}/sales/${id}/del`);
-      toast.success("Sales deleted successfully!");
-
-      if (editingPart?.id === id) closeForm();
-
-      const updatedSpareparts = spareparts.filter(part => part.id !== id);
-      setSpareparts(updatedSpareparts);
-
-      setTimeout(() => {
-        if ($.fn.DataTable.isDataTable(tableRef.current)) {
-          $(tableRef.current).DataTable().destroy();
-        }
-        if (updatedSpareparts.length > 0) {
-          $(tableRef.current).DataTable({
-            ordering: true,
-            paging: true,
-            searching: true,
-            lengthChange: true,
-            columnDefs: [{ targets: 0, className: "text-center" }],
-          });
-        }
-      }, 0);
-    } catch (error) {
-      console.error("Error deleting:", error);
-      if (error.response?.data?.message) {
-        toast.error(`Failed to delete spare part: ${error.response.data.message}`);
-      } else {
-        toast.error("Failed to delete spare part.");
-      }
+  try {
+    // Destroy DataTable before update
+    if ($.fn.DataTable.isDataTable(tableRef.current)) {
+      $(tableRef.current).DataTable().destroy();
     }
-  };
+
+    await axios.delete(`${API_BASE_URL}/sales/${id}/del`);
+    toast.success("Sale deleted successfully!");
+
+    const updatedSales = salesData.filter(item => item.id !== id);
+    setSalesData(updatedSales);
+
+    // Reinitialize DataTable after DOM update
+    setTimeout(() => {
+      if (updatedSales.length > 0) {
+        $(tableRef.current).DataTable({
+          ordering: true,
+          paging: true,
+          searching: true,
+          lengthChange: true,
+          columnDefs: [{ targets: 0, className: "text-center" }],
+        });
+      }
+    }, 0);
+  } catch (error) {
+    console.error("Error deleting sale:", error);
+    if (error.response?.data?.message) {
+      toast.error(`Failed to delete sale: ${error.response.data.message}`);
+    } else {
+      toast.error("Failed to delete sale.");
+    }
+  }
+};
+
 
   const handleViewInvoice = (saleId) => {
     try {
@@ -185,6 +183,7 @@ export default function SalesListPage() {
             <tr>
               <th style={{ width: "60px", textAlign: "start" }}>S.No</th>
               <th>Customer</th>
+              <th>Invoice No</th>
               <th>Shipment</th>
               <th>Delivery</th>
               <th>Batch</th>
@@ -211,6 +210,7 @@ export default function SalesListPage() {
                 <tr key={item.id}>
                   <td style={{ textAlign: "start" }}>{index + 1}</td>
                   <td>{item.customer_name}</td>
+                   <td>{item.invoice_no}</td>
                   <td>{item.shipment_date}</td>
                   <td>{item.delivery_date}</td>
                   <td>{item.batch_name}</td>
