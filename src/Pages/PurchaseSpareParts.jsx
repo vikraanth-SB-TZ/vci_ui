@@ -1,19 +1,18 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Button, Spinner, Form } from "react-bootstrap";
+import { Button, Spinner, Form, Card } from "react-bootstrap";
 import axios from "axios";
 import "bootstrap-icons/font/bootstrap-icons.css";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import $ from "jquery";
-import "datatables.net-dt/css/dataTables.dataTables.css";
-import "datatables.net";
 import { BsDashLg } from "react-icons/bs";
 import MiniCalendar from "./MiniCalendar";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import { API_BASE_URL } from "../api";
-
+import Breadcrumb from "./Components/Breadcrumb";
+import Pagination from "./Components/Pagination";
+import Search from "./Components/Search";
 
 export default function PurchaseSparepartsPage() {
     const [vendors, setVendors] = useState([]);
@@ -23,18 +22,24 @@ export default function PurchaseSparepartsPage() {
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const MySwal = withReactContent(Swal);
+    const [sortField, setSortField] = useState("invoice_date");
+    const [sortDirection, setSortDirection] = useState("desc");
+
 
     const [sparePartsRows, setSparePartsRows] = useState([{
         sparepart_id: "",
         quantity: ""
-    },]);
+    }]);
     const [invoiceDate, setInvoiceDate] = useState(() => {
         const today = new Date();
-        return today.toISOString().split("T")[0]; // format as "YYYY-MM-DD"
+        return today.toISOString().split("T")[0];
     });
 
     const [editingPurchase, setEditingPurchase] = useState(null);
     const [showCalendar, setShowCalendar] = useState(false);
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(10);
+    const [search, setSearch] = useState("");
 
     const [formData, setFormData] = useState({
         vendor_id: "",
@@ -51,7 +56,7 @@ export default function PurchaseSparepartsPage() {
         const baseStyle = {
             fontFamily: "Product Sans, sans-serif",
             fontSize: "14px",
-            border: "1px solid #ced4da", // Add default border
+            border: "1px solid #ced4da",
         };
         if (isInvalid) {
             return {
@@ -85,7 +90,6 @@ export default function PurchaseSparepartsPage() {
         } else if (value) {
             return {
                 ...baseTableInputStyle,
-                // Removed borderColor to only show the green box-shadow
                 boxShadow: "0 0 0 0.25rem rgba(39, 140, 88, 0.25)",
             };
         }
@@ -105,9 +109,7 @@ export default function PurchaseSparepartsPage() {
 
     const fetchVendors = useCallback(async () => {
         try {
-            const {
-                data
-            } = await axios.get(`${API_BASE_URL}/vendors`, {
+            const { data } = await axios.get(`${API_BASE_URL}/vendors`, {
                 headers: {
                     Accept: "application/json"
                 },
@@ -121,9 +123,7 @@ export default function PurchaseSparepartsPage() {
 
     const fetchBatches = useCallback(async () => {
         try {
-            const {
-                data
-            } = await axios.get(`${API_BASE_URL}/batches`, {
+            const { data } = await axios.get(`${API_BASE_URL}/batches`, {
                 headers: {
                     Accept: "application/json"
                 },
@@ -135,34 +135,30 @@ export default function PurchaseSparepartsPage() {
         }
     }, []);
 
-const fetchAvailableSpareparts = useCallback(async () => {
-    try {
-        const {
-            data
-        } = await axios.get(`${API_BASE_URL}/spareparts`, {
-            headers: {
-                Accept: "application/json"
-            },
-        });
-        
-        let rows = Array.isArray(data) ? data : data.data ?? [];
-        
-        // Filter out items where is_active is not "Enable"
-        const activeSpareparts = rows.filter(
-            (sparepart) => sparepart.is_active === "Enable"
-        );
-        
-        setAvailableSpareparts(activeSpareparts);
-    } catch (err) {
-        console.error("Error loading spareparts master list:", err);
-    }
-}, []);
+    const fetchAvailableSpareparts = useCallback(async () => {
+        try {
+            const { data } = await axios.get(`${API_BASE_URL}/spareparts`, {
+                headers: {
+                    Accept: "application/json"
+                },
+            });
+            
+            let rows = Array.isArray(data) ? data : data.data ?? [];
+            
+            const activeSpareparts = rows.filter(
+                (sparepart) => sparepart.is_active === "Enable"
+            );
+            
+            setAvailableSpareparts(activeSpareparts);
+        } catch (err) {
+            console.error("Error loading spareparts master list:", err);
+        }
+    }, []);
+
     const fetchPurchases = useCallback(async () => {
         setLoading(true);
         try {
-            const {
-                data
-            } = await axios.get(`${API_BASE_URL}/sparepart-purchases`, {
+            const { data } = await axios.get(`${API_BASE_URL}/sparepart-purchases`, {
                 headers: {
                     Accept: "application/json"
                 },
@@ -177,8 +173,6 @@ const fetchAvailableSpareparts = useCallback(async () => {
         }
     }, []);
 
-
-
     useEffect(() => {
         fetchVendors();
         fetchBatches();
@@ -186,37 +180,6 @@ const fetchAvailableSpareparts = useCallback(async () => {
         fetchPurchases();
     }, [fetchVendors, fetchBatches, fetchAvailableSpareparts, fetchPurchases]);
 
-    useEffect(() => {
-        if (dataTableInstance.current) {
-            dataTableInstance.current.destroy();
-            dataTableInstance.current = null;
-        }
-
-        const timer = setTimeout(() => {
-            if (!loading && spareparts.length > 0 && tableRef.current) {
-                dataTableInstance.current = $(tableRef.current).DataTable({
-                    ordering: true,
-                    paging: true,
-                    searching: true,
-                    lengthChange: true,
-                    columnDefs: [{
-                        targets: 0,
-                        className: "text-center"
-                    }],
-                    destroy: true,
-                });
-            }
-        }, 0);
-
-        return () => {
-
-            if (dataTableInstance.current) {
-                dataTableInstance.current.destroy();
-                dataTableInstance.current = null;
-            }
-            clearTimeout(timer);
-        };
-    }, [spareparts, loading]);
 
     const handleAddRow = () => {
         setSparePartsRows((rows) => [...rows, {
@@ -228,75 +191,69 @@ const fetchAvailableSpareparts = useCallback(async () => {
     const handleRemoveRow = (index) => {
         setSparePartsRows((rows) => rows.filter((_, i) => i !== index));
         setFormErrors((prevErrors) => {
-            const newErrors = {
-                ...prevErrors
-            };
+            const newErrors = { ...prevErrors };
             delete newErrors[`sparepart-${index}`];
             delete newErrors[`quantity-${index}`];
             return newErrors;
         });
     };
 
-const handleRowChange = (index, field, value) => {
-    setSparePartsRows((rows) => {
-        const copy = [...rows];
-        copy[index] = {
-            ...copy[index],
-            [field]: value
-        };
-        return copy;
-    });
+    const handleRowChange = (index, field, value) => {
+        setSparePartsRows((rows) => {
+            const copy = [...rows];
+            copy[index] = {
+                ...copy[index],
+                [field]: value
+            };
+            return copy;
+        });
 
-    setFormErrors((prevErrors) => {
-        const newErrors = { ...prevErrors
-        };
-        const row = sparePartsRows[index];
+        setFormErrors((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            const row = sparePartsRows[index];
 
-        if (field === 'sparepart_id') {
+            if (field === 'sparepart_id') {
+                if (!value) {
+                    newErrors[`sparepart-${index}`] = "Spare part is required.";
+                } else {
+                    delete newErrors[`sparepart-${index}`];
+                }
+            }
+
+            if (field === 'quantity') {
+                const quantity = parseInt(value, 10);
+                if (!value || isNaN(quantity) || quantity < 0) {
+                    newErrors[`quantity-${index}`] = "Quantity must be a non-negative number.";
+                } else {
+                    delete newErrors[`quantity-${index}`];
+                }
+            }
+            return newErrors;
+        });
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value
+        }));
+
+        setFormErrors((prev) => {
+            const newErrors = { ...prev };
+            const errorKey = name === 'invoiceNo' ? 'invoice_no' : name;
+
             if (!value) {
-                newErrors[`sparepart-${index}`] = "Spare part is required.";
+                newErrors[errorKey] = `${name.charAt(0).toUpperCase() + name.slice(1).replace('No', ' No.')} is required.`;
             } else {
-                delete newErrors[`sparepart-${index}`];
+                delete newErrors[errorKey];
             }
-        }
+            return newErrors;
+        });
+    };
 
-        if (field === 'quantity') {
-            const quantity = parseInt(value, 10);
-            if (!value || isNaN(quantity) || quantity < 0) {
-                newErrors[`quantity-${index}`] = "Quantity must be a non-negative number.";
-            } else {
-                delete newErrors[`quantity-${index}`];
-            }
-        }
-        return newErrors;
-    });
-};
-const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-        ...prev,
-        [name]: value
-    }));
-
-    // Explicitly re-validate the changed field
-    setFormErrors((prev) => {
-        const newErrors = { ...prev };
-
-        // We need to use the correct error key, which seems to be 'invoice_no'
-        const errorKey = name === 'invoiceNo' ? 'invoice_no' : name;
-
-        if (!value) {
-            newErrors[errorKey] = `${name.charAt(0).toUpperCase() + name.slice(1).replace('No', ' No.')} is required.`;
-        } else {
-            // Remove the error if the value is present
-            delete newErrors[errorKey];
-        }
-        return newErrors;
-    });
-};const handleDateChange = (e) => {
-        const {
-            value
-        } = e.target;
+    const handleDateChange = (e) => {
+        const { value } = e.target;
         setInvoiceDate(value);
         setFormErrors((prev) => ({
             ...prev,
@@ -509,9 +466,7 @@ const handleInputChange = (e) => {
                 dataTableInstance.current = null;
             }
 
-            const {
-                data
-            } = await axios.delete(`${API_BASE_URL}/sparepart-purchases/${id}`, {
+            const { data } = await axios.delete(`${API_BASE_URL}/sparepart-purchases/${id}`, {
                 headers: {
                     Accept: "application/json"
                 },
@@ -602,91 +557,187 @@ const handleInputChange = (e) => {
         return batch ? batch.batch : `ID: ${id}`;
     };
 
-    return (
-        <div className="vh-80 d-flex flex-column position-relative bg-light">
-            <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-                <h5 className="mb-0 fw-bold">
-                    Purchase Spare Parts ({spareparts.length})
-                </h5>
-                <div>
-                    <Button
-                        variant="outline-secondary"
-                        size="sm"
-                        className="me-2"
-                        onClick={fetchPurchases}
-                    >
-                        {loading ? (
-                            <Spinner animation="border" size="sm" />
-                        ) : (
-                            <i className="bi bi-arrow-clockwise"></i>
-                        )}
-                    </Button>
-                   <Button
-  size="sm"
-  onClick={() => handleShowForm()}
-  style={{
-    backgroundColor: '#2FA64F',
-    borderColor: '#2FA64F',
-    color: '#fff'
-    
-  }}
->
-  + Add New
-</Button>
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
+    const filteredSpareparts = spareparts.filter((purchase) =>
+        getVendorNameById(purchase.vendor_id).toLowerCase().includes(search.toLowerCase()) ||
+        purchase.invoice_no.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const sortedSpareparts = [...filteredSpareparts].sort((a, b) => {
+        if (!sortField) return 0;
+
+        let valA, valB;
+
+        if (sortField === "vendor_name") {
+            valA = getVendorNameById(a.vendor_id).toLowerCase();
+            valB = getVendorNameById(b.vendor_id).toLowerCase();
+        } else {
+            valA = a[sortField];
+            valB = b[sortField];
+        }
+
+        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+    });
+
+    const paginatedSpareparts = sortedSpareparts.slice(
+        (page - 1) * perPage,
+        page * perPage
+    );
+
+
+    return (
+        <div className="px-4 py-2">
+            <Breadcrumb title="Purchase Spare Parts" />
+
+            <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
+                <div className="row mb-3">
+                    <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+                        <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+                        <Form.Select
+                            size="sm"
+                            style={{ width: "100px" }}
+                            value={perPage}
+                            onChange={(e) => {
+                                setPerPage(Number(e.target.value));
+                                setPage(1);
+                            }}
+                        >
+                            {[5, 10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n}
+                                </option>
+                            ))}
+                        </Form.Select>
+                    </div>
+
+                    <div className="col-md-6 text-md-end">
+                        <div className="mt-2 d-inline-block mb-2">
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                className="me-2"
+                                onClick={fetchPurchases}
+                            >
+                                {loading ? (
+                                    <Spinner animation="border" size="sm" />
+                                ) : (
+                                    <i className="bi bi-arrow-clockwise"></i>
+                                )}
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={() => handleShowForm()}
+                                style={{
+                                    backgroundColor: '#2FA64F',
+                                    borderColor: '#2FA64F',
+                                    color: '#fff'
+                                }}
+                            >
+                                + Add New
+                            </Button>
+                        </div>
+                        <Search
+                            search={search}
+                            setSearch={setSearch}
+                            perPage={perPage}
+                            setPerPage={setPerPage}
+                            setPage={setPage}
+                        />
+                    </div>
                 </div>
-            </div>
-            <div className="flex-grow-1 overflow-auto px-4 py-3">
+
                 <div className="table-responsive">
-                    <table ref={tableRef} className="table custom-table">
-                        <thead>
+                    <table ref={tableRef} className="table align-middle mb-0">
+                        <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
                             <tr>
-                                <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
-                                <th>Vendor Name</th>
-                                <th>Invoice Date</th>
-                                <th>Invoice No</th>
-                                <th>Action</th>
+                                <th style={{
+                                    width: "70px", textAlign: "center", backgroundColor: "#2E3A59",
+                                    color: "white",
+                                }}>S.No</th>
+                                <th
+                                    onClick={() => handleSort("vendor_name")}
+                                    style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
+                                >
+                                    Vendor Name {sortField === "vendor_name" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("invoice_date")}
+                                    style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
+                                >
+                                    Invoice Date {sortField === "invoice_date" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("invoice_no")}
+                                    style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
+                                >
+                                    Invoice No {sortField === "invoice_no" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th style={{
+                                    backgroundColor: "#2E3A59",
+                                    color: "white",
+                                }}>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {loading && spareparts.length === 0 ? (
+                            {loading ? (
                                 <tr>
                                     <td colSpan="5" className="text-center py-4">
                                         <Spinner animation="border" />
                                     </td>
                                 </tr>
-                            ) : spareparts.length === 0 ? (
+                            ) : paginatedSpareparts.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="text-center py-4 text-muted">
-                                        No purchases found.
+                                        <img
+                                            src="/empty-box.png"
+                                            alt="No purchases found"
+                                            style={{ width: "80px", height: "100px", opacity: 0.6 }}
+                                        />
                                     </td>
                                 </tr>
                             ) : (
-                                spareparts.map((purchase, index) => (
+                                paginatedSpareparts.map((purchase, index) => (
                                     <tr key={purchase.id}>
-                                        <td style={{ textAlign: "center" }}>{index + 1}</td>
-                                        <td>{getVendorNameById(purchase.vendor_id)}</td>
-                                        <td>
-                                            {new Date(purchase.invoice_date).toLocaleDateString(
-                                                "en-GB"
-                                            )}
+                                        <td className="text-center">
+                                            {(page - 1) * perPage + index + 1}
                                         </td>
+                                        <td>{getVendorNameById(purchase.vendor_id)}</td>
+                                        <td>{new Date(purchase.invoice_date).toLocaleDateString("en-GB")}</td>
                                         <td>{purchase.invoice_no}</td>
                                         <td>
                                             <Button
-                                                variant="outline-primary"
+                                                variant=""
                                                 size="sm"
                                                 className="me-1"
                                                 onClick={() => handleShowForm(purchase)}
+                                                style={{
+                                                    borderColor: '#2E3A59',
+                                                    color: '#2E3A59'
+                                                }}
                                             >
-                                                <i className="bi bi-pencil-square me-1"></i>
+                                                <i className="bi bi-pencil-square"></i>
                                             </Button>
                                             <Button
-                                                variant="outline-danger"
+                                                variant="outline-primary"
                                                 size="sm"
                                                 onClick={() => handleDelete(purchase.id)}
+                                                style={{
+                                                    borderColor: '#2E3A59',
+                                                    color: '#2E3A59',
+                                                    backgroundColor: 'transparent'
+                                                }}
                                             >
-                                                <i className="bi bi-trash me-1"></i>
+                                                <i className="bi bi-trash"></i>
                                             </Button>
                                         </td>
                                     </tr>
@@ -695,7 +746,17 @@ const handleInputChange = (e) => {
                         </tbody>
                     </table>
                 </div>
-            </div>
+
+                <div className="">
+                    <Pagination
+                        page={page}
+                        setPage={setPage}
+                        perPage={perPage}
+                        totalEntries={filteredSpareparts.length}
+                    />
+                </div>
+            </Card>
+
             <div
                 className={`position-fixed bg-white shadow-lg purchase-form-slide`}
                 style={{
@@ -1081,78 +1142,6 @@ const handleInputChange = (e) => {
                     </Form>
                 </div>
             </div>
-
-            <style>
-                {`
-.custom-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.custom-table thead th {
-  background-color: #f1f3f5;
-  font-weight: 600;
-  font-size: 14px;
-  color: #212529;
-  padding: 10px 8px;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.custom-table td {
-  padding: 6px;
-  vertical-align: middle;
-  border-bottom: 1px solid #f1f3f5;
-}
-
-.custom-table select,
-.custom-table input {
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  background-color: transparent;
-  font-size: 14px;
-  padding: 6px 4px;
-  width: 100%;
-  color: #212529;
-}
-
-.custom-table select:focus,
-.custom-table input:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-.remove-btn {
-  background-color: #f8d7da;
-  color: #dc3545;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  font-size: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-}
-
-.remove-btn:hover {
-  background-color: #f1b0b7;
-}
-
-.add-row-btn {
-  background-color: #278C580F;
-  color: #278C58;
-  border: 1px solid #D5E8D4;
-  font-size: 14px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  box-shadow: none;
-  cursor: pointer;
-}
-      `}
-            </style>
-
         </div>
     );
 }
