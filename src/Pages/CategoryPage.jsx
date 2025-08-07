@@ -22,7 +22,7 @@ export default function CategoryPage() {
   const [perPage, setPerPage] = useState(10);
 
   const MySwal = withReactContent(Swal);
-
+const [hasSorted, setHasSorted] = useState(false);
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -116,6 +116,7 @@ export default function CategoryPage() {
     const direction = sortField === field && sortDirection === "asc" ? "desc" : "asc";
     setSortField(field);
     setSortDirection(direction);
+    setHasSorted(true);
   };
 
   const filteredCategories = categories.filter((c) =>
@@ -204,18 +205,22 @@ export default function CategoryPage() {
                   S.No
                 </th>
 
-                <th
-                  onClick={() => handleSort("category")}
-                  style={{
-                    width: "200px", // Increased for longer category names
-                    backgroundColor: "#2E3A59",
-                    color: "white",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  VCI Category {sortField === "category" && (sortDirection === "asc" ? "▲" : "▼")}
-                </th>
+              <th
+  onClick={() => handleSort("category")}
+  style={{
+    width: "200px",
+    backgroundColor: "#2E3A59",
+    color: "white",
+    cursor: "pointer",
+    whiteSpace: "nowrap"
+  }}
+>
+  VCI Category{" "}
+  {sortField === "category" && hasSorted && (
+    <span>{sortDirection === "asc" ? "▲" : "▼"}</span>
+  )}
+</th>
+
 
                 <th
                   style={{
