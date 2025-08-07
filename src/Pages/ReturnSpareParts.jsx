@@ -13,8 +13,8 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import MiniCalendar from "./MiniCalendar";
 import { API_BASE_URL } from "../api";
-
-
+ 
+ 
 const getBlueBorderStyles = (value, isInvalid) => {
   if (isInvalid) {
     return { borderColor: "#dc3545" };
@@ -24,7 +24,7 @@ const getBlueBorderStyles = (value, isInvalid) => {
   }
   return {};
 };
-
+ 
 const getTableInputStyles = (value, isInvalid) => {
   if (isInvalid) {
     return { borderColor: "#dc3545" };
@@ -34,7 +34,7 @@ const getTableInputStyles = (value, isInvalid) => {
   }
   return {};
 };
-
+ 
 export default function ReturnSparePartsPage() {
   const [vendors, setVendors] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -51,22 +51,22 @@ export default function ReturnSparePartsPage() {
   });
   // const [returnDate, setReturnDate] = useState("");
   const [showReturnCalendar, setShowReturnCalendar] = useState(false);
-
+ 
   const dateInputRef = useRef();
   const [editingReturn, setEditingReturn] = useState(null);
-
+ 
   const [formData, setFormData] = useState({
     vendor_id: "",
     batch_id: "",
     invoiceNo: "",
     notes: ""
   });
-
+ 
   const [invoiceSpareparts, setInvoiceSpareparts] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const tableRef = useRef(null);
   const dataTableInstance = useRef(null);
-
+ 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
@@ -77,13 +77,13 @@ export default function ReturnSparePartsPage() {
         axios.get(`${API_BASE_URL}/spareparts`, { headers: { Accept: "application/json" } }),
         axios.get(`${API_BASE_URL}/sparepart-returns`, { headers: { Accept: "application/json" } }),
       ]);
-
+ 
       setVendors(vendorsRes.data.data ?? vendorsRes.data ?? []);
       setBatches(batchesRes.data.batches ?? batchesRes.data.data ?? batchesRes.data ?? []);
       setPurchases(purchasesRes.data.data ?? purchasesRes.data ?? []);
       setAvailableSpareparts(sparepartsRes.data.data ?? sparepartsRes.data ?? []);
       setReturns(returnsRes.data.data ?? returnsRes.data ?? []);
-
+ 
     } catch (err) {
       console.error("Error loading initial data:", err);
       toast.error("Failed to load data. Please check the server connection.");
@@ -91,17 +91,17 @@ export default function ReturnSparePartsPage() {
       setLoading(false);
     }
   }, []);
-
+ 
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
-
+ 
   useEffect(() => {
     if (dataTableInstance.current) {
       dataTableInstance.current.destroy();
       dataTableInstance.current = null;
     }
-
+ 
     if (!loading && returns.length > 0 && tableRef.current) {
       dataTableInstance.current = $(tableRef.current).DataTable({
         ordering: true,
@@ -112,7 +112,7 @@ export default function ReturnSparePartsPage() {
       });
     }
   }, [returns, loading]);
-
+ 
   useEffect(() => {
     if (formData.invoiceNo) {
       const selectedPurchase = purchases.find(p => String(p.invoice_no) === String(formData.invoiceNo));
@@ -126,11 +126,11 @@ export default function ReturnSparePartsPage() {
       setInvoiceSpareparts([]);
     }
   }, [formData.invoiceNo, purchases, availableSpareparts]);
-
+ 
   const handleAddRow = () => {
     setSparePartsRows((rows) => [...rows, { sparepart_id: "", quantity: "" }]);
   };
-
+ 
   const handleRemoveRow = (index) => {
     setSparePartsRows((rows) => rows.filter((_, i) => i !== index));
     setFormErrors((prevErrors) => {
@@ -140,57 +140,58 @@ export default function ReturnSparePartsPage() {
       return newErrors;
     });
   };
-
+ 
   const handleRowChange = (index, field, value) => {
     setSparePartsRows((rows) => {
       const copy = [...rows];
       copy[index] = { ...copy[index], [field]: value };
       return copy;
     });
-
+ 
     setFormErrors((prevErrors) => {
       const newErrors = { ...prevErrors };
       delete newErrors[`${field}-${index}`];
-
+ 
+      // If user is filling anything in rows, clear the general error too
       if (field === "sparepart_id" || field === "quantity") {
         delete newErrors.items;
       }
-
+ 
       return newErrors;
     });
   };
-
+ 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
-
+ 
   const handleReturnDateChange = (e) => {
     const { value } = e.target;
     setReturnDate(value);
     setFormErrors((prev) => ({ ...prev, return_date: "" }));
   };
-
+ 
   const validateForm = (payload, items) => {
     let errors = {};
-
+ 
     if (!payload.vendor_id) {
       errors.vendor_id = "Vendor is required.";
     }
-
+ 
     if (!payload.invoice_no) {
       errors.invoiceNo = "Invoice No. is required.";
     }
-
+ 
     if (!payload.return_date) {
       errors.return_date = "Return Date is required.";
     }
-
+ 
     if (!payload.batch_id) {
       errors.batch_id = "Batch is required.";
     }
-
+ 
     if (
       items.length === 0 ||
       items.every(item => !item.sparepart_id || !parseInt(item.quantity))
@@ -199,28 +200,28 @@ export default function ReturnSparePartsPage() {
     } else {
       const selectedInvoice = purchases.find(p => String(p.invoice_no) === String(payload.invoice_no));
       const purchasedSparepartIds = selectedInvoice ? selectedInvoice.items.map(item => String(item.sparepart_id)) : [];
-
+ 
       items.forEach((item, index) => {
         if (item.sparepart_id && !purchasedSparepartIds.includes(String(item.sparepart_id))) {
           errors[`sparepart-${index}`] = "This spare part was not included in the selected invoice.";
         }
-
+ 
         if (!item.quantity || parseInt(item.quantity, 10) < 1 || isNaN(parseInt(item.quantity, 10))) {
           errors[`quantity-${index}`] = "Quantity must be a positive number.";
         }
       });
     }
-
+ 
     setFormErrors(errors);
-
+ 
     if (Object.keys(errors).length > 0) {
       const firstErrorMsg = errors[Object.keys(errors)[0]];
       toast.error(firstErrorMsg || "Please correct the errors in the form.");
     }
-
+ 
     return Object.keys(errors).length === 0;
   };
-
+ 
 const handleFormSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
@@ -234,143 +235,119 @@ const handleFormSubmit = async (e) => {
 
   const payload = {
     vendor_id: formData.vendor_id,
-    batch_id: formData.batch_id,
     invoice_no: formData.invoiceNo,
     return_date: returnDate,
-    notes: formData.notes || null,
-    items: items,
+    batch_id: formData.batch_id,
+    notes: formData.notes,
+    items,
   };
 
-  if (!validateForm(payload, sparePartsRows)) {
+  const isValid = validateForm(payload, items);
+  if (!isValid) {
     setLoading(false);
     return;
   }
 
   try {
-    let data;
-const isEditMode = !!editingReturn?.id && !isNaN(editingReturn.id);
-
-    if (isEditMode) {
-   const updateId = String(editingReturn.id).trim();
-
-if (!updateId || updateId === "undefined" || isNaN(updateId)) {
-  toast.error("Invalid ID for updating. Please try again.");
-  return;
-}
-
-      const resp = await axios.put(
-        `${API_BASE_URL}/sparepart-returns/${updateId}`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      );
-
-      data = resp.data;
-
-      if (data?.message) {
-       setReturns((prevReturns) =>
-  prevReturns.map((item) =>
-    String(item.id) === updateId ? { ...item, ...payload, id: item.id } : item
-  )
-);
-
-        toast.success("Sparepart return updated successfully.");
-      } else {
-        toast.error(data?.message || "Failed to update return.");
-      }
+    if (editingReturn && editingReturn.id) {
+      await axios.put(`${API_BASE_URL}/sparepart-returns/${editingReturn.id}`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+      toast.success("Return updated successfully");
     } else {
-      // ADD mode
-      const resp = await axios.post(
-        `${API_BASE_URL}/sparepart-returns`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      );
-
-      data = resp.data;
-
-      if (data?.message) {
-       setReturns((prevReturns) => [
-  ...prevReturns,
-  { ...payload, id: data.id }, // Ensure this is a valid ID
-]);
-
-        toast.success("Sparepart return added successfully.");
-      } else {
-        toast.error(data?.message || "Failed to add return.");
-      }
+      await axios.post(`${API_BASE_URL}/sparepart-returns`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+      toast.success("Return added successfully");
     }
 
-    // Reset form on success
-    setShowForm(false);
-    setEditingReturn(null);
+    setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", notes: "" });
     setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-    setReturnDate(new Date().toISOString().split("T")[0]);
-    setFormErrors({});
-    setFormData({
-      vendor_id: "",
-      batch_id: "",
-      invoiceNo: "",
-      notes: "",
-    });
+    setEditingReturn(null);
+    setShowForm(false);
+    await fetchAllData();
   } catch (error) {
-    if (error.response) {
-      console.error("Server responded with error:", error.response.status, error.response.data);
-      toast.error(error.response.data.error || "Server error occurred.");
-      setFormErrors(error.response.data.errors || {});
-    } else if (error.request) {
-      console.error("No response received:", error.request);
-      toast.error("No response from server.");
-    } else {
-      console.error("Request setup error:", error.message);
-      toast.error("An error occurred before sending the request.");
-    }
+    console.error("Error saving return:", error);
+    toast.error("Failed to save return");
   } finally {
     setLoading(false);
   }
 };
-const handleDelete = async (id) => {
-  if (!id || isNaN(id)) {
-    toast.error("Invalid spare part return ID.");
-    return;
-  }
 
-  const result = await MySwal.fire({
-    title: "Are you sure?",
-    text: "Do you really want to delete this spare part?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Yes, delete it!",
-  });
+    const handleDelete = async (id) => {
+        const result = await MySwal.fire({
+            title: "Are you sure?",
+            text: "Do you really want to delete this return?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!",
+        });
 
-  if (result.isConfirmed) {
-    try {
-      await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`);
-      toast.success("Spare part return deleted successfully.");
-      await fetchAllData(); // ✅ Corrected
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error("Failed to delete spare part return.");
+        if (!result.isConfirmed) return;
+
+        try {
+            if (dataTableInstance.current) {
+                dataTableInstance.current.destroy();
+                dataTableInstance.current = null;
+            }
+
+            const {
+                data
+            } = await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`, {
+                headers: {
+                    Accept: "application/json"
+                },
+            });
+
+if (data?.success) {
+const updatedReturns = returns.filter((r) => String(r.id) !== String(id));
+setReturns(updatedReturns);
+
+    if (dataTableInstance.current) {
+        dataTableInstance.current.destroy();
+        dataTableInstance.current = null;
     }
-  }
-};
+
+    setSparePartsRows(updatedReturns);
+
+    
+                setTimeout(() => {
+                    if (updatedSpareparts.length && tableRef.current) {
+                        dataTableInstance.current = $(tableRef.current).DataTable({
+                            ordering: true,
+                            paging: true,
+                            searching: true,
+                            lengthChange: true,
+                            columnDefs: [{
+                                targets: 0,
+                                className: "text-center"
+                            }],
+                        });
+                    }
+                }, 0);
 
 
-
+                toast.success("Purchase deleted successfully!");
+            } else {
+                toast.error(data?.message || "Failed to delete.");
+            }
+        } catch (err) {
+            console.error("Delete Error:", err);
+            toast.error("Failed to delete purchase. Check logs.");
+        }
+    };
   const handleShowForm = (returnedItem = null) => {
     setEditingReturn(returnedItem);
     setFormErrors({});
-
+ 
     if (returnedItem) {
       // Find the corresponding purchase to get the correct spare parts list
       const purchase = purchases.find(p => String(p.invoice_no) === String(returnedItem.invoice_no));
@@ -379,7 +356,7 @@ const handleDelete = async (id) => {
         sparepartOptions = purchase.items.map(item => availableSpareparts.find(sp => sp.id === item.sparepart_id)).filter(Boolean);
       }
       setInvoiceSpareparts(sparepartOptions);
-
+ 
       setSparePartsRows(
         returnedItem.items && returnedItem.items.length > 0
           ? returnedItem.items.map((item) => ({
@@ -403,7 +380,7 @@ const handleDelete = async (id) => {
     }
     setShowForm(true);
   };
-
+ 
   return (
     <div className="vh-80 d-flex flex-column position-relative bg-light">
       <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
@@ -419,12 +396,12 @@ const handleDelete = async (id) => {
               backgroundColor: '#2FA64F',
               borderColor: '#2FA64F',
               color: '#fff'
-
+ 
             }}
           >
             + Add New
           </Button>
-
+ 
         </div>
       </div>
       <div className="flex-grow-1 overflow-auto px-4 py-3">
@@ -475,15 +452,13 @@ const handleDelete = async (id) => {
                       >
                         <i className="bi bi-pencil-square me-1"></i>
                       </Button>
-{console.log("Returned ID:", returned.id)}
-<Button
-  variant="outline-danger"
-  size="sm"
-  onClick={() => handleDelete(returned.id)}
->
-  <i className="bi bi-trash me-1"></i>
-</Button>
-
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(returned.id)}
+                      >
+                        <i className="bi bi-trash me-1"></i>
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -519,7 +494,7 @@ const handleDelete = async (id) => {
               setFormErrors({});
               setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
               setReturnDate(new Date().toISOString().split("T")[0]);
-              setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
+              setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", notes: "" });
             }}
             style={{
               width: "40px",
@@ -611,7 +586,7 @@ const handleDelete = async (id) => {
               <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
                 Return Date <span className="text-danger">*</span>
               </Form.Label>
-
+ 
               <div
                 className="form-control d-flex align-items-center justify-content-between"
                 style={{
@@ -641,13 +616,13 @@ const handleDelete = async (id) => {
                   }}
                 />
               </div>
-
+ 
               {formErrors.return_date && (
                 <div className="invalid-feedback d-block">
                   {formErrors.return_date}
                 </div>
               )}
-
+ 
               {showReturnCalendar && (
                 <div style={{ position: "absolute", zIndex: 10 }}>
                   <MiniCalendar
@@ -716,7 +691,7 @@ const handleDelete = async (id) => {
                 + Add Row
               </button>
             </div>
-
+ 
             <div
               style={{
                 border: "1px solid #D3DBD5",
@@ -774,13 +749,13 @@ const handleDelete = async (id) => {
                         const selectedIds = sparePartsRows
                           .filter((_, i) => i !== index)
                           .map((r) => String(r.sparepart_id));
-
+ 
                         const availableOptions = invoiceSpareparts.filter(
                           (sp) =>
                             String(row.sparepart_id) === String(sp.id) || // keep current selection
                             !selectedIds.includes(String(sp.id)) // exclude others already selected
                         );
-
+ 
                         return (
                           <tr key={index}>
                             <td style={{ padding: "12px" }}>
@@ -874,7 +849,7 @@ const handleDelete = async (id) => {
                 </table>
               </div>
             </div>
-
+ 
             {!!formErrors.items && (
               <div className="invalid-feedback d-block mt-1">
                 {formErrors.items}
@@ -890,7 +865,7 @@ const handleDelete = async (id) => {
                 setFormErrors({});
                 setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
                 setReturnDate(new Date().toISOString().split("T")[0]);
-                setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
+                setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", notes: "" });
               }}
               className="me-2"
             >
@@ -902,7 +877,7 @@ const handleDelete = async (id) => {
           </div>
         </Form>
       </div>
-
+ 
       <style>
         {`
         .add-row-btn {
@@ -918,3 +893,4 @@ const handleDelete = async (id) => {
     </div>
   );
 }
+ 
