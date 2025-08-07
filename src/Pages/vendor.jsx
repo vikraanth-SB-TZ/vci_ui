@@ -3,7 +3,7 @@ import { Button, Form, Spinner } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Select from 'react-select';
-import { toast } from 'react-toastify';
+import { toast} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from "jquery";
@@ -60,7 +60,24 @@ export default function Vendor() {
                 setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
 
                 const vendorsRes = await axios.get(`${API_BASE_URL}/vendors`);
-                setVendors(Array.isArray(vendorsRes.data.data) ? vendorsRes.data.data : vendorsRes.data);
+                const rows = Array.isArray(vendorsRes.data.data) ? vendorsRes.data.data : vendorsRes.data;
+
+                setVendors(rows);
+                if ($.fn.DataTable.isDataTable(tableRef.current)) {
+                    $(tableRef.current).DataTable().destroy();
+                }
+                setTimeout(() => {
+                    if (tableRef.current && $(tableRef.current).find('tbody tr').length > 0) {
+                        $(tableRef.current).DataTable({
+                            ordering: true,
+                            paging: true,
+                            searching: true,
+                            lengthChange: true,
+                            columnDefs: [{ targets: 0, className: "text-center" }],
+                        });
+                    }
+                }, 300);
+
             } catch (err) {
                 console.error("Failed to load initial data:", err);
                 toast.error("Failed to load data.", { autoClose: 1500 });
@@ -72,23 +89,6 @@ export default function Vendor() {
         loadInitialData();
     }, []);
 
-    // useEffect(() => {
-    //     if (!loading && vendors.length > 0) {
-    //         $(tableRef.current).DataTable({
-    //             destroy: true,
-    //             ordering: true,
-    //             paging: true,
-    //             searching: true,
-    //             lengthChange: true,
-    //             columnDefs: [{ targets: 0, className: "text-center" }],
-    //         });
-    //     }
-    //     return () => {
-    //         if ($.fn.DataTable.isDataTable(tableRef.current)) {
-    //             $(tableRef.current).DataTable().destroy();
-    //         }
-    //     };
-    // }, [vendors, loading]);
 
     useEffect(() => {
         if (formData.state) {
@@ -307,16 +307,18 @@ export default function Vendor() {
             : axios.post(`${API_BASE_URL}/vendors`, payload);
 
         request
-            .then(async(res) => {
+            .then(async (res) => {
                 const newVendor = res.data?.data || payload;
 
                 toast.success(isEditing ? "Vendor updated successfully!" : "Vendor added successfully!", {
+                    toastId: "vendor-saved-success",
                     autoClose: 1500,
                 });
 
-                await refreshVendors();
-
-                closeForm();
+                setTimeout(async () => {
+                    await refreshVendors(); 
+                    closeForm();            
+                }, 300); 
             })
             .catch((err) => {
                 const newErrors = {};
@@ -497,34 +499,40 @@ export default function Vendor() {
     };
 
     const refreshVendors = async () => {
-    setLoading(true);
-    try {
-        if ($.fn.DataTable.isDataTable(tableRef.current)) {
-        $(tableRef.current).DataTable().destroy();
-        }
+        try {
+            setLoading(true);
 
-        const res = await axios.get(`${API_BASE_URL}/vendors`);
-        const rows = Array.isArray(res.data.data) ? res.data.data : res.data;
-        setVendors(rows);
+            let currentPage = 0;
 
-        setTimeout(() => {
-        if (tableRef.current) {
-            $(tableRef.current).DataTable({
-            ordering: true,
-            paging: true,
-            searching: true,
-            lengthChange: true,
-            columnDefs: [{ targets: 0, className: "text-center" }],
-            });
+            if ($.fn.DataTable.isDataTable(tableRef.current)) {
+                currentPage = $(tableRef.current).DataTable().page();
+                $(tableRef.current).DataTable().destroy();
+            }
+
+            const res = await axios.get(`${API_BASE_URL}/vendors`);
+            const rows = Array.isArray(res.data.data) ? res.data.data : res.data;
+
+            setVendors(rows);
+
+            setTimeout(() => {
+                if (tableRef.current && $(tableRef.current).find('tbody tr').length > 0) {
+                    const table = $(tableRef.current).DataTable({
+                        ordering: true,
+                        paging: true,
+                        searching: true,
+                        lengthChange: true,
+                        columnDefs: [{ targets: 0, className: "text-center" }],
+                    });
+
+                    table.page(currentPage).draw(false); // ✅ Retain page
+                }
+            }, 300);
+        } catch (err) {
+            toast.error("Failed to reload vendors.", { autoClose: 1500 });
+        } finally {
+            setLoading(false);
         }
-        }, 100); // wait for DOM update
-    } catch (err) {
-        toast.error("Failed to reload vendors.", { autoClose: 1500 });
-    } finally {
-        setLoading(false);
-    }
     };
-
 
     const getDistrictNameById = (districtId) => {
         const district = districtsForTable.find(d => String(d.id) === String(districtId));
