@@ -124,194 +124,7 @@ export default function Sidebar({ collapsed }) {
 
         </div>
 
-        {/* Basics */}
-        <div className="sidebar-link-titles pb-2">{!collapsed && "Basics"}</div>
-
-
-
-        {/* Components Dropdown */}
-        <div className="mb-1">
-          <button
-            onClick={() => setComponentsOpen(!componentsOpen)}
-            className="bg-transparent border-0 w-100 text-start p-0"
-          >
-            <div
-              className="d-flex align-items-center"
-              style={{
-                backgroundColor: isActive("components") ? "#278C582E" : "transparent",
-                borderRadius: "8px",
-                padding: "12px",
-              }}
-            >
-              <img
-                src={
-                  isActive("components")
-                    ? "/Components_G.png"
-                    : "/Componets.png"
-                }
-                alt="Components"
-                style={{
-                  width: "18px",
-                  filter: isActive("components") ? "none" : "brightness(0) invert(1)",
-                }}
-              />
-              {!collapsed && (
-                <span
-                  style={{
-                    color: isActive("components") ? "#28a745" : "#ffffff",
-                    marginLeft: "10px",
-                  }}
-                >
-                  Components
-                </span>
-              )}
-              {!collapsed && (
-                <span
-                  className="ms-auto"
-                  style={{
-                    color: isActive("components") ? "#28a745" : "#ffffff",
-                  }}
-                >
-                  {componentsOpen ? "▾" : "▸"}
-                </span>
-              )}
-            </div>
-          </button>
-
-          {!collapsed && componentsOpen && (
-            <div className="ms-2">
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setComponentsOpen(true);
-                  handleLinkClick("Spareparts");
-                }}
-                className={subLinkClass("Spareparts")}
-              >
-                - Spare Parts
-              </a>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setComponentsOpen(true);
-                  handleLinkClick("PurchaseSpareparts");
-                }}
-                className={subLinkClass("PurchaseSpareparts")}
-              >
-                - Purchase Spare Parts
-              </a>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setComponentsOpen(true);
-                  handleLinkClick("ReturnSpareParts");
-                }}
-                className={subLinkClass("ReturnSpareParts")}
-              >
-                - Return
-              </a>
-            </div>
-          )}
-        </div>
-
-        {/* Product Dropdown */}
-        <div className="mb-2">
-          <button
-            onClick={() => setProductOpen(!productOpen)}
-            className="bg-transparent border-0 w-100 text-start p-0"
-          >
-            <div
-              className="d-flex align-items-center"
-              style={{
-                backgroundColor: isActive("product") ? "#278C582E" : "transparent",
-                borderRadius: "8px",
-                padding: "12px",
-              }}
-            >
-              <img
-                src={isActive("product") ? "/Product_G.png" : "/Product.png"}
-                alt="Product"
-                style={{
-                  width: "18px",
-                  filter: isActive("product") ? "none" : "brightness(0) invert(1)",
-                }}
-              />
-              {!collapsed && (
-                <span
-                  style={{
-                    color: isActive("product") ? "#28a745" : "#ffffff",
-                    marginLeft: "10px",
-                  }}
-                >
-                  Product
-                </span>
-              )}
-              {!collapsed && (
-                <span
-                  className="ms-auto"
-                  style={{
-                    color: isActive("product") ? "#28a745" : "#ffffff",
-                  }}
-                >
-                  {productOpen ? "▾" : "▸"}
-                </span>
-              )}
-            </div>
-          </button>
-
-
-          {!collapsed && productOpen && (
-            <div className="ms-2">
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setProductOpen(true);
-                  handleLinkClick("batch");
-                }}
-                className={subLinkClass("batch")}
-              >
-                - Batch
-              </a>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setProductOpen(true);
-                  handleLinkClick("category");
-                }}
-                className={subLinkClass("category")}
-              >
-                - Category
-              </a>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setProductOpen(true);
-                  handleLinkClick("productTest");
-                }}
-                className={subLinkClass("productTest")}
-              >
-                - Product Test
-              </a>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setProductOpen(true);
-                  handleLinkClick("sold");
-                }}
-                className={subLinkClass("sold")}
-              >
-                - Sold
-              </a>
-            </div>
-          )}
-        </div>
+       
 
         {/* Purchase */}
         <div className="sidebar-link-titles">{!collapsed && "Purchase"}</div>
@@ -579,90 +392,278 @@ export default function Sidebar({ collapsed }) {
           </a>
 
         </div>
+      
+       {/* Basics */}
+       <div className="sidebar-link-titles pb-2">{!collapsed && "Basics"}</div>
 
-        {/* Metadata Dropdown */}
-          <div>
-            <button
-              onClick={() => setMetadataOpen(!metadataOpen)}
-              className="bg-transparent border-0 w-100 text-start p-0"
-            >
-              <div
-                className="d-flex align-items-center"
-                style={{
-                  backgroundColor: isActive("metadata") ? "#278C582E" : "transparent",
-                  borderRadius: "8px",
-                  padding: "12px",
-                }}
-              >
-                <img
-                  src={isActive("metadata") ? "/Metadata_G.png" : "/Metadata.png"}
-                  alt="Metadata"
-                  style={{
-                    width: "18px",
-                    filter: isActive("metadata") ? "none" : "brightness(0) invert(1)",
-                  }}
-                />
-                {!collapsed && (
-                  <span
-                    style={{
-                      color: isActive("metadata") ? "#28a745" : "#ffffff",
-                      marginLeft: "10px",
-                    }}
-                  >
-                    Metadata
-                  </span>
-                )}
-                {!collapsed && (
-                  <span
-                    className="ms-auto"
-                    style={{
-                      color: isActive("metadata") ? "#28a745" : "#ffffff",
-                      marginLeft: "auto",
-                    }}
-                  >
-                    {metadataOpen ? "▾" : "▸"}
-                  </span>
-                )}
-              </div>
-            </button>
+{/* Metadata Dropdown */}
+<div>
+    <button
+      onClick={() => setMetadataOpen(!metadataOpen)}
+      className="bg-transparent border-0 w-100 text-start p-0"
+    >
+      <div
+        className="d-flex align-items-center"
+        style={{
+          backgroundColor: isActive("metadata") ? "#278C582E" : "transparent",
+          borderRadius: "8px",
+          padding: "12px",
+        }}
+      >
+        <img
+          src={isActive("metadata") ? "/Metadata_G.png" : "/Metadata.png"}
+          alt="Metadata"
+          style={{
+            width: "18px",
+            filter: isActive("metadata") ? "none" : "brightness(0) invert(1)",
+          }}
+        />
+        {!collapsed && (
+          <span
+            style={{
+              color: isActive("metadata") ? "#28a745" : "#ffffff",
+              marginLeft: "10px",
+            }}
+          >
+            Metadata
+          </span>
+        )}
+        {!collapsed && (
+          <span
+            className="ms-auto"
+            style={{
+              color: isActive("metadata") ? "#28a745" : "#ffffff",
+              marginLeft: "auto",
+            }}
+          >
+            {metadataOpen ? "▾" : "▸"}
+          </span>
+        )}
+      </div>
+    </button>
 
 
 
-            {!collapsed && metadataOpen && (
-              <div className="ms-2">
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLinkClick("countries");
-                  }}
-                  className={subLinkClass("countries")}
-                >
-                  - Countries
-                </a>
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLinkClick("state");
-                  }}
-                  className={subLinkClass("state")}
-                >
-                  - State
-                </a>
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleLinkClick("district");
-                  }}
-                  className={subLinkClass("district")}
-                >
-                  - District
-                </a>
-              </div>
-            )}
-          </div>
+    {!collapsed && metadataOpen && (
+      <div className="ms-2">
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            handleLinkClick("countries");
+          }}
+          className={subLinkClass("countries")}
+        >
+          - Countries
+        </a>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            handleLinkClick("state");
+          }}
+          className={subLinkClass("state")}
+        >
+          - State
+        </a>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            handleLinkClick("district");
+          }}
+          className={subLinkClass("district")}
+        >
+          - District
+        </a>
+      </div>
+    )}
+  </div>
+
+{/* Components Dropdown */}
+<div className="mb-1">
+  <button
+    onClick={() => setComponentsOpen(!componentsOpen)}
+    className="bg-transparent border-0 w-100 text-start p-0"
+  >
+    <div
+      className="d-flex align-items-center"
+      style={{
+        backgroundColor: isActive("components") ? "#278C582E" : "transparent",
+        borderRadius: "8px",
+        padding: "12px",
+      }}
+    >
+      <img
+        src={
+          isActive("components")
+            ? "/Components_G.png"
+            : "/Componets.png"
+        }
+        alt="Components"
+        style={{
+          width: "18px",
+          filter: isActive("components") ? "none" : "brightness(0) invert(1)",
+        }}
+      />
+      {!collapsed && (
+        <span
+          style={{
+            color: isActive("components") ? "#28a745" : "#ffffff",
+            marginLeft: "10px",
+          }}
+        >
+          Components
+        </span>
+      )}
+      {!collapsed && (
+        <span
+          className="ms-auto"
+          style={{
+            color: isActive("components") ? "#28a745" : "#ffffff",
+          }}
+        >
+          {componentsOpen ? "▾" : "▸"}
+        </span>
+      )}
+    </div>
+  </button>
+
+  {!collapsed && componentsOpen && (
+    <div className="ms-2">
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          setComponentsOpen(true);
+          handleLinkClick("Spareparts");
+        }}
+        className={subLinkClass("Spareparts")}
+      >
+        - Spare Parts
+      </a>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          setComponentsOpen(true);
+          handleLinkClick("PurchaseSpareparts");
+        }}
+        className={subLinkClass("PurchaseSpareparts")}
+      >
+        - Purchase Spare Parts
+      </a>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          setComponentsOpen(true);
+          handleLinkClick("ReturnSpareParts");
+        }}
+        className={subLinkClass("ReturnSpareParts")}
+      >
+        - Return
+      </a>
+    </div>
+  )}
+</div>
+
+{/* Product Dropdown */}
+<div className="mb-2">
+  <button
+    onClick={() => setProductOpen(!productOpen)}
+    className="bg-transparent border-0 w-100 text-start p-0"
+  >
+    <div
+      className="d-flex align-items-center"
+      style={{
+        backgroundColor: isActive("product") ? "#278C582E" : "transparent",
+        borderRadius: "8px",
+        padding: "12px",
+      }}
+    >
+      <img
+        src={isActive("product") ? "/Product_G.png" : "/Product.png"}
+        alt="Product"
+        style={{
+          width: "18px",
+          filter: isActive("product") ? "none" : "brightness(0) invert(1)",
+        }}
+      />
+      {!collapsed && (
+        <span
+          style={{
+            color: isActive("product") ? "#28a745" : "#ffffff",
+            marginLeft: "10px",
+          }}
+        >
+          Product
+        </span>
+      )}
+      {!collapsed && (
+        <span
+          className="ms-auto"
+          style={{
+            color: isActive("product") ? "#28a745" : "#ffffff",
+          }}
+        >
+          {productOpen ? "▾" : "▸"}
+        </span>
+      )}
+    </div>
+  </button>
+
+
+  {!collapsed && productOpen && (
+    <div className="ms-2">
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          setProductOpen(true);
+          handleLinkClick("batch");
+        }}
+        className={subLinkClass("batch")}
+      >
+        - Batch
+      </a>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          setProductOpen(true);
+          handleLinkClick("category");
+        }}
+        className={subLinkClass("category")}
+      >
+        - Category
+      </a>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          setProductOpen(true);
+          handleLinkClick("productTest");
+        }}
+        className={subLinkClass("productTest")}
+      >
+        - Product Test
+      </a>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          setProductOpen(true);
+          handleLinkClick("sold");
+        }}
+        className={subLinkClass("sold")}
+      >
+        - Sold
+      </a>
+    </div>
+  )}
+</div>
+        
       </nav>
 
       {/* Active style */}
