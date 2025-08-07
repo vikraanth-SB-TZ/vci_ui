@@ -17,7 +17,7 @@ import { API_BASE_URL } from "../api";
  
 const getBlueBorderStyles = (value, isInvalid) => {
   if (isInvalid) {
-    return { borderColor: "#dc3545" };
+    return { borderColor: "none" };
   }
   if (value) {
     return { borderColor: "none" };
@@ -141,25 +141,33 @@ export default function ReturnSparePartsPage() {
     });
   };
  
-  const handleRowChange = (index, field, value) => {
-    setSparePartsRows((rows) => {
-      const copy = [...rows];
-      copy[index] = { ...copy[index], [field]: value };
-      return copy;
-    });
- 
-    setFormErrors((prevErrors) => {
-      const newErrors = { ...prevErrors };
-      delete newErrors[`${field}-${index}`];
- 
-      // If user is filling anything in rows, clear the general error too
-      if (field === "sparepart_id" || field === "quantity") {
-        delete newErrors.items;
-      }
- 
-      return newErrors;
-    });
-  };
+const handleRowChange = (index, field, value) => {
+  const updatedRows = [...sparePartsRows];
+  updatedRows[index][field] = value;
+
+  // Only live validation for quantity being negative or zero
+  if (field === "quantity") {
+    const quantity = parseInt(value, 10);
+
+    if (!value || isNaN(quantity) || quantity < 1) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [`quantity-${index}`]: "Quantity must be a positive number.",
+      }));
+    } else {
+      // Clear the error if the value is valid
+      setFormErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[`quantity-${index}`];
+        return newErrors;
+      });
+    }
+  }
+
+  setSparePartsRows(updatedRows);
+};
+
+
  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -196,7 +204,7 @@ const validateForm = (payload, items) => {
     items.length === 0 ||
     items.every(item => !item.sparepart_id || !parseInt(item.quantity))
   ) {
-    errors.items = "Please add at least one spare part with a quantity.";
+    // errors.items = "Please add at least one spare part with a quantity.";
   } else {
     items.forEach((item, index) => {
       // Find the corresponding spare part in the global list
