@@ -284,7 +284,11 @@ export default function ProductPage() {
                       <Button size="sm" variant="" onClick={() => handleEdit(p)} className="me-1" style={{ borderColor: "#2E3A59", color: "#2E3A59" }}>
                         <i className="bi bi-pencil-square"></i>
                       </Button>
-                      <Button size="sm" variant="outline-danger" onClick={() => handleDelete(p.id)}>
+                      <Button size="sm" onClick={() => handleDelete(p.id)}  style={{
+                          borderColor: '#2E3A59',
+                          color: '#2E3A59',
+                          backgroundColor: 'transparent'
+                        }}>
                         <i className="bi bi-trash"></i>
                       </Button>
                     </td>
