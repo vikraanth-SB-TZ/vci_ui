@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Button, Spinner, Card, Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { API_BASE_URL } from "../api";
+import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+
+import { API_BASE_URL } from "../api";
 import Breadcrumb from "./Components/Breadcrumb";
 import Search from "./Components/Search";
 import Pagination from "./Components/Pagination";
@@ -23,6 +23,10 @@ export default function SalesListPage() {
   const [sortField, setSortField] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
 
+  useEffect(() => {
+    fetchSales();
+  }, []);
+
   const fetchSales = async () => {
     setLoading(true);
     try {
@@ -30,16 +34,12 @@ export default function SalesListPage() {
       if (res.data.success) {
         setSalesData(res.data.data);
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to fetch sales data.");
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchSales();
-  }, []);
 
   const handleDelete = async (id) => {
     const result = await MySwal.fire({
@@ -60,13 +60,10 @@ export default function SalesListPage() {
 
       const newData = salesData.filter((item) => item.id !== id);
       setSalesData(newData);
-
-      // Optional: Go to previous page if current page becomes empty
       if ((page - 1) * perPage >= newData.length && page > 1) {
         setPage(page - 1);
       }
-
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete sale.");
     }
   };
@@ -85,13 +82,6 @@ export default function SalesListPage() {
 
   const sortedData = [...filteredData].sort((a, b) => {
     if (!sortField) return 0;
-
-    if (sortField === "sno") {
-      const indexA = salesData.indexOf(a);
-      const indexB = salesData.indexOf(b);
-      return sortDirection === "asc" ? indexA - indexB : indexB - indexA;
-    }
-
     const valA = a[sortField]?.toString().toLowerCase() || "";
     const valB = b[sortField]?.toString().toLowerCase() || "";
     if (valA < valB) return sortDirection === "asc" ? -1 : 1;
@@ -104,73 +94,61 @@ export default function SalesListPage() {
   return (
     <div className="px-4 py-2">
       <Breadcrumb title="Sales List" />
+
       <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-
-        {/* Header Row */}
         <div className="row mb-3">
-          <div className="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
-            {/* Records Per Page */}
-            <div className="d-flex align-items-center">
-              <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
-              <Form.Select
+          <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+            <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+            <Form.Select
+              size="sm"
+              style={{ width: "100px" }}
+              value={perPage}
+              onChange={(e) => {
+                setPerPage(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              {[10, 25, 50, 100].map((n) => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </Form.Select>
+          </div>
+
+          <div className="col-md-6 text-md-end">
+            <div className="mt-2 d-inline-block mb-2">
+              <Button
+                variant="outline-secondary"
                 size="sm"
-                style={{ width: "100px" }}
-                value={perPage}
-                onChange={(e) => {
-                  setPerPage(Number(e.target.value));
-                  setPage(1);
-                }}
+                className="me-2"
+                onClick={fetchSales}
               >
-                {[10, 25, 50, 100].map((val) => (
-                  <option key={val} value={val}>
-                    {val}
-                  </option>
-                ))}
-              </Form.Select>
+                <i className="bi bi-arrow-clockwise"></i>
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => navigate("/sales/add")}
+                style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
+              >
+                + Add New
+              </Button>
             </div>
-
-            {/* Add & Refresh */}
-            <div className="col-md-6 text-md-end">
-              <div className="mt-2 d-inline-block mb-2">
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  className="me-2"
-                  onClick={fetchSales}
-                >
-                  <i className="bi bi-arrow-clockwise"></i>
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => navigate("/sales/add")}
-                  style={{
-                    backgroundColor: "#2FA64F",
-                    borderColor: "#2FA64F",
-                    color: "#fff",
-                  }}
-                >
-                  + Add New
-                </Button>
-              </div>
-
-              {/* Search Bar */}
-              <Search
-                search={search}
-                setSearch={setSearch}
-                perPage={perPage}
-                setPerPage={setPerPage}
-                setPage={setPage}
-              />
-            </div>
+            <Search
+              search={search}
+              setSearch={setSearch}
+              perPage={perPage}
+              setPerPage={setPerPage}
+              setPage={setPage}
+            />
           </div>
         </div>
 
-        {/* Table */}
         <div className="table-responsive">
-          <table className="table align-middle">
-            <thead>
+          <table className="table align-middle mb-0">
+            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
               <tr>
-                <th style={{ width: "70px", textAlign: "center",backgroundColor: "#2E3A59", color: "white" }}>S.No</th>
+                <th style={{ width: "70px", textAlign: "center" ,backgroundColor: "#2E3A59",
+                    color: "white",
+                    cursor: "pointer"}}>S.No</th>
                 {[
                   { label: "Customer", field: "customer_name" },
                   { label: "Invoice No", field: "invoice_no" },
@@ -183,17 +161,12 @@ export default function SalesListPage() {
                   <th
                     key={field}
                     onClick={() => handleSort(field)}
-                    style={{
-                      backgroundColor: "#2E3A59",
-                      color: "white",
-                      cursor: "pointer",
-                    }}
+                    style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
                   >
-                    {label}{" "}
-                    {sortField === field && (sortDirection === "asc" ? "▲" : "▼")}
+                    {label} {sortField === field && (sortDirection === "asc" ? "▲" : "▼")}
                   </th>
                 ))}
-                <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Action</th>
+                <th style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -216,7 +189,7 @@ export default function SalesListPage() {
               ) : (
                 paginatedData.map((item, index) => (
                   <tr key={item.id}>
-                    <td>{(page - 1) * perPage + index + 1}</td>
+                    <td className="text-center">{(page - 1) * perPage + index + 1}</td>
                     <td>{item.customer_name}</td>
                     <td>{item.invoice_no}</td>
                     <td>{item.shipment_date}</td>
@@ -259,15 +232,14 @@ export default function SalesListPage() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {!loading && sortedData.length > 0 && (
+        <div className="">
           <Pagination
-            totalItems={Number(sortedData?.length || 0)}
-            perPage={Number(perPage || 10)}
-            currentPage={Number(page || 1)}
-            setCurrentPage={setPage}
+            page={page}
+            setPage={setPage}
+            perPage={perPage}
+            totalEntries={sortedData.length}
           />
-        )}
+        </div>
       </Card>
     </div>
   );
