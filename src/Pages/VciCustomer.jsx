@@ -298,7 +298,7 @@ export default function VciCustomer() {
             state_id: formData.state ? parseInt(formData.state, 10) : null,
             district_id: formData.district ? parseInt(formData.district, 10) : null,
             pincode: formData.pincode,
-            gst_no: formData.gst,
+            gst: formData.gst,
             date_of_birth: formData.dob,
         };
 
@@ -368,7 +368,7 @@ export default function VciCustomer() {
             state: customer.state_id ? String(customer.state_id) : "",
             district: customer.district_id ? String(customer.district_id) : "",
             pincode: customer.pincode || "",
-            gst: customer.gst_no || "",
+            gst: customer.gst || "",
             dob: customer.date_of_birth || "",
         });
 
