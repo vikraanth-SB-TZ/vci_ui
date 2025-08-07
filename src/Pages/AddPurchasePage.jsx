@@ -127,7 +127,17 @@ if (!formData.vendor_id) errors.vendor_id = 'Vendor is required';
 if (!formData.batch_id) errors.batch_id = 'Batch is required';
 if (!formData.category_id) errors.category_id = 'Category is required';
 if (!formData.invoice_no.trim()) errors.invoice_no = 'Invoice number is required';
-if (!formData.invoice_date) errors.invoice_date = 'Invoice date is required';
+if (!formData.invoice_date) {
+  errors.invoice_date = 'Invoice date is required';
+} else {
+const selectedDate = new Date(formData.invoice_date + 'T00:00:00');
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+if (selectedDate.getTime() > today.getTime()) {
+  errors.invoice_date = 'Invoice date cannot be in the future';
+}
+
+}
 if (parsedSerials.length === 0) errors.serial_numbers = 'At least one serial number is required';
 
   setFormErrors(errors);
@@ -195,7 +205,12 @@ if (duplicateSerials.length > 0) {
   return (
    <div style={{ minHeight: '100vh', backgroundColor: '#fff' }} className="p-4">
 
-      <h4 className="mb-3">Add New Purchase</h4>
+       <div className="d-flex justify-content-between align-items-center mb-4">
+           <h4 className="mb-0">Add Purchase</h4>
+           <Button variant="outline-secondary" onClick={() => navigate('/purchaseOrder')}>
+             <i className="bi bi-arrow-left" /> Back
+           </Button>
+         </div>
 
       <Form onSubmit={handleSubmit}>
         <Row className="mb-3 pt-4">
@@ -262,6 +277,10 @@ if (duplicateSerials.length > 0) {
               onChange={handleChange}
               // required
             />
+            {formErrors.invoice_date && (
+  <div className="text-danger small mt-1">{formErrors.invoice_date}</div>
+)}
+
           </Col>
         </Row>
 
@@ -277,6 +296,10 @@ if (duplicateSerials.length > 0) {
               placeholder="Enter one serial number per line"
               // required
             />
+            {formErrors.serial_numbers && (
+  <div className="text-danger small mt-1">{formErrors.serial_numbers}</div>
+)}
+
           </Col>
         </Row>
 
