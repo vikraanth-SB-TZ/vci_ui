@@ -173,56 +173,59 @@ export default function ReturnSparePartsPage() {
     setFormErrors((prev) => ({ ...prev, return_date: "" }));
   };
  
-  const validateForm = (payload, items) => {
-    let errors = {};
- 
-    if (!payload.vendor_id) {
-      errors.vendor_id = "Vendor is required.";
-    }
- 
-    if (!payload.invoice_no) {
-      errors.invoiceNo = "Invoice No. is required.";
-    }
- 
-    if (!payload.return_date) {
-      errors.return_date = "Return Date is required.";
-    }
- 
-    if (!payload.batch_id) {
-      errors.batch_id = "Batch is required.";
-    }
- 
-    if (
-      items.length === 0 ||
-      items.every(item => !item.sparepart_id || !parseInt(item.quantity))
-    ) {
-      errors.items = "Please add at least one spare part with a quantity.";
-    } else {
-      const selectedInvoice = purchases.find(p => String(p.invoice_no) === String(payload.invoice_no));
-      const purchasedSparepartIds = selectedInvoice ? selectedInvoice.items.map(item => String(item.sparepart_id)) : [];
- 
-      items.forEach((item, index) => {
-        if (item.sparepart_id && !purchasedSparepartIds.includes(String(item.sparepart_id))) {
-          errors[`sparepart-${index}`] = "This spare part was not included in the selected invoice.";
-        }
- 
-        if (!item.quantity || parseInt(item.quantity, 10) < 1 || isNaN(parseInt(item.quantity, 10))) {
-          errors[`quantity-${index}`] = "Quantity must be a positive number.";
-        }
-      });
-    }
- 
-    setFormErrors(errors);
- 
-    if (Object.keys(errors).length > 0) {
-      const firstErrorMsg = errors[Object.keys(errors)[0]];
-      toast.error(firstErrorMsg || "Please correct the errors in the form.");
-    }
- 
-    return Object.keys(errors).length === 0;
-  };
- 
-const handleFormSubmit = async (e) => {
+const validateForm = (payload, items) => {
+  let errors = {};
+
+  if (!payload.vendor_id) {
+    errors.vendor_id = "Vendor is required.";
+  }
+
+  if (!payload.invoice_no) {
+    errors.invoiceNo = "Invoice No. is required.";
+  }
+
+  if (!payload.return_date) {
+    errors.return_date = "Return Date is required.";
+  }
+
+  if (!payload.batch_id) {
+    errors.batch_id = "Batch is required.";
+  }
+
+  if (
+    items.length === 0 ||
+    items.every(item => !item.sparepart_id || !parseInt(item.quantity))
+  ) {
+    errors.items = "Please add at least one spare part with a quantity.";
+  } else {
+    items.forEach((item, index) => {
+      // Find the corresponding spare part in the global list
+      const sparepart = availableSpareparts.find(sp => String(sp.id) === String(item.sparepart_id));
+
+      const returnedQuantity = parseInt(item.quantity, 10);
+      const availableQuantity = sparepart ? sparepart.quantity : 0;
+
+      if (!item.sparepart_id) {
+        errors[`sparepart-${index}`] = "Spare part is required.";
+      }
+
+      if (!item.quantity || returnedQuantity < 1 || isNaN(returnedQuantity)) {
+        errors[`quantity-${index}`] = "Quantity must be a positive number.";
+      } else if (returnedQuantity > availableQuantity) {
+        errors[`quantity-${index}`] = `Return quantity (${returnedQuantity}) cannot be more than the currently available quantity (${availableQuantity}).`;
+      }
+    });
+  }
+
+  setFormErrors(errors);
+
+  if (Object.keys(errors).length > 0) {
+    const firstErrorMsg = errors[Object.keys(errors)[0]];
+    toast.error(firstErrorMsg || "Please correct the errors in the form.");
+  }
+
+  return Object.keys(errors).length === 0;
+};const handleFormSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
 
