@@ -8,6 +8,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { Row, Col } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../api";
+import Swal from 'sweetalert2';
+
 
 export default function PcbPurchaseReturn() {
   const [returns, setReturns] = useState([]);
@@ -65,7 +67,19 @@ export default function PcbPurchaseReturn() {
 };
 
 const handleDelete = async (id) => {
-  // if (!window.confirm("Are you sure you want to delete this return?")) return;
+  const result = await Swal.fire({
+    title: "Are you sure?",
+    text: "Do you want to delete this return?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+    reverseButtons: true
+  });
+
+  if (!result.isConfirmed) return;
 
   try {
     await axios.delete(`${API_BASE_URL}/pcb-purchase-return/${id}`);
@@ -76,6 +90,7 @@ const handleDelete = async (id) => {
     toast.error("Failed to delete return.");
   }
 };
+
 
 
 

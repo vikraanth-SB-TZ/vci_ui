@@ -89,6 +89,7 @@ export default function SaleReturns() {
         axios.post(`${API_BASE_URL}/sale-return-store`, payload)
             .then(() => {
                 toast.success('Return processed successfully!');
+                    navigate('/salesReturn');
                 setSelectedInvoice(null);
                 setSaleId(null);
                 setSerials([]);
