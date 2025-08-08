@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Button, Spinner, Form } from "react-bootstrap";
+import { Button, Spinner, Form, Card } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { toast } from "react-toastify";
@@ -13,7 +13,10 @@ import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 import MiniCalendar from "./MiniCalendar";
 import { API_BASE_URL } from "../api";
- 
+import Breadcrumb from "./Components/Breadcrumb";
+import Pagination from "./Components/Pagination";
+import Search from "./Components/Search";
+
  
 const getBlueBorderStyles = (value, isInvalid) => {
   if (isInvalid) {
@@ -51,6 +54,8 @@ export default function ReturnSparePartsPage() {
   });
   // const [returnDate, setReturnDate] = useState("");
   const [showReturnCalendar, setShowReturnCalendar] = useState(false);
+     const [sortField, setSortField] = useState("asc");
+     const [sortDirection, setSortDirection] = useState("desc");
  
   const dateInputRef = useRef();
   const [editingReturn, setEditingReturn] = useState(null);
@@ -61,7 +66,9 @@ export default function ReturnSparePartsPage() {
     invoiceNo: "",
     notes: ""
   });
- 
+ const [page, setPage] = useState(1);
+const [perPage, setPerPage] = useState(10);
+  const [search, setSearch] = useState("");
   const [invoiceSpareparts, setInvoiceSpareparts] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const tableRef = useRef(null);
@@ -96,22 +103,22 @@ export default function ReturnSparePartsPage() {
     fetchAllData();
   }, [fetchAllData]);
  
-  useEffect(() => {
-    if (dataTableInstance.current) {
-      dataTableInstance.current.destroy();
-      dataTableInstance.current = null;
-    }
+  // useEffect(() => {
+  //   if (dataTableInstance.current) {
+  //     dataTableInstance.current.destroy();
+  //     dataTableInstance.current = null;
+  //   }
  
-    if (!loading && returns.length > 0 && tableRef.current) {
-      dataTableInstance.current = $(tableRef.current).DataTable({
-        ordering: true,
-        paging: true,
-        searching: true,
-        lengthChange: true,
-        columnDefs: [{ targets: 0, className: "text-center" }],
-      });
-    }
-  }, [returns, loading]);
+  //   if (!loading && returns.length > 0 && tableRef.current) {
+  //     dataTableInstance.current = $(tableRef.current).DataTable({
+  //       ordering: true,
+  //       paging: true,
+  //       searching: true,
+  //       lengthChange: true,
+  //       columnDefs: [{ targets: 0, className: "text-center" }],
+  //     });
+  //   }
+  // }, [returns, loading]);
  
   useEffect(() => {
     if (formData.invoiceNo) {
@@ -204,23 +211,37 @@ const validateForm = (payload, items) => {
     items.length === 0 ||
     items.every(item => !item.sparepart_id || !parseInt(item.quantity))
   ) {
-    // errors.items = "Please add at least one spare part with a quantity.";
+    errors.items = "Please add at least one spare part with a valid quantity.";
   } else {
     items.forEach((item, index) => {
-      // Find the corresponding spare part in the global list
-      const sparepart = availableSpareparts.find(sp => String(sp.id) === String(item.sparepart_id));
-
       const returnedQuantity = parseInt(item.quantity, 10);
-      const availableQuantity = sparepart ? sparepart.quantity : 0;
+
+      // Get purchased quantity for this spare part from the selected invoice
+      const selectedPurchase = purchases.find(p => String(p.invoice_no) === String(payload.invoice_no));
+      let purchasedQty = 0;
+      if (selectedPurchase) {
+        const purchasedItem = selectedPurchase.items.find(pi => String(pi.sparepart_id) === String(item.sparepart_id));
+        if (purchasedItem) {
+          purchasedQty = parseInt(purchasedItem.quantity, 10);
+        }
+      }
+
+      // Get available quantity from global spareparts list
+      const sparepart = availableSpareparts.find(sp => String(sp.id) === String(item.sparepart_id));
+      const availableQty = sparepart ? parseInt(sparepart.quantity, 10) : 0;
 
       if (!item.sparepart_id) {
         errors[`sparepart-${index}`] = "Spare part is required.";
       }
 
-      if (!item.quantity || returnedQuantity < 1 || isNaN(returnedQuantity)) {
+      if (!item.quantity || isNaN(returnedQuantity) || returnedQuantity < 1) {
         errors[`quantity-${index}`] = "Quantity must be a positive number.";
-      } else if (returnedQuantity > availableQuantity) {
-        errors[`quantity-${index}`] = `Return quantity (${returnedQuantity}) cannot be more than the currently available quantity (${availableQuantity}).`;
+      } else {
+        if (returnedQuantity > purchasedQty) {
+          errors[`quantity-${index}`] = `Return quantity (${returnedQuantity}) cannot exceed purchased quantity (${purchasedQty}).`;
+        } else if (returnedQuantity > availableQty) {
+          errors[`quantity-${index}`] = `Return quantity (${returnedQuantity}) cannot exceed current available quantity (${availableQty}).`;
+        }
       }
     });
   }
@@ -233,7 +254,9 @@ const validateForm = (payload, items) => {
   }
 
   return Object.keys(errors).length === 0;
-};const handleFormSubmit = async (e) => {
+};
+
+const handleFormSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
 
@@ -291,6 +314,12 @@ const validateForm = (payload, items) => {
   }
 };
 
+    const getVendorNameById = (id) => {
+        const vendor = vendors.find((v) => String(v.id) === String(id));
+        return vendor ?
+            `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim() :
+            `ID: ${id}`;
+    };
     const handleDelete = async (id) => {
         const result = await MySwal.fire({
             title: "Are you sure?",
@@ -331,7 +360,7 @@ setReturns(updatedReturns);
 
     
                 setTimeout(() => {
-                    if (updatedSpareparts.length && tableRef.current) {
+                    if (updatedReturns.length && tableRef.current) {
                         dataTableInstance.current = $(tableRef.current).DataTable({
                             ordering: true,
                             paging: true,
@@ -391,102 +420,211 @@ setReturns(updatedReturns);
     }
     setShowForm(true);
   };
+   const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
+
+    const filteredSpareparts = returns.filter((returnedItem) =>
+        getVendorNameById(returnedItem.vendor_id).toLowerCase().includes(search.toLowerCase()) ||
+        returnedItem.invoice_no.toLowerCase().includes(search.toLowerCase())
+    );
+
+    const sortedSpareparts = [...filteredSpareparts].sort((a, b) => {
+        if (!sortField) return 0;
+
+        let valA, valB;
+
+        if (sortField === "vendor_name") {
+            valA = getVendorNameById(a.vendor_id).toLowerCase();
+            valB = getVendorNameById(b.vendor_id).toLowerCase();
+        } else {
+            valA = a[sortField];
+            valB = b[sortField];
+        }
+
+        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+    });
+
+    const paginatedSpareparts = sortedSpareparts.slice(
+        (page - 1) * perPage,
+        page * perPage
+    );
+
+
  
   return (
-    <div className="vh-80 d-flex flex-column position-relative bg-light">
-      <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-        <h5 className="mb-0 fw-bold">Return Spare Parts ({returns.length})</h5>
-        <div>
-          <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchAllData}>
-            {loading ? <Spinner animation="border" size="sm" /> : <i className="bi bi-arrow-clockwise"></i>}
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => handleShowForm()}
-            style={{
-              backgroundColor: '#2FA64F',
-              borderColor: '#2FA64F',
-              color: '#fff'
- 
-            }}
-          >
-            + Add New
-          </Button>
- 
-        </div>
-      </div>
-      <div className="flex-grow-1 overflow-auto px-4 py-3">
-        <div className="table-responsive">
-          <table ref={tableRef} className="table custom-table">
-            <thead>
-              <tr>
-                <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
-                <th>Vendor Name</th>
-                <th>Return Date</th>
-                <th>Invoice No</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && returns.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-4">
-                    <Spinner animation="border" />
-                  </td>
-                </tr>
-              ) : returns.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-4 text-muted">
-                    No returns found.
-                  </td>
-                </tr>
-              ) : (
-                returns.map((returned, index) => (
-                  <tr key={returned.id}>
-                    <td style={{ textAlign: "center" }}>{index + 1}</td>
-                    <td>
-                      {(() => {
-                        const vendor = vendors.find((v) => String(v.id) === String(returned.vendor_id));
-                        return vendor
-                          ? `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim()
-                          : `ID: ${returned.vendor_id}`;
-                      })()}
-                    </td>
-                    <td>{new Date(returned.return_date).toLocaleDateString("en-GB")}</td>
-                    <td>{returned.invoice_no}</td>
-                    <td>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-1"
-                        onClick={() => handleShowForm(returned)}
-                      >
-                        <i className="bi bi-pencil-square me-1"></i>
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(returned.id)}
-                      >
-                        <i className="bi bi-trash me-1"></i>
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <div className="px-4 py-2">
+            <Breadcrumb title="Return Spare Parts" />
+
+            <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
+                <div className="row mb-3">
+                    <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+                        <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+                        <Form.Select
+                            size="sm"
+                            style={{ width: "100px" }}
+                            value={perPage}
+                            onChange={(e) => {
+                                setPerPage(Number(e.target.value));
+                                setPage(1);
+                            }}
+                        >
+                            {[5, 10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n}
+                                </option>
+                            ))}
+                        </Form.Select>
+                    </div>
+
+                    <div className="col-md-6 text-md-end">
+                        <div className="mt-2 d-inline-block mb-2">
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                className="me-2"
+                                onClick={fetchAllData}
+                            >
+                                {loading ? (
+                                    <Spinner animation="border" size="sm" />
+                                ) : (
+                                    <i className="bi bi-arrow-clockwise"></i>
+                                )}
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={() => handleShowForm()}
+                                style={{
+                                    backgroundColor: '#2FA64F',
+                                    borderColor: '#2FA64F',
+                                    color: '#fff'
+                                }}
+                            >
+                                + Add New
+                            </Button>
+                        </div>
+                        <Search
+                            search={search}
+                            setSearch={setSearch}
+                            perPage={perPage}
+                            setPerPage={setPerPage}
+                            setPage={setPage}
+                        />
+                    </div>
+                </div>
+            <div className="table-responsive">
+                           <table ref={tableRef} className="table align-middle mb-0">
+                               <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+                                   <tr>
+                                       <th style={{
+                                           width: "70px", textAlign: "center", backgroundColor: "#2E3A59",
+                                           color: "white",
+                                       }}>S.No</th>
+                                       <th
+                                           onClick={() => handleSort("vendor_name")}
+                                           style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
+                                       >
+                                           Vendor Name {sortField === "vendor_name" && (sortDirection === "asc" ? "▲" : "▼")}
+                                       </th>
+                                       <th
+                                           onClick={() => handleSort("return_date")}
+                                           style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
+                                       >
+                                           Return Date {sortField === "return_date" && (sortDirection === "asc" ? "▲" : "▼")}
+                                       </th>
+                                       <th
+                                           onClick={() => handleSort("invoice_no")}
+                                           style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
+                                       >
+                                           Invoice No {sortField === "invoice_no" && (sortDirection === "asc" ? "▲" : "▼")}
+                                       </th>
+                                       <th style={{
+                                           backgroundColor: "#2E3A59",
+                                           color: "white",
+                                       }}>Action</th>
+                                   </tr>
+                               </thead>
+                               <tbody>
+                                   {loading ? (
+                                       <tr>
+                                           <td colSpan="5" className="text-center py-4">
+                                               <Spinner animation="border" />
+                                           </td>
+                                       </tr>
+                                   ) : paginatedSpareparts.length === 0 ? (
+                                       <tr>
+                                           <td colSpan="5" className="text-center py-4 text-muted">
+                                               <img
+                                                   src="/empty-box.png"
+                                                   alt="No Returns found"
+                                                   style={{ width: "80px", height: "100px", opacity: 0.6 }}
+                                               />
+                                           </td>
+                                       </tr>
+                                   ) : (
+                                       paginatedSpareparts.map((returnedItem, index) => (
+                                           <tr key={returnedItem.id}>
+                                               <td className="text-center">
+                                                   {(page - 1) * perPage + index + 1}
+                                               </td>
+                                               <td>{getVendorNameById(returnedItem.vendor_id)}</td>
+                                               <td>{new Date(returnedItem.return_date).toLocaleDateString("en-GB")}</td>
+                                               <td>{returnedItem.invoice_no}</td>
+                                               <td>
+                                                   <Button
+                                                       variant=""
+                                                       size="sm"
+                                                       className="me-1"
+                                                       onClick={() => handleShowForm(returnedItem)}
+                                                       style={{
+                                                           borderColor: '#2E3A59',
+                                                           color: '#2E3A59'
+                                                       }}
+                                                   >
+                                                       <i className="bi bi-pencil-square"></i>
+                                                   </Button>
+                                                   <Button
+                                                       variant="outline-primary"
+                                                       size="sm"
+                                                       onClick={() => handleDelete(returnedItem.id)}
+                                                       style={{
+                                                           borderColor: '#2E3A59',
+                                                           color: '#2E3A59',
+                                                           backgroundColor: 'transparent'
+                                                       }}
+                                                   >
+                                                       <i className="bi bi-trash"></i>
+                                                   </Button>
+                                               </td>
+                                           </tr>
+                                       ))
+                                   )}
+                               </tbody>
+                           </table>
+                       </div>
+<Pagination
+    page={page}
+    setPage={setPage}
+    perPage={perPage}
+    totalEntries={filteredSpareparts.length}
+/>
+</Card>
       <div
-        className={`position-fixed bg-white shadow-lg purchase-form-slide`}
+        className={`position-fixed bg-white shadow-lg return-form-slide`}
         style={{
           width: "600px",
           height: "calc(100vh - 58px)", // Adjust height to account for the header
           top: "58px",
           right: showForm ? "0" : "-800px",
           transition: "right 0.4s ease-in-out",
-          overflowY: "auto", // Add overflowY to the main form container
+          overflowY: "auto", 
           overflowX: "hidden",
           opacity: 1,
           fontFamily: "Product Sans, sans-serif",
@@ -505,7 +643,7 @@ setReturns(updatedReturns);
               setFormErrors({});
               setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
               setReturnDate(new Date().toISOString().split("T")[0]);
-              setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", notes: "" });
+              setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", return_date: "", notes: "" });
             }}
             style={{
               width: "40px",
@@ -876,7 +1014,7 @@ setReturns(updatedReturns);
                 setFormErrors({});
                 setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
                 setReturnDate(new Date().toISOString().split("T")[0]);
-                setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", notes: "" });
+                setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", return_date: "", notes: "" });
               }}
               className="me-2"
             >

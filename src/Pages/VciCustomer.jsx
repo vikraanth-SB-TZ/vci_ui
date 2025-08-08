@@ -55,7 +55,6 @@ export default function VciCustomer() {
 
     const tableRef = useRef(null);
 
-    // const apiBase = "http://127.0.0.1:8000/api";
 
 const loadInitialData = async () => {
     setLoading(true);
