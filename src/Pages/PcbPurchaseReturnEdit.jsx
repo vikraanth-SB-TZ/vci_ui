@@ -15,6 +15,7 @@ export default function EditPurchaseReturnPage() {
   const [returnItems, setReturnItems] = useState([]);
   const [returnId, setReturnId] = useState(null);
   const [reason, setReason] = useState('');
+   const [submitting, setSubmitting] = useState(false); 
   const { id } = useParams(); 
   const navigate = useNavigate();
 
@@ -40,8 +41,10 @@ export default function EditPurchaseReturnPage() {
   }, [id]);
 
   const handleSubmit = () => {
+    if (submitting) return; // 🔒 Prevent multiple clicks
+    setSubmitting(true);     // ✅ Lock the button
+
     const selectedItems = returnItems.filter(i => i.selected);
-    // if (!selectedItems.length) return alert('No items selected.');
 
     const payload = {
       pcb_board_purchase_id: purchaseData.id,
@@ -55,14 +58,16 @@ export default function EditPurchaseReturnPage() {
 
     const url = `${API_BASE_URL}/purchase-returns/${returnId}`;
     axios.put(url, payload)
-     .then(() => {
-  toast.success('Return updated successfully!');
-  setTimeout(() => navigate(-1), 1500); 
-})
-    .catch(err => {
-  toast.error('Failed: ' + (err.response?.data?.message || err.message));
-});
+      .then(() => {
+        toast.success('Return updated successfully!');
+        setTimeout(() => navigate(-1), 1500);
+      })
+      .catch(err => {
+        toast.error('Failed: ' + (err.response?.data?.message || err.message));
+        setSubmitting(false); 
+      });
   };
+
 
   return (
     <div className="bg-white min-vh-100 p-4">
@@ -151,9 +156,13 @@ export default function EditPurchaseReturnPage() {
   >
     Cancel
   </Button>
-  <Button onClick={handleSubmit} variant="success">
-    Update Return
-  </Button>
+    <Button
+              onClick={handleSubmit}
+              variant="success"
+              disabled={submitting} 
+            >
+              {submitting ? 'Updating...' : 'Update Return'}
+            </Button>
 </div>
 
         </>
