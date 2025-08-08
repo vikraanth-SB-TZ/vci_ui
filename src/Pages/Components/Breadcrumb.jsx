@@ -1,5 +1,5 @@
 import React from "react";
-
+import { Link } from 'react-router-dom';
 const Breadcrumb = ({ title, subtitle }) => {
     return (
         <div className="app-hero-header d-flex align-items-center">
@@ -9,14 +9,14 @@ const Breadcrumb = ({ title, subtitle }) => {
                 {/* Breadcrumb starts */}
                 <ol className="breadcrumb">
                     <li className="breadcrumb-item mt-2">
-                        <a href="#">
-                           <i class="bi bi-house-door"  style={{ color: '#2E3A59' , fontSize: '1.25rem'}}></i>
-                        </a>
+                        <Link to="/overview">
+                            <i className="bi bi-house-door" style={{ color: '#2E3A59', fontSize: '1.25rem' }}></i>
+                        </Link>
                     </li>
                     <li
                         className="breadcrumb-item mt-2 "
                         aria-current="page"
-                        style={{ color: "#2E3A59",fontSize: '1.25rem' }}
+                        style={{ color: "#2E3A59", fontSize: '1.25rem' }}
                     >
                         {title || "Healthcare Dashboard"}
                     </li>
