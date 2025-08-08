@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-
+import ActionButtons from "./Components/ActionButtons";
 import { API_BASE_URL } from "../api";
 import Breadcrumb from "./Components/Breadcrumb";
 import Search from "./Components/Search";
@@ -198,33 +198,14 @@ export default function SalesListPage() {
                     <td>{item.batch_name}</td>
                     <td>{item.category_name}</td>
                     <td>{item.quantity}</td>
-                    <td className="d-flex gap-2">
-                      <Button
-                        variant=""
-                        size="sm"
-                        onClick={() =>
-                          window.open(`${API_BASE_URL}/sales/${item.id}/invoices`, "_blank")
-                        }
-                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-                      >
-                        <i className="bi bi-file-earmark-pdf"></i>
-                      </Button>
-                      <Button
-                        variant=""
-                        size="sm"
-                        onClick={() => navigate(`/sales/edit/${item.id}`)}
-                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-                      >
-                        <i className="bi bi-pencil-square"></i>
-                      </Button>
-                      <Button
-                        variant=""
-                        size="sm"
-                        onClick={() => handleDelete(item.id)}
-                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-                      >
-                        <i className="bi bi-trash"></i>
-                      </Button>
+                    <td className="text-center" style={{ width: "130px" }}>
+                      <div className="d-flex justify-content-center">
+                        <ActionButtons
+                          onPdf={() => window.open(`${API_BASE_URL}/sales/${item.id}/invoices`, "_blank")}
+                          onEdit={() => navigate(`/sales/edit/${item.id}`)}
+                          onDelete={() => handleDelete(item.id)}
+                        />
+                      </div>
                     </td>
                     <td style={{textAlign: "center"}}>
                       <Button
