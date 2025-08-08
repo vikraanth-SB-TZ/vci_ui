@@ -53,7 +53,6 @@ export default function App() {
 
   const handleLogin = () => {
     setIsLoggedIn(true);
-    toast.success("Login successful!");
   };
 
   const handleLogout = () => {

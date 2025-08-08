@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Button, Modal, Spinner } from 'react-bootstrap';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
@@ -33,11 +33,10 @@ export default function LoginPage({ onLogin }) {
       setLoading(true);
       const res = await axios.post(`${API_BASE_URL}/login`, formData);
       localStorage.setItem('authToken', res.data.data.token);
-      localStorage.setItem('authEmail', formData.email);
+      localStorage.setItem('authEmail', formData.email); 
       onLogin();
-      navigate('/batch', { replace: true });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
+      toast.error(err.response?.data?.message || 'Login Failed' );
     } finally {
       setLoading(false);
     }
@@ -187,9 +186,6 @@ export default function LoginPage({ onLogin }) {
           </div>
         </div>
       </div>
-
-      {/* Toast */}
-      <ToastContainer position="top-right" autoClose={2000} />
 
       {/* Forgot Password Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
