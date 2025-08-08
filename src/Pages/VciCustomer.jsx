@@ -395,7 +395,7 @@ gst_no: formData.gst_no,
             last_name: customer.last_name || "",
             gender: customer.gender || "",
             mobile: customer.mobile || "",
-            alt_mobile: customer.alt_mobile || "",
+        altMobile: customer.alt_mobile || "", // FIXED
             email: customer.email || "",
             company_name: customer.company_name || "",
             address: customer.address || "",
