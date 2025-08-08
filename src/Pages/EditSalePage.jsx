@@ -128,7 +128,7 @@ export default function EditSalePage() {
   const fetchSerialNumbers = async () => {
     const { batch_id, category_id, quantity, from_serial } = formData;
     if (!batch_id || !category_id || !quantity) return;
-      setLoadingSerials(true);
+    setLoadingSerials(true);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/available-serials`, {
@@ -145,18 +145,18 @@ export default function EditSalePage() {
 
 
       setAvailableSerials(uniqueAvailable);
-      
-          setFormData(prev => ({ ...prev, serial_numbers: [] }));
+
+      setFormData(prev => ({ ...prev, serial_numbers: [] }));
     } catch (error) {
       console.error('Serial fetch failed:', error);
-          setLoadingSerials(false);
+      setLoadingSerials(false);
     }
   };
 
   useEffect(() => {
-  // When from_serial changes, reset serial_numbers to empty to force reselect
-  setFormData(prev => ({ ...prev, serial_numbers: [] }));
-}, [formData.from_serial]);
+    // When from_serial changes, reset serial_numbers to empty to force reselect
+    setFormData(prev => ({ ...prev, serial_numbers: [] }));
+  }, [formData.from_serial]);
 
 
   useEffect(() => {
@@ -194,6 +194,28 @@ export default function EditSalePage() {
       .catch(err => console.error('Error loading sale data:', err));
   }, [id]);
 
+  useEffect(() => {
+    if (!formData.quantity) return; // nothing to do if qty empty
+
+    const qty = parseInt(formData.quantity, 10);
+    if (isNaN(qty) || qty <= 0) return;
+
+    const current = formData.serial_numbers || [];
+    const combinedSerials = [...originalSerials, ...availableSerials];
+    const uniqueSerials = Array.from(new Map(combinedSerials.map(item => [item.serial_no, item])).values());
+    uniqueSerials.sort((a, b) => a.serial_no.localeCompare(b.serial_no));
+
+    let filteredSerials = uniqueSerials;
+    if (formData.from_serial?.trim()) {
+      filteredSerials = uniqueSerials.filter(sn => sn.serial_no >= formData.from_serial.trim());
+    }
+
+    const toAdd = filteredSerials.slice(0, qty);
+    setFormData(prev => ({ ...prev, serial_numbers: toAdd }));
+
+  }, [formData.from_serial]);
+
+
 
 
   useEffect(() => {
@@ -203,80 +225,80 @@ export default function EditSalePage() {
   }, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
 
 
-useEffect(() => {
-  // If quantity is empty or invalid, clear error and exit
-  if (formData.quantity === '') {
-    setQuantityError('');
-    return;
-  }
+  useEffect(() => {
+    // If quantity is empty or invalid, clear error and exit
+    if (formData.quantity === '') {
+      setQuantityError('');
+      return;
+    }
 
-  const qty = parseInt(formData.quantity, 10);
-  if (isNaN(qty) || qty <= 0) {
-    setQuantityError('');
-    return;
-  }
+    const qty = parseInt(formData.quantity, 10);
+    if (isNaN(qty) || qty <= 0) {
+      setQuantityError('');
+      return;
+    }
 
-  const current = formData.serial_numbers || [];
-  const combinedSerials = [...originalSerials, ...availableSerials];
-  const uniqueSerials = Array.from(new Map(combinedSerials.map(item => [item.serial_no, item])).values());
-  uniqueSerials.sort((a, b) => a.serial_no.localeCompare(b.serial_no));
+    const current = formData.serial_numbers || [];
+    const combinedSerials = [...originalSerials, ...availableSerials];
+    const uniqueSerials = Array.from(new Map(combinedSerials.map(item => [item.serial_no, item])).values());
+    uniqueSerials.sort((a, b) => a.serial_no.localeCompare(b.serial_no));
 
-  let filteredSerials = uniqueSerials;
-  if (formData.from_serial && formData.from_serial.trim() !== '') {
-    const fromSerial = formData.from_serial.trim();
-    filteredSerials = uniqueSerials.filter(sn => sn.serial_no >= fromSerial);
-  }
+    let filteredSerials = uniqueSerials;
+    if (formData.from_serial && formData.from_serial.trim() !== '') {
+      const fromSerial = formData.from_serial.trim();
+      filteredSerials = uniqueSerials.filter(sn => sn.serial_no >= fromSerial);
+    }
 
-  const availableCount = filteredSerials.filter(
-    sn => !current.some(c => c.serial_no === sn.serial_no)
-  ).length;
+    const availableCount = filteredSerials.filter(
+      sn => !current.some(c => c.serial_no === sn.serial_no)
+    ).length;
 
-  const totalAvailable = current.length + availableCount;
+    const totalAvailable = current.length + availableCount;
 
-  if (qty > totalAvailable) {
-    setTimeout(() => {
-      setQuantityError(`Only ${totalAvailable} serials are available starting from ${formData.from_serial || 'first'}, but you requested ${qty}.`);
-    }, 100);
+    if (qty > totalAvailable) {
+      setTimeout(() => {
+        setQuantityError(`Only ${totalAvailable} serials are available starting from ${formData.from_serial || 'first'}, but you requested ${qty}.`);
+      }, 100);
 
-    // Add only as many as possible, but DO NOT change quantity value!
-    const needed = totalAvailable - current.length;
-    const toAdd = filteredSerials
-      .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
-      .slice(0, needed);
-
-    setFormData(prev => ({
-      ...prev,
-      serial_numbers: [...current, ...toAdd],
-      // quantity: prev.quantity, // <-- keep unchanged
-    }));
-  } else {
-    setQuantityError('');
-
-    if (current.length > qty) {
-      // Trim serials down to qty
-      const trimmed = current.slice(0, qty);
-      setFormData(prev => ({
-        ...prev,
-        serial_numbers: trimmed,
-        // quantity: prev.quantity,  //<-- keep unchanged
-      }));
-    } else if (current.length < qty) {
-      // Add serials up to qty, but not changing quantity input
-      const needed = qty - current.length;
+      // Add only as many as possible, but DO NOT change quantity value!
+      const needed = totalAvailable - current.length;
       const toAdd = filteredSerials
         .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
         .slice(0, needed);
 
-      if (toAdd.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        serial_numbers: [...current, ...toAdd],
+        // quantity: prev.quantity, // <-- keep unchanged
+      }));
+    } else {
+      setQuantityError('');
+
+      if (current.length > qty) {
+        // Trim serials down to qty
+        const trimmed = current.slice(0, qty);
         setFormData(prev => ({
           ...prev,
-          serial_numbers: [...current, ...toAdd],
-          // quantity: prev.quantity, 
+          serial_numbers: trimmed,
+          // quantity: prev.quantity,  //<-- keep unchanged
         }));
+      } else if (current.length < qty) {
+        // Add serials up to qty, but not changing quantity input
+        const needed = qty - current.length;
+        const toAdd = filteredSerials
+          .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
+          .slice(0, needed);
+
+        if (toAdd.length > 0) {
+          setFormData(prev => ({
+            ...prev,
+            serial_numbers: [...current, ...toAdd],
+            // quantity: prev.quantity, 
+          }));
+        }
       }
     }
-  }
-}, [formData.quantity, formData.from_serial, availableSerials, originalSerials]);
+  }, [formData.quantity, formData.from_serial, availableSerials, originalSerials]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -285,17 +307,17 @@ useEffect(() => {
     const currentSerials = formData.serial_numbers || [];
     const available = availableSerials || [];
 
-    
-      if (requiredQty <= 0) {
-    toast.error('Please enter a valid quantity.');
-    return;
-  }
 
-  // Check if quantity exceeds available serial numbers
-  if (requiredQty > currentSerials.length) {
-    toast.error(`Quantity (${requiredQty}) exceeds available serial numbers (${currentSerials.length}).`);
-    return; // Prevent submission
-  }
+    if (requiredQty <= 0) {
+      toast.error('Please enter a valid quantity.');
+      return;
+    }
+
+    // Check if quantity exceeds available serial numbers
+    if (requiredQty > currentSerials.length) {
+      toast.error(`Quantity (${requiredQty}) exceeds available serial numbers (${currentSerials.length}).`);
+      return; // Prevent submission
+    }
 
     // Remove duplicates based on serial_no
     const merged = [...currentSerials, ...available];
@@ -318,21 +340,21 @@ useEffect(() => {
       })
       .catch(err => {
         console.error('Error updating sale:', err);
-         toast.error('Failed to update sale.');
+        toast.error('Failed to update sale.');
 
-        
-  // if (err.response && err.response.status === 422) {
-  //   const { message, invalid_serials } = err.response.data;
 
-  //   if (invalid_serials && invalid_serials.length > 0) {
-  //     toast.error(`${message} (${invalid_serials.join(', ')})`, { autoClose: 5000 });
-  //   } else {
-  //     toast.error(message || 'Validation error occurred.', { autoClose: 5000 });
-  //   }
-  // } else {
-  //   toast.error('Failed to update sale.', { autoClose: 5000 });
-  // }
-       });
+        // if (err.response && err.response.status === 422) {
+        //   const { message, invalid_serials } = err.response.data;
+
+        //   if (invalid_serials && invalid_serials.length > 0) {
+        //     toast.error(`${message} (${invalid_serials.join(', ')})`, { autoClose: 5000 });
+        //   } else {
+        //     toast.error(message || 'Validation error occurred.', { autoClose: 5000 });
+        //   }
+        // } else {
+        //   toast.error('Failed to update sale.', { autoClose: 5000 });
+        // }
+      });
   };
 
   const customerOptions = customers.map(c => ({
