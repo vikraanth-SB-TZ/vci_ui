@@ -247,7 +247,7 @@ useEffect(() => {
     setFormData(prev => ({
       ...prev,
       serial_numbers: [...current, ...toAdd],
-      // quantity: prev.quantity,  <-- keep unchanged
+      // quantity: prev.quantity, // <-- keep unchanged
     }));
   } else {
     setQuantityError('');
@@ -258,7 +258,7 @@ useEffect(() => {
       setFormData(prev => ({
         ...prev,
         serial_numbers: trimmed,
-        // quantity: prev.quantity,  <-- keep unchanged
+        // quantity: prev.quantity,  //<-- keep unchanged
       }));
     } else if (current.length < qty) {
       // Add serials up to qty, but not changing quantity input
@@ -271,7 +271,7 @@ useEffect(() => {
         setFormData(prev => ({
           ...prev,
           serial_numbers: [...current, ...toAdd],
-          // quantity: prev.quantity,  <-- keep unchanged
+          // quantity: prev.quantity, 
         }));
       }
     }
@@ -279,49 +279,61 @@ useEffect(() => {
 }, [formData.quantity, formData.from_serial, availableSerials, originalSerials]);
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const requiredQty = parseInt(formData.quantity || 0, 10);
-  const availableCount = availableSerials.length;
+    const requiredQty = parseInt(formData.quantity || 0, 10);
+    const currentSerials = formData.serial_numbers || [];
+    const available = availableSerials || [];
 
-  if (requiredQty > availableCount) {
-    // Show error, block submit
-    toast.error(`Cannot save: only ${availableCount} serials are available but quantity is ${requiredQty}.`);
-    return; // stop here, don't call API
+    
+      if (requiredQty <= 0) {
+    toast.error('Please enter a valid quantity.');
+    return;
   }
 
-  // Merge and deduplicate serials by serial_no
-  const currentSerials = formData.serial_numbers || [];
-  const merged = [...currentSerials, ...availableSerials];
-  const uniqueSerialsMap = {};
-  const uniqueSerials = [];
+  // Check if quantity exceeds available serial numbers
+  if (requiredQty > currentSerials.length) {
+    toast.error(`Quantity (${requiredQty}) exceeds available serial numbers (${currentSerials.length}).`);
+    return; // Prevent submission
+  }
 
-  for (const item of merged) {
-    if (!uniqueSerialsMap[item.serial_no]) {
-      uniqueSerialsMap[item.serial_no] = true;
-      uniqueSerials.push(item);
+    // Remove duplicates based on serial_no
+    const merged = [...currentSerials, ...available];
+    const uniqueSerialsMap = {};
+    const uniqueSerials = [];
+
+    for (const item of merged) {
+      if (!uniqueSerialsMap[item.serial_no]) {
+        uniqueSerialsMap[item.serial_no] = true;
+        uniqueSerials.push(item);
+      }
     }
-  }
 
-  // Limit serial_numbers to quantity or max available
-  const finalSerials = uniqueSerials.slice(0, requiredQty);
+    const finalSerials = uniqueSerials.slice(0, requiredQty);
 
-  const updatedFormData = {
-    ...formData,
-    serial_numbers: finalSerials,
-    // quantity: formData.quantity, // keep user input
+    axios.put(`${API_BASE_URL}/salesUpdate/${id}`, updatedFormData)
+      .then(() => {
+        toast.success('Sale updated successfully!');
+        setTimeout(() => navigate('/salesOrder'), 1500);
+      })
+      .catch(err => {
+        console.error('Error updating sale:', err);
+         toast.error('Failed to update sale.');
+
+        
+  // if (err.response && err.response.status === 422) {
+  //   const { message, invalid_serials } = err.response.data;
+
+  //   if (invalid_serials && invalid_serials.length > 0) {
+  //     toast.error(`${message} (${invalid_serials.join(', ')})`, { autoClose: 5000 });
+  //   } else {
+  //     toast.error(message || 'Validation error occurred.', { autoClose: 5000 });
+  //   }
+  // } else {
+  //   toast.error('Failed to update sale.', { autoClose: 5000 });
+  // }
+       });
   };
-
-  axios.put(`${API_BASE_URL}/salesUpdate/${id}`, updatedFormData)
-    .then(() => {
-      toast.success('Sale updated successfully!');
-      setTimeout(() => navigate('/salesOrder'), 1500);
-    })
-    .catch(err => {
-      console.error('Error updating sale:', err);
-      toast.error('Failed to update sale.');
-    });
-};
 
   const customerOptions = customers.map(c => ({
     value: c.id,
