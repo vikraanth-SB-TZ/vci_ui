@@ -36,9 +36,15 @@ export default function StatePage() {
   const fetchCountries = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/countries`);
-      setCountries(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      toast.error("Failed to fetch countries!");
+      if (Array.isArray(res.data)) {
+        setCountries(res.data);
+      } else {
+        setCountries([]);
+      }
+    } catch (error) {
+      const isServerError = error.response?.status >= 500 || !error.response;
+      if (isServerError) toast.error("Failed to fetch countries!");
+      setCountries([]);
     }
   };
 
@@ -46,9 +52,15 @@ export default function StatePage() {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/states`);
-      setStates(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      toast.error("Failed to fetch states!");
+      if (Array.isArray(res.data)) {
+        setStates(res.data);
+      } else {
+        setStates([]);
+      }
+    } catch (error) {
+      const isServerError = error.response?.status >= 500 || !error.response;
+      if (isServerError) toast.error("Failed to fetch states!");
+      setStates([]);
     } finally {
       setLoading(false);
     }
@@ -80,6 +92,7 @@ export default function StatePage() {
       toast.warning("State name is required!");
       return;
     }
+
     if (!countryId) {
       toast.warning("Country is required!");
       return;
@@ -96,7 +109,10 @@ export default function StatePage() {
       return;
     }
 
-    const payload = { state: newStateName.trim(), country_id: parseInt(countryId) };
+    const payload = {
+      state: newStateName.trim(),
+      country_id: parseInt(countryId),
+    };
 
     try {
       if (editingStateId) {
@@ -106,6 +122,7 @@ export default function StatePage() {
         await axios.post(`${API_BASE_URL}/states`, payload);
         toast.success("State added successfully!");
       }
+
       await fetchStates();
       handleModalClose();
     } catch (error) {
@@ -114,23 +131,23 @@ export default function StatePage() {
   };
 
   const handleDelete = async (id) => {
-    const result = await MySwal.fire({
-      title: "Are you sure?",
-      text: "Do you really want to delete this state?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    });
-
-    if (!result.isConfirmed) return;
-
     try {
-      await axios.delete(`${API_BASE_URL}/states/${id}`);
-      toast.success("State deleted!");
-      await fetchStates();
-    } catch {
+      const confirmed = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you really want to delete this state?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+      });
+
+      if (confirmed.isConfirmed) {
+        await axios.delete(`${API_BASE_URL}/states/${id}`);
+        toast.success("State deleted!");
+        await fetchStates();
+      }
+    } catch (error) {
       toast.error("Failed to delete state!");
     }
   };
@@ -151,8 +168,10 @@ export default function StatePage() {
 
   const sortedStates = [...filteredStates].sort((a, b) => {
     if (!sortField) return 0;
+
     const valA = sortField === "country" ? (a.country?.country || "") : a[sortField];
     const valB = sortField === "country" ? (b.country?.country || "") : b[sortField];
+
     if (valA < valB) return sortDirection === "asc" ? -1 : 1;
     if (valA > valB) return sortDirection === "asc" ? 1 : -1;
     return 0;

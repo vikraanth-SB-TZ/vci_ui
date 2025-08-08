@@ -59,13 +59,20 @@ export default function DistrictPage() {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/districts`);
-      setDistricts(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      toast.error("Failed to fetch districts!");
+      if (Array.isArray(res.data)) {
+        setDistricts(res.data);
+      } else {
+        setDistricts([]);
+      }
+    } catch (error) {
+      const isServerError = error.response?.status >= 500 || !error.response;
+      if (isServerError) toast.error("Failed to fetch states!");
+      setDistricts([]);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleAddNewClick = () => {
     setEditId(null);
