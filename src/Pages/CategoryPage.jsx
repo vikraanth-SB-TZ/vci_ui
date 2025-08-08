@@ -74,46 +74,34 @@ export default function CategoryPage() {
     }
   
     const payload = { category: categoryName.trim() };
-    let updatedId = editingCategoryId;
   
     try {
       if (editingCategoryId) {
         await axios.put(`${API_BASE_URL}/categories/${editingCategoryId}`, payload);
+  
+        
+        setCategories((prev) =>
+          prev.map((c) =>
+            c.id === editingCategoryId ? { ...c, category: categoryName.trim() } : c
+          )
+        );
+  
         toast.success("Category updated successfully!");
       } else {
         const res = await axios.post(`${API_BASE_URL}/categories`, payload);
-        toast.success("Category added successfully!");
-        updatedId = res.data.id;
-      }
-  
-     
-      const res = await axios.get(`${API_BASE_URL}/categories`);
-      let updatedList = Array.isArray(res.data) ? res.data : [];
-  
-     
-      if (sortField) {
-        updatedList.sort((a, b) => {
-          const valA = a[sortField]?.toLowerCase?.() || "";
-          const valB = b[sortField]?.toLowerCase?.() || "";
-          if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-          if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-          return 0;
-        });
-      }
   
       
-      const index = updatedList.findIndex((c) => c.id === updatedId);
-      if (index !== -1) {
-        const newPage = Math.floor(index / perPage) + 1;
-        setPage(newPage);
+        setCategories((prev) => [...prev, res.data]);
+  
+        toast.success("Category added successfully!");
       }
   
-      setCategories(updatedList);
       handleModalClose();
     } catch {
       toast.error("Failed to save category!");
     }
   };
+  
   
 
   const handleDelete = async (id) => {

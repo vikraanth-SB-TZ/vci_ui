@@ -75,7 +75,7 @@ export default function CountryPage() {
       toast.warning("Country name is required!");
       return;
     }
-
+  
     const duplicate = countries.some(
       (c) =>
         c.country.toLowerCase() === countryName.trim().toLowerCase() &&
@@ -85,22 +85,37 @@ export default function CountryPage() {
       toast.error("Country already exists!");
       return;
     }
-
+  
     const payload = { country: countryName.trim() };
+  
     try {
       if (editingCountryId) {
+        
         await axios.put(`${API_BASE_URL}/countries/${editingCountryId}`, payload);
+        
+        
+        setCountries((prev) =>
+          prev.map((c) =>
+            c.id === editingCountryId ? { ...c, ...payload } : c
+          )
+        );
+  
         toast.success("Country updated successfully!");
       } else {
-        await axios.post(`${API_BASE_URL}/countries`, payload);
+        
+        const res = await axios.post(`${API_BASE_URL}/countries`, payload);
+  
+        
+        setCountries((prev) => [...prev, res.data]);
         toast.success("Country added successfully!");
       }
-      await fetchCountries();
+  
       handleModalClose();
     } catch (error) {
       toast.error("Failed to save country!");
     }
   };
+  
 
  const handleDelete = async (id) => {
   try {
@@ -117,7 +132,7 @@ export default function CountryPage() {
     if (confirmed.isConfirmed) {
       await axios.delete(`${API_BASE_URL}/countries/${id}`);
       toast.success("Country deleted successfully");
-      await fetchCountries(); // ✅ this is now clean
+      await fetchCountries(); 
     }
   } catch (error) {
     toast.error("Failed to delete country");
