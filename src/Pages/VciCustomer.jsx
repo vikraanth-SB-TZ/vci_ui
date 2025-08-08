@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Form, Spinner } from "react-bootstrap";
+import { Button, Form, Spinner, Card } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Select from 'react-select';
@@ -11,6 +11,9 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import MiniCalendar from "./MiniCalendar";
 import { API_BASE_URL } from "../api";
+import Breadcrumb from "./Components/Breadcrumb";
+import Pagination from "./Components/Pagination";
+import Search from "./Components/Search";
 
 function initialForm() {
     return {
@@ -27,7 +30,7 @@ function initialForm() {
         state: "",
         district: "",
         pincode: "",
-        gst: "",
+        gst_no: "",
         dob: "",
     };
 }
@@ -44,34 +47,40 @@ export default function VciCustomer() {
     const [errors, setErrors] = useState({});
     const [showCalendar, setShowCalendar] = useState(false);
     const toastIdRef = useRef(null); 
+  const [search, setSearch] = useState("");
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
     const tableRef = useRef(null);
 
     // const apiBase = "http://127.0.0.1:8000/api";
 
-    useEffect(() => {
-        const loadInitialData = async () => {
-            setLoading(true);
-            try {
-                const statesRes = await axios.get(`${API_BASE_URL}/states`);
-                setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
+const loadInitialData = async () => {
+    setLoading(true);
+    try {
+        const statesRes = await axios.get(`${API_BASE_URL}/states`);
+        setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
 
-                const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
-                setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
+        const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
+        setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
 
-                const customersRes = await axios.get(`${API_BASE_URL}/customers`);
-                setCustomers(Array.isArray(customersRes.data.data) ? customersRes.data.data : customersRes.data);
-                toast.success("Customers loaded successfully!", { toastId: 'customers-loaded', autoClose: 1500 });
-            } catch (err) {
-                console.error("Failed to load initial data:", err);
-                toast.error("Failed to load data.", { autoClose: 1500 });
-            } finally {
-                setLoading(false);
-            }
-        };
+        const customersRes = await axios.get(`${API_BASE_URL}/customers`);
+        setCustomers(Array.isArray(customersRes.data.data) ? customersRes.data.data : customersRes.data);
+        toast.success("Customers loaded successfully!", { toastId: 'customers-loaded', autoClose: 1500 });
+    } catch (err) {
+        console.error("Failed to load initial data:", err);
+        toast.error("Failed to load data.", { autoClose: 1500 });
+    } finally {
+        setLoading(false);
+    }
+};
 
-        loadInitialData();
-    }, []);
+// Then your effect just calls it
+useEffect(() => {
+    loadInitialData();
+}, []);
 
     useEffect(() => {
         if (!loading && customers.length > 0) {
@@ -134,7 +143,7 @@ export default function VciCustomer() {
                 }
             }
 
-            if ((name === "mobile" || name === "altMobile")) {
+            if ((name === "mobile")) {
                 if (!/^\d*$/.test(value)) {
                     return;  
                 }
@@ -142,6 +151,14 @@ export default function VciCustomer() {
                 if (value.length > 10) {
                     return;
                 }
+                
+  if (name === "altMobile") {
+    if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
+        setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
+    } else {
+        setErrors(prev => ({ ...prev, altMobile: "" }));
+    }
+}
 
                 setFormData(prev => ({ ...prev, [name]: value }));
 
@@ -168,21 +185,16 @@ export default function VciCustomer() {
                 return;
             }
 
-            if (name === "gst") {
-                if (!/^[0-9A-Z]*$/.test(value)) {
-                    return;
-                }
-                if (value.length > 15) {
-                    return;
-                }
+if (name === "gst_no") {
+    if (value.trim() === "") {
+        setErrors(prev => ({ ...prev, gst_no: "" }));
+    } else if (!/^[0-9A-Z]{15}$/.test(value)) {
+        setErrors(prev => ({ ...prev, gst_no: "GST No. must be 15  characters." }));
+    } else {
+        setErrors(prev => ({ ...prev, gst_no: "" }));
+    }
+}
 
-                setFormData(prev => ({ ...prev, [name]: value }));
-
-                if (value.length === 15) {
-                    setErrors(prev => ({ ...prev, [name]: "" }));
-                }
-                return;
-            }
 
         }
 
@@ -214,13 +226,20 @@ export default function VciCustomer() {
             }
         }
 
-        if (name === "mobile" || name === "altMobile") {
+        if (name === "mobile") {
             if (!/^\d{10}$/.test(value)) {
                 setErrors(prev => ({ ...prev, [name]: "Must be exactly 10 digits." }));
             } else {
                 setErrors(prev => ({ ...prev, [name]: "" }));
             }
         }
+if (name === "altMobile") {
+    if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
+        setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
+    } else {
+        setErrors(prev => ({ ...prev, altMobile: "" }));
+    }
+}
 
         if (name === "pincode") {
             if (!/^\d{6}$/.test(value)) {
@@ -249,35 +268,51 @@ export default function VciCustomer() {
     };
 
 
-    const validateForm = () => {
-        const newErrors = {};
-        if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
-        if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
-        if (!formData.email.trim()) newErrors.email = "Email is required.";
-        else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
-        if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
-        else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
-        if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) newErrors.altMobile = "Alternative mobile number must be 10 digits.";
-        if (!formData.gender) newErrors.gender = "Gender is required.";
-        const today = new Date().toISOString().slice(0, 10);
-        if (!formData.dob) newErrors.dob = "Date of Birth is required.";
-        else if (formData.dob > today) {
-            newErrors.dob = "Date of Birth cannot be in the future.";
-        }
-        if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
-        if (!formData.address.trim()) newErrors.address = "Address is required.";
-        if (!formData.city.trim()) newErrors.city = "City is required.";
-        if (formData.gst.trim() && !/^[0-9A-Z]{15}$/.test(formData.gst)) {
-            newErrors.gst = "GST No. must be 15 alphanumeric characters.";
-        }
-        if (!formData.state) newErrors.state = "State is required.";
-        if (!formData.district) newErrors.district = "District is required.";
-        if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
-        else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
+    if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
+
+    if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
+    else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
+
+    if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) {
+        newErrors.altMobile = "Alternative mobile number must be 10 digits.";
+    }
+
+    if (
+        formData.mobile &&
+        formData.altMobile &&
+        formData.mobile === formData.altMobile
+    ) {
+        newErrors.altMobile = "Mobile and alternative mobile numbers should not be the same.";
+    }
+
+    if (!formData.gender) newErrors.gender = "Gender is required.";
+
+    const today = new Date().toISOString().slice(0, 10);
+    if (!formData.dob) newErrors.dob = "Date of Birth is required.";
+    else if (formData.dob > today) newErrors.dob = "Date of Birth cannot be in the future.";
+
+    if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
+    if (!formData.address.trim()) newErrors.address = "Address is required.";
+    if (!formData.city.trim()) newErrors.city = "City is required.";
+
+if (!formData.gst_no.trim()) newErrors.gst_no = "GST No is required.";
+if (!formData.state) newErrors.state = "State is required.";
+if (!formData.district) newErrors.district = "District is required.";
+
+    if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
+    else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+};
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -290,7 +325,7 @@ export default function VciCustomer() {
             last_name: formData.last_name,
             gender: formData.gender,
             mobile: formData.mobile,
-            alter_mobile: formData.altMobile,
+            alt_mobile: formData.altMobile,
             email: formData.email,
             company_name: formData.company_name,
             address: formData.address,
@@ -298,7 +333,7 @@ export default function VciCustomer() {
             state_id: formData.state ? parseInt(formData.state, 10) : null,
             district_id: formData.district ? parseInt(formData.district, 10) : null,
             pincode: formData.pincode,
-            gst: formData.gst,
+gst_no: formData.gst_no,
             date_of_birth: formData.dob,
         };
 
@@ -360,7 +395,7 @@ export default function VciCustomer() {
             last_name: customer.last_name || "",
             gender: customer.gender || "",
             mobile: customer.mobile || "",
-            altMobile: customer.altMobile || "",
+            alt_mobile: customer.alt_mobile || "",
             email: customer.email || "",
             company_name: customer.company_name || "",
             address: customer.address || "",
@@ -368,7 +403,7 @@ export default function VciCustomer() {
             state: customer.state_id ? String(customer.state_id) : "",
             district: customer.district_id ? String(customer.district_id) : "",
             pincode: customer.pincode || "",
-            gst: customer.gst || "",
+            gst_no: customer.gst_no || "",
             dob: customer.date_of_birth || "",
         });
 
@@ -532,86 +567,247 @@ const handleDownloadPdf = async () => {
         toast.error("Failed to download PDF. Please try again.", { autoClose: 3000 });
     }
 };
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
+// Filter customers based on search input
+const filtered = customers.filter((c) =>
+  `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
+  (c.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
+  (c.email || "").toLowerCase().includes(search.toLowerCase()) ||
+  (c.gender || "").toLowerCase().includes(search.toLowerCase()) ||
+  (c.company_name || "").toLowerCase().includes(search.toLowerCase()) ||
+  (c.address || "").toLowerCase().includes(search.toLowerCase()) ||
+  (getStateNameById(c.state_id) || "").toLowerCase().includes(search.toLowerCase()) ||
+  (getDistrictNameById(c.district_id) || "").toLowerCase().includes(search.toLowerCase())
+);
+
+// Sort customers by selected field
+const sorted = [...filtered].sort((a, b) => {
+  if (!sortField) return 0;
+
+  let valA, valB;
+
+  switch (sortField) {
+    case "name":
+      valA = `${a.first_name || ""} ${a.last_name || ""}`;
+      valB = `${b.first_name || ""} ${b.last_name || ""}`;
+      break;
+    case "state":
+      valA = getStateNameById(a.state_id);
+      valB = getStateNameById(b.state_id);
+      break;
+    case "district":
+      valA = getDistrictNameById(a.district_id);
+      valB = getDistrictNameById(b.district_id);
+      break;
+    default:
+      valA = a[sortField];
+      valB = b[sortField];
+  }
+
+  valA = (valA || "").toString().toLowerCase();
+  valB = (valB || "").toString().toLowerCase();
+
+  if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+  if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+  return 0;
+});
+
+// Paginate results
+const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
     return (
-        <div className="vh-80 d-flex flex-column position-relative bg-light">
-         <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-    <h5 className="mb-0 fw-bold">Customers ({customers.length})</h5>
-    <div className="d-flex gap-2">
-        <Button variant="outline-primary" size="sm" onClick={handleDownloadPdf}>
+   <div className="px-4 py-2">
+      <Breadcrumb title="Customers" />
+
+  <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
+    <div className="row mb-3">
+      <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+        <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+        <Form.Select
+          size="sm"
+          style={{ width: "100px" }}
+          value={perPage}
+          onChange={(e) => {
+            setPerPage(Number(e.target.value));
+            setPage(1);
+          }}
+        >
+          {[5, 10, 25, 50].map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </Form.Select>
+      </div>
+
+      <div className="col-md-6 text-md-end">
+        <div className="mt-2 d-inline-block mb-2">
+              <Button
+              variant="outline-secondary"
+              size="sm"
+              className="me-2"
+              onClick={loadInitialData}
+          >
+              <i className="bi bi-arrow-clockwise"></i>
+          </Button>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            className="me-2"
+            onClick={handleDownloadPdf}
+          >
             <i className="bi bi-download me-1"></i> Download PDF
-        </Button>
-        <Button variant="success" size="sm"style={{
-                        backgroundColor: '#2FA64F',
-                        borderColor: '#2FA64F',
-                        color: '#fff',
-
-                    }} onClick={openForm}>
+          </Button>
+        
+          
+          <Button
+            size="sm"
+            style={{
+              backgroundColor: "#2FA64F",
+              borderColor: "#2FA64F",
+              color: "#fff",
+            }}
+            onClick={openForm}
+          >
             + Add New
-        </Button>
+          </Button>
+        </div>
+        <Search
+          search={search}
+          setSearch={setSearch}
+          perPage={perPage}
+          setPerPage={setPerPage}
+          setPage={setPage}
+        />
+      </div>
     </div>
-</div>
 
-            <div className="flex-grow-1 overflow-auto px-4 py-3">
-                <div className="table-responsive">
-                    <table ref={tableRef} className="table custom-table">
-                        <thead>
-                            <tr>
-                                <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
-                                <th>Name</th>
-                                <th>Mobile</th>
-                                <th>Email</th>
-                                <th>Gender</th>
-                                <th>Company</th>
-                                <th>Address</th>
-                                <th>State</th>
-                                <th>District</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="10" className="text-center py-4">
-                                        <Spinner animation="border" />
-                                    </td>
-                                </tr>
-                            ) : customers.length === 0 ? (
-                                <tr>
-                                    <td colSpan="10" className="text-center py-4 text-muted">
-                                        No customers found.
-                                    </td>
-                                </tr>
-                            ) : (
-                                customers.map((customer, index) => (
-                                    <tr key={customer.id}>
-                                        <td style={{ textAlign: "center" }}>{index + 1}</td>
-                                        <td>{`${customer.first_name || ""} ${customer.last_name || ""}`}</td>
-                                        <td>{customer.mobile}</td>
-                                        <td>{customer.email}</td>
-                                        <td>{customer.gender}</td>
-                                        <td>{customer.company_name}</td>
-                                        <td>{customer.address}</td>
-                                        <td>{getStateNameById(customer.state_id)}</td>
-                                        <td>{getDistrictNameById(customer.district_id)}</td>
-                                        <td>
-                                            <Button
-                                                variant="outline-primary"
-                                                size="sm"
-                                                className="me-1"
-                                                onClick={() => handleEdit(customer)}
-                                            >
-                                                <i className="bi bi-pencil-square me-1"></i>
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+  <div className="table-responsive">
+    <table className="table align-middle mb-0">
+      <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+        <tr>
+          <th
+            style={{
+              width: "70px",
+              textAlign: "center",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            S.No
+          </th>
+          <th
+            onClick={() => handleSort("name")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+          <th
+            onClick={() => handleSort("mobile")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Mobile {sortField === "mobile" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+          <th
+            onClick={() => handleSort("email")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Email {sortField === "email" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Gender</th>
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Company</th>
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Address</th>
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>State</th>
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>District</th>
+          <th
+            style={{
+              width: "130px",
+              textAlign: "center",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Action
+          </th>
+        </tr>
+      </thead>
+<tbody>
+  {loading ? (
+    <tr>
+      <td colSpan="10" className="text-center py-4">
+        <Spinner animation="border" />
+      </td>
+    </tr>
+  ) : paginated.length === 0 ? (
+    <tr>
+      <td colSpan="10" className="text-center py-4 text-muted">
+        <img
+          src="/empty-box.png"
+          alt="No data"
+          style={{ width: 80, height: 100, opacity: 0.6 }}
+        />
+      </td>
+    </tr>
+  ) : (
+    paginated.map((customer, i) => (
+      <tr key={customer.id}>
+        <td className="text-center" style={{ width: "70px" }}>
+          {(page - 1) * perPage + i + 1}
+        </td>
+        <td>{`${customer.first_name || ""} ${customer.last_name || ""}`}</td>
+        <td>{customer.mobile}</td>
+        <td>{customer.email}</td>
+        <td>{customer.gender}</td>
+        <td>{customer.company_name}</td>
+        <td>{customer.address}</td>
+        <td>{getStateNameById(customer.state_id)}</td>
+        <td>{getDistrictNameById(customer.district_id)}</td>
+        <td style={{ textAlign: "center" }}>
+          <Button
+            variant=""
+            size="sm"
+            className="me-1"
+            onClick={() => handleEdit(customer)}
+            style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+          >
+            <i className="bi bi-pencil-square"></i>
+          </Button>
+
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
+    </table>
+  </div>
+
+  <Pagination
+    page={page}
+    setPage={setPage}
+    perPage={perPage}
+    totalEntries={filtered.length}
+  />
+</Card>
 
             <div
                 className={`position-fixed bg-white shadow-lg px-3 pt-2 pb-2 customer-form-slide`}
@@ -867,16 +1063,16 @@ const handleDownloadPdf = async () => {
                             <Form.Label className="mb-1" style={labelStyle}>GST No.</Form.Label>
                             <Form.Control
                                 className="custom-placeholder"
-                                name="gst"
-                                value={formData.gst}
+                                name="gst_no"
+                                value={formData.gst_no}
                                 onChange={handleChange}
                                 placeholder="Enter GST No."
                                 size="sm"
-                                isInvalid={!!errors.gst}
-                                style={getInputStyle("gst")}
+                                isInvalid={!!errors.gst_no}
+                                style={getInputStyle("gst_no")}
                             />
                             <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.gst}
+                                {errors.gst_no}
                             </Form.Control.Feedback>
                         </div>
                     </div>

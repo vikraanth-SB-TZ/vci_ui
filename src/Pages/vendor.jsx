@@ -1,17 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Form, Spinner } from "react-bootstrap";
+import { Button, Form, Spinner, Card } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Select from 'react-select';
-import { toast} from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from "jquery";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import MiniCalendar from "./MiniCalendar";
-import { FaRegCalendarAlt } from "react-icons/fa";
 import { API_BASE_URL } from "../api";
+import Breadcrumb from "./Components/Breadcrumb";
+import Pagination from "./Components/Pagination";
+import Search from "./Components/Search";
+
 function initialForm() {
     return {
         id: null,
@@ -32,7 +35,7 @@ function initialForm() {
     };
 }
 
-export default function Vendor() {
+export default function vendor() {
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
@@ -43,58 +46,67 @@ export default function Vendor() {
     const [districtsForForm, setDistrictsForForm] = useState([]);
     const [errors, setErrors] = useState({});
     const [showCalendar, setShowCalendar] = useState(false);
-    const toastIdRef = useRef(null); // Ref to store the toast ID
+    const toastIdRef = useRef(null); 
+  const [search, setSearch] = useState("");
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
     const tableRef = useRef(null);
 
     // const apiBase = "http://127.0.0.1:8000/api";
 
+// Put this ABOVE your useEffect
+const loadInitialData = async () => {
+    setLoading(true);
+    try {
+        const statesRes = await axios.get(`${API_BASE_URL}/states`);
+        setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
+
+        const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
+        setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
+
+        const vendorsRes = await axios.get(`${API_BASE_URL}/vendors`);
+        setVendors(Array.isArray(vendorsRes.data.data) ? vendorsRes.data.data : vendorsRes.data);
+        toast.success("Vendors loaded successfully!", { toastId: 'vendors-loaded', autoClose: 1500 });
+    } catch (err) {
+        console.error("Failed to load initial data:", err);
+        toast.error("Failed to load data.", { autoClose: 1500 });
+    } finally {
+        setLoading(false);
+    }
+};
+
+// Then your effect just calls it
+useEffect(() => {
+    loadInitialData();
+}, []);
+
+
     useEffect(() => {
-        const loadInitialData = async () => {
-            setLoading(true);
-            try {
-                const statesRes = await axios.get(`${API_BASE_URL}/states`);
-                setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
-
-                const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
-                setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
-
-                const vendorsRes = await axios.get(`${API_BASE_URL}/vendors`);
-                const rows = Array.isArray(vendorsRes.data.data) ? vendorsRes.data.data : vendorsRes.data;
-
-                setVendors(rows);
-                if ($.fn.DataTable.isDataTable(tableRef.current)) {
-                    $(tableRef.current).DataTable().destroy();
-                }
-                setTimeout(() => {
-                    if (tableRef.current && $(tableRef.current).find('tbody tr').length > 0) {
-                        $(tableRef.current).DataTable({
-                            ordering: true,
-                            paging: true,
-                            searching: true,
-                            lengthChange: true,
-                            columnDefs: [{ targets: 0, className: "text-center" }],
-                        });
-                    }
-                }, 300);
-
-            } catch (err) {
-                console.error("Failed to load initial data:", err);
-                toast.error("Failed to load data.", { autoClose: 1500 });
-            } finally {
-                setLoading(false);
+        if (!loading && vendors.length > 0) {
+            $(tableRef.current).DataTable({
+                destroy: true, 
+                ordering: true,
+                paging: true,
+                searching: true,
+                lengthChange: true,
+                columnDefs: [{ targets: 0, className: "text-center" }],
+            });
+        }
+        return () => {
+            if ($.fn.DataTable.isDataTable(tableRef.current)) {
+                $(tableRef.current).DataTable().destroy();
             }
         };
-
-        loadInitialData();
-    }, []);
-
+    }, [vendors, loading]);
 
     useEffect(() => {
         if (formData.state) {
             fetchDistrictsForForm(formData.state);
         } else {
-            setDistrictsForForm([]);
+            setDistrictsForForm([]); 
         }
     }, [formData.state]);
 
@@ -113,17 +125,8 @@ export default function Vendor() {
                 setDistrictsForForm([]);
             });
     };
+  
 
-
-    const handleMobileBlur = (e) => {
-        const { name, value } = e.target;
-
-        if (value.trim().length !== 10) {
-            setErrors((prev) => ({ ...prev, [name]: "Must be exactly 10 digits." }));
-        } else {
-            setErrors((prev) => ({ ...prev, [name]: "" }));
-        }
-    };
 
     const handleChange = (e, selectName = null) => {
         let name, value;
@@ -131,159 +134,195 @@ export default function Vendor() {
         if (selectName) {
             name = selectName;
             value = e ? e.value : "";
-
-            setFormData(prev => ({ ...prev, [name]: value }));
-
-            
-            if (value && errors[name]) {
-                setErrors(prev => ({ ...prev, [name]: "" }));
-            }
-
-            if (selectName === "state") {
-                setFormData(prev => ({ ...prev, district: "" }));
-            }
-            return; 
         } else {
             name = e.target.name;
             value = e.target.value;
 
-
-            if ((name === "first_name" || name === "last_name" || name === "city")) {
-                if (!/^[a-zA-Z\s]*$/.test(value)) {
-                    
+            if (["first_name", "last_name", "city",].includes(name)) {
+                if (!/^[A-Za-z\s]*$/.test(value)) {
                     setErrors(prev => ({ ...prev, [name]: "Only alphabets are allowed." }));
-                    return; 
+                    return;
                 } else {
-
-                    if (errors[name]) {
-                        setErrors(prev => ({ ...prev, [name]: "" }));
-                    }
+                    setErrors(prev => ({ ...prev, [name]: "" }));
                 }
             }
 
-            if (name === "mobile" || name === "altMobile") {
+            if ((name === "mobile")) {
+                if (!/^\d*$/.test(value)) {
+                    return;  
+                }
+
+                if (value.length > 10) {
+                    return;
+                }
+                
+  if (name === "altMobile") {
+    if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
+        setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
+    } else {
+        setErrors(prev => ({ ...prev, altMobile: "" }));
+    }
+}
+
+                setFormData(prev => ({ ...prev, [name]: value }));
+
+                if (value.length === 10) {
+                    setErrors(prev => ({ ...prev, [name]: "" }));
+                }
+                return;
+            }
+
+            if (name === "pincode") {
                 if (!/^\d*$/.test(value)) {
                     return; 
                 }
 
-                if (value.length > 10) {
-                    return; 
-                }
-
-                setFormData(prev => ({ ...prev, [name]: value }));
-
-
-                if (errors[name]) {
-                    setErrors(prev => ({ ...prev, [name]: "" }));
-                }
-
-                return;
-            }
-            if (["company_name", "address"].includes(name)) {
-                if (value.trim()) {
-                    setErrors((prev) => ({ ...prev, [name]: "" }));
-                }
-            }
-
-            if (name === "pincode") {
-                if (/^\d{0,6}$/.test(value)) {
-                    if (value.trim()) {
-                        setErrors((prev) => ({ ...prev, [name]: "" }));
-                    }
-                } else {
-                    setErrors((prev) => ({ ...prev, [name]: "Pincode must be 6 digits." }));
-                    return;
-                }
-            }
-            if (name === "email") {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.(com)$/i;
-                if (!value.trim()) {
-                    setErrors(prev => ({ ...prev, [name]: "Email is required." }));
-                } else if (!emailRegex.test(value)) {
-                    setErrors(prev => ({ ...prev, [name]: "Enter a valid email address." }));
-                } else {
-                    setErrors(prev => ({ ...prev, [name]: "" }));
-                }
-            }
-            if (name === "gst") {
-                if (!/^[0-9A-Z]*$/.test(value)) {
-                    return;
-                }
-                if (value.length > 15) {
+                if (value.length > 6) {
                     return;
                 }
 
                 setFormData(prev => ({ ...prev, [name]: value }));
 
-                if (value.length === 15) {
+                if (value.length === 6) {
                     setErrors(prev => ({ ...prev, [name]: "" }));
                 }
                 return;
             }
+
+          if (name === "gst") {
+    if (value.trim() === "") {
+        setErrors(prev => ({ ...prev, gst: "" }));  // No error if empty
+    } else if (!/^[0-9A-Z]{15}$/.test(value)) {
+        setErrors(prev => ({ ...prev, gst: "GST No. must be 15 alphanumeric characters." }));
+    } else {
+        setErrors(prev => ({ ...prev, gst: "" }));
+    }
+}
+
+
         }
 
         setFormData(prev => ({ ...prev, [name]: value }));
+
+        if (value && errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: "" }));
+        }
+
+        if (name === "state") {
+            setFormData(prev => ({ ...prev, district: "" }));
+        }
     };
 
     const handleBlur = (e) => {
         const { name, value } = e.target;
 
-        if (value.trim()) {
-            setErrors(prev => ({ ...prev, [name]: "" }));
+        if (!value.trim()) {
+            setErrors(prev => ({ ...prev, [name]: `${name.replace("_", " ")} is required.` }));
+            return;
+        }
+
+       if (name === "email") {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.(com)$/i;
+            if (!emailRegex.test(value)) {
+                setErrors(prev => ({ ...prev, email: "Enter a valid email address." }));
+            } else {
+                setErrors(prev => ({ ...prev, email: "" }));
+            }
+        }
+
+        if (name === "mobile") {
+            if (!/^\d{10}$/.test(value)) {
+                setErrors(prev => ({ ...prev, [name]: "Must be exactly 10 digits." }));
+            } else {
+                setErrors(prev => ({ ...prev, [name]: "" }));
+            }
+        }
+if (name === "altMobile") {
+    if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
+        setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
+    } else {
+        setErrors(prev => ({ ...prev, altMobile: "" }));
+    }
+}
+
+        if (name === "pincode") {
+            if (!/^\d{6}$/.test(value)) {
+                setErrors(prev => ({ ...prev, [name]: "Pincode must be exactly 6 digits." }));
+            } else {
+                setErrors(prev => ({ ...prev, [name]: "" }));
+            }
+        }
+
+        if (["gender", "state", "district"].includes(name)) {
+            if (!value) {
+                setErrors(prev => ({ ...prev, [name]: `${name.charAt(0).toUpperCase() + name.slice(1)} is required.` }));
+            } else {
+                setErrors(prev => ({ ...prev, [name]: "" }));
+            }
+        }
+    };
+
+    const handleSelectBlur = (fieldName) => {
+        const value = formData[fieldName];
+        if (!value) {
+            setErrors(prev => ({ ...prev, [fieldName]: `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} is required.` }));
         } else {
-            setErrors(prev => ({ ...prev, [name]: `${formatLabel(name)} is required.` }));
+            setErrors(prev => ({ ...prev, [fieldName]: "" }));
         }
     };
 
-    const formatLabel = (field) => {
-        return field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    };
 
-    const handleEmailBlur = () => {
-        const email = formData.email.trim();
 
-        if (!email) {
-            setErrors((prev) => ({ ...prev, email: "Email is required." }));
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setErrors((prev) => ({ ...prev, email: "Email format is invalid." }));
-        } else {
-            setErrors((prev) => ({ ...prev, email: "" }));
-        }
-    };
+const validateForm = () => {
+    const newErrors = {};
 
-    const validateForm = () => {
-        const newErrors = {};
-        if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
-        if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
-        if (!formData.email.trim()) newErrors.email = "Email is required.";
-        else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
-        if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
-        else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
-        if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) newErrors.altMobile = "Alternative mobile number must be 10 digits.";
-        if (!formData.gender) newErrors.gender = "Gender is required.";
-        const today = new Date().toISOString().slice(0, 10);
-        if (!formData.dob) newErrors.dob = "Date of Birth is required.";
-        else if (formData.dob > today) {
-            newErrors.dob = "Date of Birth cannot be in the future.";
-        }
-        if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
-        if (!formData.address.trim()) newErrors.address = "Address is required.";
-        if (!formData.city.trim()) newErrors.city = "City is required.";
-        if (formData.gst.trim() && !/^[0-9A-Z]{15}$/.test(formData.gst)) {
-            newErrors.gst = "GST No. must be 15 alphanumeric characters.";
-        }
-        if (!formData.state) newErrors.state = "State is required.";
-        if (!formData.district) newErrors.district = "District is required.";
-        if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
-        else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
+    if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
+    if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+    if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
+    else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
+
+    if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) {
+        newErrors.altMobile = "Alternative mobile number must be 10 digits.";
+    }
+
+    if (
+        formData.mobile &&
+        formData.altMobile &&
+        formData.mobile === formData.altMobile
+    ) {
+        newErrors.altMobile = "Mobile and alternative mobile numbers should not be the same.";
+    }
+
+    if (!formData.gender) newErrors.gender = "Gender is required.";
+
+    const today = new Date().toISOString().slice(0, 10);
+    if (!formData.dob) newErrors.dob = "Date of Birth is required.";
+    else if (formData.dob > today) newErrors.dob = "Date of Birth cannot be in the future.";
+
+    if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
+    if (!formData.address.trim()) newErrors.address = "Address is required.";
+    if (!formData.city.trim()) newErrors.city = "City is required.";
+
+    if (!formData.gst.trim()) newErrors.gst = "GST_NO is required.";
+if (!formData.state) newErrors.state = "State is required.";
+if (!formData.district) newErrors.district = "District is required.";
+
+    if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
+    else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+};
+
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            return;
+        }
 
         const payload = {
             first_name: formData.first_name,
@@ -298,7 +337,7 @@ export default function Vendor() {
             state_id: formData.state ? parseInt(formData.state, 10) : null,
             district_id: formData.district ? parseInt(formData.district, 10) : null,
             pincode: formData.pincode,
-            gst_no: formData.gst,
+            gst_no: formData.gst_no,
             date_of_birth: formData.dob,
         };
 
@@ -307,33 +346,33 @@ export default function Vendor() {
             : axios.post(`${API_BASE_URL}/vendors`, payload);
 
         request
-            .then(async (res) => {
-                const newVendor = res.data?.data || payload;
-
-                toast.success(isEditing ? "Vendor updated successfully!" : "Vendor added successfully!", {
-                    toastId: "vendor-saved-success",
-                    autoClose: 1500,
-                });
-
-                setTimeout(async () => {
-                    await refreshVendors(); 
-                    closeForm();            
-                }, 300); 
+            .then(() => {
+                window.location.reload();
             })
             .catch((err) => {
-                const newErrors = {};
-                const { message, errors: backendErrors } = err?.response?.data || {};
-                if (backendErrors) {
-                    for (const key in backendErrors) {
-                        newErrors[key] = Array.isArray(backendErrors[key])
-                            ? backendErrors[key][0]
-                            : backendErrors[key];
-                        toast.error(newErrors[key], { autoClose: 1500 });
+                if (err.response && err.response.data) {
+                    const { message, errors: backendErrors } = err.response.data;
+                    let newErrors = {};
+                    if (backendErrors) {
+                        Object.keys(backendErrors).forEach(field => {
+                            const fieldErrors = backendErrors[field];
+                            if (Array.isArray(fieldErrors)) {
+                                newErrors[field] = fieldErrors[0];
+                                toast.error(fieldErrors[0], { autoClose: 1000 });
+                            } else {
+                                newErrors[field] = fieldErrors;
+                                toast.error(fieldErrors, { autoClose: 1000 });
+                            }
+                        });
+                    } else if (message) {
+                        toast.error(`Failed to save vendor: ${message}`, { autoClose: 1000 });
+                    } else {
+                        toast.error("Failed to save vendor. Please try again.", { autoClose: 1000 });
                     }
+                    setErrors(newErrors);
                 } else {
-                    toast.error(message || "Failed to save vendor.", { autoClose: 1500 });
+                    toast.error("Failed to save vendor.", { autoClose: 1000 });
                 }
-                setErrors(newErrors);
             });
     };
 
@@ -360,7 +399,7 @@ export default function Vendor() {
             last_name: vendor.last_name || "",
             gender: vendor.gender || "",
             mobile: vendor.mobile || "",
-            altMobile: vendor.alter_mobile || "",
+        altMobile: vendor.alter_mobile || "", 
             email: vendor.email || "",
             company_name: vendor.company_name || "",
             address: vendor.address || "",
@@ -368,7 +407,7 @@ export default function Vendor() {
             state: vendor.state_id ? String(vendor.state_id) : "",
             district: vendor.district_id ? String(vendor.district_id) : "",
             pincode: vendor.pincode || "",
-            gst: vendor.gst_no || "",
+gst: vendor.gst_no || "",
             dob: vendor.date_of_birth || "",
         });
 
@@ -426,8 +465,8 @@ export default function Vendor() {
             fontSize: "16px",
             borderRadius: "4px",
             border: `1px solid ${state.selectProps.name && state.selectProps.errors?.[state.selectProps.name]
-                    ? "#dc3545"
-                    : "#D3DBD5"
+                ? "#dc3545"
+                : "#D3DBD5"
                 }`,
             boxShadow: "none",
             "&:hover": {
@@ -498,142 +537,296 @@ export default function Vendor() {
         return state ? state.state : '';
     };
 
-    const refreshVendors = async () => {
-        try {
-            setLoading(true);
-
-            let currentPage = 0;
-
-            if ($.fn.DataTable.isDataTable(tableRef.current)) {
-                currentPage = $(tableRef.current).DataTable().page();
-                $(tableRef.current).DataTable().destroy();
-            }
-
-            const res = await axios.get(`${API_BASE_URL}/vendors`);
-            const rows = Array.isArray(res.data.data) ? res.data.data : res.data;
-
-            setVendors(rows);
-
-            setTimeout(() => {
-                if (tableRef.current && $(tableRef.current).find('tbody tr').length > 0) {
-                    const table = $(tableRef.current).DataTable({
-                        ordering: true,
-                        paging: true,
-                        searching: true,
-                        lengthChange: true,
-                        columnDefs: [{ targets: 0, className: "text-center" }],
-                    });
-
-                    table.page(currentPage).draw(false); // ✅ Retain page
-                }
-            }, 300);
-        } catch (err) {
-            toast.error("Failed to reload vendors.", { autoClose: 1500 });
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const getDistrictNameById = (districtId) => {
         const district = districtsForTable.find(d => String(d.id) === String(districtId));
         return district ? district.district : '';
     };
 
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
+// Filter vendors based on search input
+const filtered = vendors.filter((c) =>
+  `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
+  (c.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
+  (c.email || "").toLowerCase().includes(search.toLowerCase()) ||
+  (c.gender || "").toLowerCase().includes(search.toLowerCase()) ||
+  (c.company_name || "").toLowerCase().includes(search.toLowerCase()) ||
+  (c.address || "").toLowerCase().includes(search.toLowerCase()) ||
+  (getStateNameById(c.state_id) || "").toLowerCase().includes(search.toLowerCase()) ||
+  (getDistrictNameById(c.district_id) || "").toLowerCase().includes(search.toLowerCase())
+);
+
+// Sort customers by selected field
+const sorted = [...filtered].sort((a, b) => {
+  if (!sortField) return 0;
+
+  let valA, valB;
+
+  switch (sortField) {
+    case "name":
+      valA = `${a.first_name || ""} ${a.last_name || ""}`;
+      valB = `${b.first_name || ""} ${b.last_name || ""}`;
+      break;
+    case "state":
+      valA = getStateNameById(a.state_id);
+      valB = getStateNameById(b.state_id);
+      break;
+    case "district":
+      valA = getDistrictNameById(a.district_id);
+      valB = getDistrictNameById(b.district_id);
+      break;
+    default:
+      valA = a[sortField];
+      valB = b[sortField];
+  }
+
+  valA = (valA || "").toString().toLowerCase();
+  valB = (valB || "").toString().toLowerCase();
+
+  if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+  if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+  return 0;
+});
+
+// Paginate results
+const paginated = sorted.slice((page - 1) * perPage, page * perPage);
+
     return (
-        <div className="vh-80 d-flex flex-column position-relative bg-light">
-            <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-                <h5 className="mb-0 fw-bold">Vendors ({vendors.length})</h5>
+   <div className="px-4 py-2">
+      <Breadcrumb title="Vendors" />
 
-                <div className="d-flex gap-2">
-                    <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={refreshVendors}
-                    disabled={loading}
-                    >
-                    {loading ? (
-                        <Spinner animation="border" size="sm" />
-                    ) : (
-                        <i className="bi bi-arrow-clockwise"></i>
-                    )}
-                    </Button>
-                    <Button variant="success" size="sm" onClick={openForm} style={{
-                        backgroundColor: '#2FA64F',
-                        borderColor: '#2FA64F',
-                        color: '#fff',
+  <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
+    <div className="row mb-3">
+      <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+        <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+        <Form.Select
+          size="sm"
+          style={{ width: "100px" }}
+          value={perPage}
+          onChange={(e) => {
+            setPerPage(Number(e.target.value));
+            setPage(1);
+          }}
+        >
+          {[5, 10, 25, 50].map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </Form.Select>
+      </div>
 
-                    }}>
-                        + Add New
-                    </Button>
-                </div>
-            </div>
+      <div className="col-md-6 text-md-end">
+        <div className="mt-2 d-inline-block mb-2">
+<Button
+    variant="outline-secondary"
+    size="sm"
+    className="me-2"
+    onClick={loadInitialData}
+>
+    <i className="bi bi-arrow-clockwise"></i>
+</Button>
 
-            <div className="flex-grow-1 overflow-auto px-4 py-3">
-                <div className="table-responsive">
-                    <table ref={tableRef} className="table custom-table">
-                        <thead>
-                            <tr>
-                                <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
-                                <th>Name</th>
-                                <th>Mobile</th>
-                                <th>Email</th>
-                                <th>Gender</th>
-                                <th>Company</th>
-                                <th>Address</th>
-                                <th>State</th>
-                                <th>District</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="10" className="text-center py-4">
-                                        <Spinner animation="border" />
-                                    </td>
-                                </tr>
-                            ) : vendors.length === 0 ? (
-                                <tr>
-                                    <td colSpan="10" className="text-center py-4 text-muted">
-                                        No vendors found.
-                                    </td>
-                                </tr>
-                            ) : (
-                                vendors.map((vendor, index) => (
-                                    <tr key={vendor.id}>
-                                        <td style={{ textAlign: "center" }}>{index + 1}</td>
-                                        <td>{`${vendor.first_name || ""} ${vendor.last_name || ""}`}</td>
-                                        <td>{vendor.mobile}</td>
-                                        <td>{vendor.email}</td>
-                                        <td>{vendor.gender}</td>
-                                        <td>{vendor.company_name}</td>
-                                        <td>{vendor.address}</td>
-                                        <td>{getStateNameById(vendor.state_id)}</td>
-                                        <td>{getDistrictNameById(vendor.district_id)}</td>
-                                        <td>
-                                            <Button
-                                                variant="outline-primary"
-                                                size="sm"
-                                                className="me-1"
-                                                onClick={() => handleEdit(vendor)}
-                                            >
-                                                <i className="bi bi-pencil-square me-1"></i>
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
+          <Button
+            size="sm"
+            style={{
+              backgroundColor: "#2FA64F",
+              borderColor: "#2FA64F",
+              color: "#fff",
+            }}
+            onClick={openForm}
+          >
+            + Add New
+          </Button>
+        </div>
+        <Search
+          search={search}
+          setSearch={setSearch}
+          perPage={perPage}
+          setPerPage={setPerPage}
+          setPage={setPage}
+        />
+      </div>
+    </div>
+
+  <div className="table-responsive">
+    <table className="table align-middle mb-0">
+      <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+        <tr>
+          <th
+            style={{
+              width: "70px",
+              textAlign: "center",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            S.No
+          </th>
+          <th
+            onClick={() => handleSort("name")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+          <th
+            onClick={() => handleSort("mobile")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Mobile {sortField === "mobile" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+          <th
+            onClick={() => handleSort("email")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Email {sortField === "email" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+    <th
+            onClick={() => handleSort("gender")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            gender {sortField === "gender" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+    <th
+            onClick={() => handleSort("company")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Company {sortField === "company" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+    <th
+            onClick={() => handleSort("address")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Address {sortField === "address" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+    <th
+            onClick={() => handleSort("state")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+    <th
+            onClick={() => handleSort("district")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            District {sortField === "district" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+          <th
+            style={{
+              width: "130px",
+              textAlign: "center",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Action
+          </th>
+        </tr>
+      </thead>
+<tbody>
+  {loading ? (
+    <tr>
+      <td colSpan="10" className="text-center py-4">
+        <Spinner animation="border" />
+      </td>
+    </tr>
+  ) : paginated.length === 0 ? (
+    <tr>
+      <td colSpan="10" className="text-center py-4 text-muted">
+        <img
+          src="/empty-box.png"
+          alt="No data"
+          style={{ width: 80, height: 100, opacity: 0.6 }}
+        />
+      </td>
+    </tr>
+  ) : (
+    paginated.map((vendor, i) => (
+      <tr key={vendor.id}>
+        <td className="text-center" style={{ width: "70px" }}>
+          {(page - 1) * perPage + i + 1}
+        </td>
+        <td>{`${vendor.first_name || ""} ${vendor.last_name || ""}`}</td>
+        <td>{vendor.mobile}</td>
+        <td>{vendor.email}</td>
+        <td>{vendor.gender}</td>
+        <td>{vendor.company_name}</td>
+        <td>{vendor.address}</td>
+        <td>{getStateNameById(vendor.state_id)}</td>
+        <td>{getDistrictNameById(vendor.district_id)}</td>
+        <td style={{ textAlign: "center" }}>
+          <Button
+            variant=""
+            size="sm"
+            className="me-1"
+            onClick={() => handleEdit(vendor)}
+            style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+          >
+            <i className="bi bi-pencil-square"></i>
+          </Button>
+
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
+    </table>
+  </div>
+
+  <Pagination
+    page={page}
+    setPage={setPage}
+    perPage={perPage}
+    totalEntries={filtered.length}
+  />
+</Card>
 
             <div
                 className={`position-fixed bg-white shadow-lg px-3 pt-2 pb-2 vendor-form-slide`}
                 style={{
                     width: "600px",
                     height: "calc(100vh - 58px)",
-                    top: "58px",
+                    top: "61px",
                     right: showForm ? "0" : "-800px",
                     transition: "right 0.4s ease-in-out",
                     overflowY: "auto",
@@ -736,6 +929,7 @@ export default function Vendor() {
                                 name="gender"
                                 value={genderOptions.find(option => option.value === formData.gender) || null}
                                 onChange={(selectedOption) => handleChange(selectedOption, "gender")}
+                                onBlur={() => handleSelectBlur("gender")}
                                 options={genderOptions}
                                 placeholder="Select Gender"
                                 isClearable={true}
@@ -746,16 +940,10 @@ export default function Vendor() {
                             />
                             {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
                         </div>
-                        {/* Date of Birth */}
                         <div className="col-6 mb-2">
                             <Form.Label
                                 className="mb-1"
-                                style={{
-                                    color: "#393C3AE5",
-                                    width: "325px",
-                                    fontFamily: "Product Sans, sans-serif",
-                                    fontWeight: 400,
-                                }}
+                                style={labelStyle}
                             >
                                 Date of Birth
                             </Form.Label>
@@ -771,29 +959,26 @@ export default function Vendor() {
                                             : ""
                                     }
                                     placeholder="Select Date of Birth"
-                                    onClick={() => setShowCalendar((prev) => !prev)} // Toggle calendar
-                                    style={{ cursor: "pointer" }}
+                                    onClick={() => setShowCalendar((prev) => !prev)}
+                                    style={{ cursor: "pointer", ...getInputStyle("dob") }}
                                 />
 
-                                {/* Calendar icon */}
                                 <img
                                     src="/Calendar.png"
                                     alt="calendar icon"
                                     style={{
                                         position: "absolute",
-                                        right: "10px",
+                                        right: "20px",
                                         top: "50%",
                                         transform: "translateY(-50%)",
-                                        width: "18px",
-                                        height: "18px",
+                                        width: "30px",
+                                        height: "30px",
                                         pointerEvents: "none",
                                     }}
                                 />
 
-                                {/* Error */}
                                 {errors.dob && <div style={errorStyle}>{errors.dob}</div>}
 
-                                {/* Calendar dropdown */}
                                 {showCalendar && (
                                     <div
                                         style={{
@@ -811,31 +996,28 @@ export default function Vendor() {
                                             selectedDate={formData.dob ? new Date(formData.dob) : null}
                                             onDateChange={(date) => {
                                                 if (!date) return;
+                                                const today = new Date();
+                                                if (date > today) {
+                                                    toast.error("Date of Birth cannot be in the future.", { autoClose: 1500 });
+                                                    return;
+                                                }
 
-                                                const normalizedDate = new Date(
-                                                    date.getFullYear(),
-                                                    date.getMonth(),
-                                                    date.getDate()
-                                                );
-
-                                                const localDateStr =
-                                                    normalizedDate.getFullYear() +
-                                                    "-" +
-                                                    String(normalizedDate.getMonth() + 1).padStart(2, "0") +
-                                                    "-" +
-                                                    String(normalizedDate.getDate()).padStart(2, "0");
+                                                // Fix timezone issue
+                                                const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                                                const localDateStr = localDate.toISOString().split("T")[0];
 
                                                 setFormData((prev) => ({
                                                     ...prev,
                                                     dob: localDateStr,
                                                 }));
-
                                                 setErrors((prev) => ({ ...prev, dob: "" }));
                                                 setShowCalendar(false);
                                             }}
                                             onCancel={() => setShowCalendar(false)}
                                             allowFuture={false}
+                                            maxDate={new Date()}
                                         />
+
                                     </div>
                                 )}
                             </div>
@@ -847,7 +1029,6 @@ export default function Vendor() {
                                 name="mobile"
                                 value={formData.mobile}
                                 onChange={handleChange}
-                                onBlur={handleMobileBlur}
                                 placeholder="Enter Mobile No."
                                 size="sm"
                                 isInvalid={!!errors.mobile}
@@ -864,7 +1045,6 @@ export default function Vendor() {
                                 name="altMobile"
                                 value={formData.altMobile}
                                 onChange={handleChange}
-                                onBlur={handleMobileBlur}
                                 placeholder="Enter Alternative Mobile No."
                                 size="sm"
                                 isInvalid={!!errors.altMobile}
@@ -881,7 +1061,7 @@ export default function Vendor() {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                onBlur={handleEmailBlur}
+                                onBlur={handleBlur}
                                 placeholder="Enter Email"
                                 size="sm"
                                 isInvalid={!!errors.email}
@@ -980,6 +1160,7 @@ export default function Vendor() {
                                 name="state"
                                 value={stateOptions.find(option => option.value === formData.state) || null}
                                 onChange={(selectedOption) => handleChange(selectedOption, "state")}
+                                onBlur={() => handleSelectBlur("state")}
                                 options={stateOptions}
                                 placeholder="Select State"
                                 isClearable={true}
@@ -1014,7 +1195,6 @@ export default function Vendor() {
                                 name="pincode"
                                 value={formData.pincode}
                                 onChange={handleChange}
-                                onBlur={handleBlur}
                                 placeholder="Enter Pincode"
                                 size="sm"
                                 isInvalid={!!errors.pincode}
