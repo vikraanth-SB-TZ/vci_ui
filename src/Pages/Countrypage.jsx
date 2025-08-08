@@ -31,14 +31,26 @@ export default function CountryPage() {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/countries`);
-      setCountries(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      toast.error("Failed to fetch countries!");
+      if (Array.isArray(res.data)) {
+        setCountries(res.data);
+      } else {
+        
+        setCountries([]);
+      }
+    } catch (error) {
+      const isServerError =
+        error.response?.status >= 500 || !error.response;
+  
+      if (isServerError) {
+        toast.error("Failed to fetch countries!");
+      }
+  
+      setCountries([]);
     } finally {
       setLoading(false);
     }
   };
-
+  
   const handleAddNewClick = () => {
     setEditingCountryId(null);
     setCountryName("");
@@ -89,27 +101,28 @@ export default function CountryPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    const result = await MySwal.fire({
+ const handleDelete = async (id) => {
+  try {
+    const confirmed = await Swal.fire({
       title: "Are you sure?",
-      text: "Do you really want to delete this country?",
+      text: "This will delete the country.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
       confirmButtonText: "Yes, delete it!",
     });
 
-    if (!result.isConfirmed) return;
-
-    try {
+    if (confirmed.isConfirmed) {
       await axios.delete(`${API_BASE_URL}/countries/${id}`);
-      toast.success("Country deleted!");
-      await fetchCountries();
-    } catch {
-      toast.error("Failed to delete country!");
+      toast.success("Country deleted successfully");
+      await fetchCountries(); // ✅ this is now clean
     }
-  };
+  } catch (error) {
+    toast.error("Failed to delete country");
+  }
+};
+
 
   const handleSort = (field) => {
     if (sortField === field) {
