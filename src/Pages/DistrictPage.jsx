@@ -57,7 +57,7 @@ export default function DistrictPage() {
     } catch (error) {
       console.error("Error fetching states:", error);
   
-      // Show error ONLY if the modal is open (editing or adding), not during prefill
+      
       if (showModal) {
         toast.error("Failed to fetch states!");
       }
@@ -357,7 +357,7 @@ export default function DistrictPage() {
       <i className="bi bi-pencil-square"></i>
     </Button>
     <Button
-      variant="outline-primary"
+      variant=""
       size="sm"
       onClick={() => handleDelete(d.id)}
       style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
