@@ -22,9 +22,9 @@ export default function PurchaseSparepartsPage() {
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const MySwal = withReactContent(Swal);
-    const [sortField, setSortField] = useState("invoice_date");
+    const [sortField, setSortField] = useState("asc");
     const [sortDirection, setSortDirection] = useState("desc");
-
+    
 
     const [sparePartsRows, setSparePartsRows] = useState([{
         sparepart_id: "",
@@ -1006,129 +1006,185 @@ export default function PurchaseSparepartsPage() {
                             ></Form.Control>
                         </div>
                         <div className="mb-3">
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                                <h6 className="fw-semibold mb-0">
-                                    Add Spare parts <span className="text-danger">*</span>
-                                </h6>
-                                <button
-                                    type="button"
-                                    onClick={handleAddRow}
-                                    className="add-row-btn"
-                                    disabled={sparePartsRows.length >= availableSpareparts.length}
-                                    style={{
-                                        opacity: sparePartsRows.length >= availableSpareparts.length ? 0.6 : 1,
-                                        cursor: sparePartsRows.length >= availableSpareparts.length ? "not-allowed" : "pointer",
-                                    }}
-                                >
-                                    + Add Row
-                                </button>
-                            </div>
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                            <h6 className="fw-semibold mb-0">
+                            Add Spare parts <span className="text-danger">*</span>
+                            </h6>
+                        <button
+                            type="button"
+                            onClick={handleAddRow}
+                            className="add-row-btn"
+                            disabled={sparePartsRows.length >= availableSpareparts.length}
+                            style={{
+                            border: "1px solid #C7E6D1",
+                            backgroundColor: "#F1FCF6",
+                            color: "#1F9254",
+                            padding: "6px 12px",
+                            fontSize: "14px",
+                            borderRadius: "6px",
+                            opacity: sparePartsRows.length >= availableSpareparts.length ? 0.6 : 1,
+                            cursor:
+                                    sparePartsRows.length >= availableSpareparts.length
+                                        ? "not-allowed"
+                                        : "pointer",
+                            outline: "none",
+                            boxShadow: "none",
+                            }}
+                        >
+                            + Add Row
+                        </button>
+                        </div>
 
-                            <div
+                        <div
+                            style={{
+                            border: "1px solid #D3DBD5",
+                            borderRadius: "6px",
+                            overflow: "hidden",
+                            backgroundColor: "#fff",
+                            }}
+                        >
+                            <table
+                            className="table mb-0"
+                            style={{
+                                tableLayout: "fixed",
+                                marginBottom: 0,
+                            }}
+                            >
+                            <thead
                                 style={{
-                                    border: "1px solid #D3DBD5",
-                                    borderRadius: "6px",
-                                    overflow: "hidden",
+                                backgroundColor: "#F8F9FA",
                                 }}
                             >
-                                <div
-                                    style={{
-                                        maxHeight: "200px",
-                                        overflowY: "auto",
-                                    }}
-                                >
-                                    <table
-                                        className="custom-table"
-                                        style={{ width: "100%", tableLayout: "fixed" }}
+                                <tr>
+                                <th style={{
+                                    textAlign: "left",
+                                    padding: "12px",
+                                    backgroundColor: "#F3F4F6",
+                                    borderBottom: "1px solid #D3DBD5",
+                                    fontWeight: 600,
+                                    fontSize: "15px",
+                                }}>
+                                    Sparepart Name
+                                </th>
+                                <th style={{
+                                    textAlign: "left",
+                                    padding: "12px",
+                                    backgroundColor: "#F3F4F6",
+                                    borderBottom: "1px solid #D3DBD5",
+                                    fontWeight: 600,
+                                    fontSize: "15px",
+                                }}>
+                                    Quantity
+                                </th>
+                                <th style={{
+                                    width: "40px",
+                                    padding: "12px",
+                                    backgroundColor: "#F3F4F6",
+                                    borderBottom: "1px solid #D3DBD5",
+                                }}></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {sparePartsRows.length > 0 ? (
+                                sparePartsRows.map((row, index) => (
+                                    <tr key={index}>
+                                    <td>
+                                    <Form.Select
+                                        className="shadow-none"
+                                        name={`sparepart-${index}`}
+                                        required
+                                        value={row.sparepart_id}
+                                        onChange={(e) => handleRowChange(index, "sparepart_id", e.target.value)}
+                                        isInvalid={!!formErrors[`sparepart-${index}`]}
+                                        style={{
+                                        fontSize: "14px",
+                                        border: "none",
+                                        outline: "none",
+                                        boxShadow: "none",
+                                        backgroundColor: "transparent",
+                                        height: "38px",
+                                        }}
                                     >
-                                        <thead>
-                                            <tr>
-                                                <th>Sparepart Name</th>
-                                                <th>Quantity</th>
-                                                <th style={{ width: "40px" }}></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {sparePartsRows.length > 0 ? (
-                                                sparePartsRows.map((row, index) => (
-                                                    <tr key={index}>
-                                                        <td>
-                                                            <Form.Select
-                                                                className="shadow-none"
-                                                                name={`sparepart-${index}`}
-                                                                required
-                                                                value={row.sparepart_id}
-                                                                onChange={(e) =>
-                                                                    handleRowChange(index, "sparepart_id", e.target.value)
-                                                                }
-                                                                isInvalid={!!formErrors[`sparepart-${index}`]}
-                                                            >
-                                                                <option value="">Select Spare part</option>
-                                                                {availableSpareparts
-                                                                    .filter(
-                                                                        (sparepart) =>
-                                                                            row.sparepart_id === String(sparepart.id) || // allow current selection
-                                                                            !sparePartsRows.some(
-                                                                                (r, i) => i !== index && String(r.sparepart_id) === String(sparepart.id)
-                                                                            ) // exclude if selected in other rows
-                                                                    )
-                                                                    .map((sparepart) => (
-                                                                        <option key={sparepart.id} value={sparepart.id}>
-                                                                            {sparepart.name}
-                                                                        </option>
-                                                                    ))}
-                                                            </Form.Select>
-                                                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                                                                {formErrors[`sparepart-${index}`]}
-                                                            </Form.Control.Feedback>
-                                                        </td>
-                                                        <td>
-                                                            <Form.Control
-                                                                type="number"
-                                                                name={`quantity-${index}`}
-                                                                placeholder="Enter Quantity"
-                                                                required
-                                                                min="1"
-                                                                value={row.quantity}
-                                                                onChange={(e) =>
-                                                                    handleRowChange(index, "quantity", e.target.value)
-                                                                }
-                                                                isInvalid={!!formErrors[`quantity-${index}`]}
-                                                            />
-                                                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                                                                {formErrors[`quantity-${index}`]}
-                                                            </Form.Control.Feedback>
-                                                        </td>
-                                                        <td className="text-center align-middle">
-                                                            <Button
-                                                                variant="link"
-                                                                size="sm"
-                                                                onClick={() => handleRemoveRow(index)}
-                                                                className="remove-btn p-0"
-                                                                style={{ backgroundColor: "#FFEBEBC9" }}
-                                                            >
-                                                                <BsDashLg style={{ color: "red", fontSize: "1.2rem" }} />
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="2" className="text-center text-muted py-3">
-                                                        No spare parts added yet.
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                                        <option value="">Select Spare part</option>
+                                        {availableSpareparts
+                                        .filter(
+                                            (sparepart) =>
+                                            row.sparepart_id === String(sparepart.id) ||
+                                            !sparePartsRows.some(
+                                                (r, i) =>
+                                                i !== index &&
+                                                String(r.sparepart_id) === String(sparepart.id)
+                                            )
+                                        )
+                                        .map((sparepart) => (
+                                            <option key={sparepart.id} value={sparepart.id}>
+                                            {sparepart.name}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                    <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                                        {formErrors[`sparepart-${index}`]}
+                                    </Form.Control.Feedback>
+                                    </td>
+                                    <td>
+                                    <Form.Control
+                                        type="number"
+                                        name={`quantity-${index}`}
+                                        placeholder="Enter Quantity"
+                                        required
+                                        min="1"
+                                        value={row.quantity}
+                                        onChange={(e) =>
+                                        handleRowChange(index, "quantity", e.target.value)
+                                        }
+                                        isInvalid={!!formErrors[`quantity-${index}`]}
+                                        style={{
+                                        fontSize: "14px",
+                                        border: "none",
+                                        outline: "none",
+                                        boxShadow: "none",
+                                        backgroundColor: "transparent",
+                                        height: "38px",
+                                        }}
+                                    />
+                                    <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                                        {formErrors[`quantity-${index}`]}
+                                    </Form.Control.Feedback>
+                                    </td>
+                                    <td className="text-center align-middle">
+                                        <Button
+                                        variant="light"
+                                        size="sm"
+                                        onClick={() => handleRemoveRow(index)}
+                                        className="p-1"
+                                        style={{
+                                            backgroundColor: "#FFEDED",
+                                            borderRadius: "50%",
+                                            width: "30px",
+                                            height: "30px",
+                                            padding: 0,
+                                            lineHeight: 1,
+                                        }}
+                                        >
+                                        <BsDashLg style={{ color: "red", fontSize: "1.2rem" }} />
+                                        </Button>
+                                    </td>
+                                    </tr>
+                                ))
+                                ) : (
+                                <tr>
+                                    <td colSpan="3" className="text-center text-muted py-3">
+                                    No spare parts added yet.
+                                    </td>
+                                </tr>
+                                )}
+                            </tbody>
+                            </table>
+                        </div>
 
-                            {!!formErrors.items && (
-                                <div className="invalid-feedback d-block mt-1">
-                                    {formErrors.items}
-                                </div>
-                            )}
+                        {!!formErrors.items && (
+                            <div className="invalid-feedback d-block mt-1">{formErrors.items}</div>
+                        )}
                         </div>
                         <div className="d-flex justify-content-end mt-4">
                             <Button

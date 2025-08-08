@@ -192,60 +192,66 @@ export default function EditSalePage() {
   }, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
 
 
-  useEffect(() => {
-    const qty = formData.quantity === '' ? '' : parseInt(formData.quantity, 10);
-    const current = formData.serial_numbers;
-    const availableCount = availableSerials.filter(
-      sn => !current.some(c => c.serial_no === sn.serial_no)
-    ).length;
-    const totalAvailable = current.length + availableCount;
+ useEffect(() => {
+  const qty = formData.quantity === '' ? '' : parseInt(formData.quantity, 10);
+  const current = formData.serial_numbers;
 
-    if (typeof qty === 'number' && !isNaN(qty)) {
-      if (qty > totalAvailable) {
-        setTimeout(() => {
-          setQuantityError(`Only ${totalAvailable} serials are available, but you requested ${qty}.`);
-        }, 100);
-        const needed = totalAvailable - current.length;
-        const toAdd = availableSerials
+  // Filter availableSerials based on from_serial
+  let filteredSerials = availableSerials;
+  if (formData.from_serial && formData.from_serial.trim() !== '') {
+    filteredSerials = availableSerials.filter(sn => sn.serial_no >= formData.from_serial);
+  }
+
+  const availableCount = filteredSerials.filter(
+    sn => !current.some(c => c.serial_no === sn.serial_no)
+  ).length;
+  const totalAvailable = current.length + availableCount;
+
+  if (typeof qty === 'number' && !isNaN(qty)) {
+    if (qty > totalAvailable) {
+      setTimeout(() => {
+        setQuantityError(`Only ${totalAvailable} serials are available starting from ${formData.from_serial || 'first'}, but you requested ${qty}.`);
+      }, 100);
+
+      const needed = totalAvailable - current.length;
+      const toAdd = filteredSerials
+        .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
+        .slice(0, needed);
+
+      setFormData(prev => ({
+        ...prev,
+        serial_numbers: [...current, ...toAdd],
+      }));
+    } else {
+      setQuantityError('');
+
+      if (current.length > qty) {
+        const trimmed = current.slice(0, qty);
+        setFormData(prev => ({
+          ...prev,
+          serial_numbers: trimmed,
+          quantity: trimmed.length
+        }));
+      } else if (current.length < qty) {
+        const needed = qty - current.length;
+        const toAdd = filteredSerials
           .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
           .slice(0, needed);
 
-        const newSerials = [...current, ...toAdd];
-
-        setFormData(prev => ({
-          ...prev,
-          serial_numbers: newSerials,
-          quantity: newSerials.length
-        }));
-      } else {
-        setQuantityError('');
-
-        if (current.length > qty) {
-          const trimmed = current.slice(0, qty);
+        if (toAdd.length > 0) {
           setFormData(prev => ({
             ...prev,
-            serial_numbers: trimmed,
-            quantity: trimmed.length
+            serial_numbers: [...current, ...toAdd],
+            quantity: current.length + toAdd.length
           }));
-        } else if (current.length < qty) {
-          const needed = qty - current.length;
-          const toAdd = availableSerials
-            .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
-            .slice(0, needed);
-
-          if (toAdd.length > 0) {
-            setFormData(prev => ({
-              ...prev,
-              serial_numbers: [...current, ...toAdd],
-              quantity: current.length + toAdd.length
-            }));
-          }
         }
       }
-    } else {
-      setQuantityError('');
     }
-  }, [formData.quantity, availableSerials]);
+  } else {
+    setQuantityError('');
+  }
+}, [formData.quantity, formData.from_serial, availableSerials]);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -275,8 +281,21 @@ export default function EditSalePage() {
       })
       .catch(err => {
         console.error('Error updating sale:', err);
-        toast.error('Failed to update sale.');
-      });
+         toast.error('Failed to update sale.');
+
+        
+  // if (err.response && err.response.status === 422) {
+  //   const { message, invalid_serials } = err.response.data;
+
+  //   if (invalid_serials && invalid_serials.length > 0) {
+  //     toast.error(`${message} (${invalid_serials.join(', ')})`, { autoClose: 5000 });
+  //   } else {
+  //     toast.error(message || 'Validation error occurred.', { autoClose: 5000 });
+  //   }
+  // } else {
+  //   toast.error('Failed to update sale.', { autoClose: 5000 });
+  // }
+       });
   };
 
   const customerOptions = customers.map(c => ({

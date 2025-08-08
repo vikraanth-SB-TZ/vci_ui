@@ -11,6 +11,8 @@ export default function SaleReturnDetails() {
   const [formData, setFormData] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+const [submitting, setSubmitting] = useState(false);
+
   const [returnReason, setReturnReason] = useState(''); // New state for return reason
 
   useEffect(() => {
@@ -54,37 +56,37 @@ export default function SaleReturnDetails() {
       });
   }, [id]);
 
-  const handleSave = (e) => {
-    e.preventDefault();
+const handleSave = (e) => {
+  e.preventDefault();
 
-    const selectedProducts = products.filter(p => p.selected);
+  if (submitting) return; // Prevent multiple submits
 
-    // // Basic validation to ensure at least one product is selected
-    // if (selectedProducts.length === 0) {
-    //   toast.error('Please select at least one product to return.');
-    //   return;
-    // }
+  setSubmitting(true);
 
-    const payload = {
-      reason: returnReason,
-      products: selectedProducts.map(p => ({
-        sale_item_id: p.sale_item_id,
-        product_id: p.product_id,
-        remark: p.remark || '',
-      }))
-    };
+  const selectedProducts = products.filter(p => p.selected);
 
-    axios.put(`http://localhost:8000/api/update/${id}`, payload)
-      .then(() => {
-        toast.success('Return updated successfully!', { autoClose: 3000 });
-        setTimeout(() => navigate('/salesReturn'), 1500); // Add a small delay for the toast to be seen
-      })
-      .catch(err => {
-        const msg = err.response?.data?.error || 'Update failed';
-        toast.error(msg, { autoClose: 3000 });
-        console.error(err);
-      });
-  };
+  const payload = {
+    reason: returnReason,
+    products: selectedProducts.map(p => ({
+      sale_item_id: p.sale_item_id,
+      product_id: p.product_id,
+      remark: p.remark || '',
+    }))
+  };
+
+  axios.put(`http://localhost:8000/api/update/${id}`, payload)
+    .then(() => {
+      toast.success('Return updated successfully!', { autoClose: 3000 });
+      setTimeout(() => navigate('/salesReturn'), 1500);
+    })
+    .catch(err => {
+      const msg = err.response?.data?.error || 'Update failed';
+      toast.error(msg, { autoClose: 3000 });
+      console.error(err);
+      setSubmitting(false); // Allow retry if error
+    });
+};
+
 
 
   if (loading) {
@@ -217,9 +219,10 @@ export default function SaleReturnDetails() {
         {/* Final Actions */}
         <Row className="mt-4">
           <Col className="text-end">
-            <Button type="submit" variant="success" className="me-2">
-              Update
-            </Button>
+           <Button type="submit" variant="success" className="me-2" disabled={submitting}>
+  {submitting ? 'Updating...' : 'Update'}
+</Button>
+
             <Button variant="secondary" onClick={() => navigate(-1)}>
               Cancel
             </Button>

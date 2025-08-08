@@ -106,16 +106,47 @@ export default function AddPurchasePage() {
   //   setParsedSerials(serials);
   // };
 
-  const handleSerialChange = (e) => {
-  const value = e.target.value;
-  setFormData({ ...formData, serial_numbers: value });
 
+
+
+//   const handleSerialChange = (e) => {
+//   const value = e.target.value;
+//   setFormData({ ...formData, serial_numbers: value });
+
+//   const serials = value.split('\n').map(s => s.trim()).filter(s => s);
+//   setParsedSerials(serials);
+
+//   // Clear error if user starts typing
+//   setFormErrors(prev => ({ ...prev, serial_numbers: null }));
+// };
+
+
+const handleSerialChange = (e) => {
+  const value = e.target.value;
   const serials = value.split('\n').map(s => s.trim()).filter(s => s);
   setParsedSerials(serials);
+  setFormData({ ...formData, serial_numbers: value });
 
-  // Clear error if user starts typing
-  setFormErrors(prev => ({ ...prev, serial_numbers: null }));
+  const serialCount = {};
+  const duplicates = [];
+
+  serials.forEach(serial => {
+    serialCount[serial] = (serialCount[serial] || 0) + 1;
+    if (serialCount[serial] === 2) {
+      duplicates.push(serial);
+    }
+  });
+
+  if (duplicates.length > 0) {
+    setFormErrors(prev => ({
+      ...prev,
+      serial_numbers: `Duplicate serials found: ${duplicates.join(', ')}`
+    }));
+  } else {
+    setFormErrors(prev => ({ ...prev, serial_numbers: null }));
+  }
 };
+
 
 
   const handleSubmit = async (e) => {
@@ -142,10 +173,10 @@ if (parsedSerials.length === 0) errors.serial_numbers = 'At least one serial num
 
   setFormErrors(errors);
 
-   if (Object.keys(errors).length > 0) {
-    toast.error('Please fill all required fields.');
-    return;
-  }
+  //  if (Object.keys(errors).length > 0) {
+  //   toast.error('Please fill all required fields.');
+  //   return;
+  // }
 
 
   const hasDuplicates = parsedSerials.some((item, idx) => parsedSerials.indexOf(item) !== idx);
@@ -172,7 +203,24 @@ if (duplicateSerials.length > 0) {
   return;
 }
 
-  setFormErrors({});
+  try {
+   
+    const res = await axios.post('http://localhost:8000/api/check-serials', {
+      serials: parsedSerials
+    });
+
+    if (res.data.duplicates && res.data.duplicates.length > 0) {
+      toast.error(`Serials already exist: ${res.data.duplicates.join(', ')}`);
+      return;
+    }
+  } catch (error) {
+    console.error('Failed to validate serials:', error);
+    // toast.error('Failed to validate serial numbers with server');
+    return;
+  }
+
+    setFormErrors({});
+
 //
   const payload = {
   vendor_id: formData.vendor_id,

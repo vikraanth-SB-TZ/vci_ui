@@ -61,6 +61,13 @@ export default function EditPurchasePage() {
     setPurchase({ ...purchase, [name]: value });
   };
 
+  const handleChange = (e) => {
+  setPurchase(prev => ({
+    ...prev,
+    [e.target.name]: e.target.value
+  }));
+};
+
 
   const handleDeleteSerial = (indexToRemove) => {
     const updated = serials.filter((_, index) => index !== indexToRemove);
@@ -69,41 +76,54 @@ export default function EditPurchasePage() {
   };
 
   const handleAddNewSerials = () => {
-    const input = newSerialsInput.trim();
-    if (!input) return;
+  const input = newSerialsInput.trim();
+  if (!input) return;
 
+  const rawEntries = input
+    .split(/[\n,]/)
+    .map(sn => sn.trim())
+    .filter(sn => sn !== '');
 
+  // Check for duplicates within the input itself
+  const inputDuplicates = rawEntries.filter((item, index) => rawEntries.indexOf(item) !== index);
+  if (inputDuplicates.length > 0) {
+    toast.error(`Duplicate serials in input: ${[...new Set(inputDuplicates)].join(', ')}`);
+    return;
+  }
 
-    const newEntries = input
-      .split(/[\n,]/)
-      .map(sn => sn.trim())
-      .filter(sn => sn !== '' && !serials.some(s => s.serial_no === sn))
-      .map(sn => ({ serial_no: sn, remark: '', quality_check: '' }));
+  // Check against existing serials in state
+  const newEntries = rawEntries
+    .filter(sn => !serials.some(s => s.serial_no === sn))
+    .map(sn => ({ serial_no: sn, remark: '', quality_check: '' }));
 
-    if (newEntries.length === 0) {
-      toast.warning('No valid or unique serials entered.');
-      return;
-    }
+  if (newEntries.length === 0) {
+    toast.warning('No valid or unique serials entered.');
+    return;
+  }
 
-    setSerials([...serials, ...newEntries]);
-    setNewSerialsInput('');
-    toast.success(`${newEntries.length} serial(s) added.`);
-  };
+  setSerials([...serials, ...newEntries]);
+  setNewSerialsInput('');
+  toast.success(`${newEntries.length} serial(s) added.`);
+};
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const payload = {
-      invoice_date: purchase.invoice_date,
-      vendor_id: purchase.vendor_id,
-      batch_id: purchase.batch_id,
-      category_id: purchase.category_id,
-      remark_quality: serials.map(item => ({
-        serial_no: item.serial_no,
-        remark: item.remark,
-        quality_check: item.quality_check
-      }))
-    };
+
+const payload = {
+  invoice_no: purchase.invoice_no, // ✅ Add this line
+  invoice_date: purchase.invoice_date,
+  vendor_id: purchase.vendor_id,
+  batch_id: purchase.batch_id,
+  category_id: purchase.category_id,
+  remark_quality: serials.map(item => ({
+    serial_no: item.serial_no,
+    remark: item.remark,
+    quality_check: item.quality_check
+  }))
+};
+
 
     axios.put(`${API_BASE_URL}/purchase/${id}`, payload)
       .then(res => {
@@ -159,7 +179,14 @@ export default function EditPurchasePage() {
           <Col md={6}>
             <Form.Group>
               <Form.Label className="text-muted mb-1">Invoice No</Form.Label>
-              <Form.Control size="sm" value={purchase.invoice_no} disabled />
+            <Form.Control
+  size="sm"
+  name="invoice_no"  // ✅ This is the fix
+  value={purchase.invoice_no}
+  onChange={handleChange}
+/>
+
+
             </Form.Group>
           </Col>
         </Row>

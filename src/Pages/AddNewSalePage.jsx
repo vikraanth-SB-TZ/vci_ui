@@ -154,7 +154,7 @@ export default function AddNewSalePage() {
           setFormData(prev => ({
             ...prev,
             serial_numbers: serials,
-            quantity: serials.length  // auto-correct quantity
+            // quantity: serials.length  // auto-correct quantity
           }));
 
           if (serials.length === 0) {
@@ -224,12 +224,20 @@ export default function AddNewSalePage() {
           if (res.errors) {
             setErrors(res.errors);
           }
+          // else if (res.message) {
+          //   setErrors(prev => ({
+          //     ...prev,
+          //     quantity: `Only ${res.available} items available, but ${res.required} requested.`,
+          //   }));
+          // }
+
           else if (res.message) {
-            setErrors(prev => ({
-              ...prev,
-              quantity: `Only ${res.available} items available, but ${res.required} requested.`,
-            }));
-          }
+  setErrors(prev => ({
+    ...prev,
+    quantity: res.message
+  }));
+}
+
         } else {
           console.error("Other error:", err);
         }
