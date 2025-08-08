@@ -62,8 +62,11 @@ export default function BatchPage() {
       toast.warning("Batch name is required!");
       return;
     }
-
-    const duplicate = batches.some(
+  
+    const payload = { batch: batchName.trim() };
+    let updatedList = [...batches];
+  
+    const duplicate = updatedList.some(
       (b) =>
         b.batch.toLowerCase() === batchName.trim().toLowerCase() &&
         b.id !== editingBatchId
@@ -72,23 +75,50 @@ export default function BatchPage() {
       toast.error("Batch already exists!");
       return;
     }
-
-    const payload = { batch: batchName.trim() };
-
+  
     try {
       if (editingBatchId) {
         await axios.put(`${API_BASE_URL}/batches/${editingBatchId}`, payload);
         toast.success("Batch updated successfully!");
+  
+      
+        updatedList = updatedList.map((b) =>
+          b.id === editingBatchId ? { ...b, ...payload } : b
+        );
       } else {
-        await axios.post(`${API_BASE_URL}/batches`, payload);
+        const response = await axios.post(`${API_BASE_URL}/batches`, payload);
         toast.success("Batch added successfully!");
+  
+        
+        updatedList.push(response.data);
       }
-      await fetchBatches();
+  
+      
+      if (!editingBatchId && sortField) {
+        updatedList.sort((a, b) => {
+          const valA = a[sortField];
+          const valB = b[sortField];
+          if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+          if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+          return 0;
+        });
+  
+        
+        const newIndex = updatedList.findIndex((b) => b.batch === batchName.trim());
+        if (newIndex !== -1) {
+          const newPage = Math.floor(newIndex / perPage) + 1;
+          setPage(newPage);
+        }
+      }
+  
+      setBatches(updatedList);
       handleModalClose();
     } catch {
       toast.error("Failed to save batch!");
     }
   };
+  
+  
 
   const handleDelete = async (id) => {
     const result = await MySwal.fire({

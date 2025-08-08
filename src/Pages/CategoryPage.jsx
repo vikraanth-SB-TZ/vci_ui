@@ -22,7 +22,7 @@ export default function CategoryPage() {
   const [perPage, setPerPage] = useState(10);
 
   const MySwal = withReactContent(Swal);
-const [hasSorted, setHasSorted] = useState(false);
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -62,7 +62,7 @@ const [hasSorted, setHasSorted] = useState(false);
       toast.warning("Category name is required!");
       return;
     }
-
+  
     const duplicate = categories.some(
       (c) =>
         c.category.toLowerCase() === categoryName.trim().toLowerCase() &&
@@ -72,23 +72,49 @@ const [hasSorted, setHasSorted] = useState(false);
       toast.error("Category already exists!");
       return;
     }
-
+  
     const payload = { category: categoryName.trim() };
-
+    let updatedId = editingCategoryId;
+  
     try {
       if (editingCategoryId) {
         await axios.put(`${API_BASE_URL}/categories/${editingCategoryId}`, payload);
         toast.success("Category updated successfully!");
       } else {
-        await axios.post(`${API_BASE_URL}/categories`, payload);
+        const res = await axios.post(`${API_BASE_URL}/categories`, payload);
         toast.success("Category added successfully!");
+        updatedId = res.data.id;
       }
-      await fetchCategories();
+  
+     
+      const res = await axios.get(`${API_BASE_URL}/categories`);
+      let updatedList = Array.isArray(res.data) ? res.data : [];
+  
+     
+      if (sortField) {
+        updatedList.sort((a, b) => {
+          const valA = a[sortField]?.toLowerCase?.() || "";
+          const valB = b[sortField]?.toLowerCase?.() || "";
+          if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+          if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+          return 0;
+        });
+      }
+  
+      
+      const index = updatedList.findIndex((c) => c.id === updatedId);
+      if (index !== -1) {
+        const newPage = Math.floor(index / perPage) + 1;
+        setPage(newPage);
+      }
+  
+      setCategories(updatedList);
       handleModalClose();
     } catch {
       toast.error("Failed to save category!");
     }
   };
+  
 
   const handleDelete = async (id) => {
     const result = await MySwal.fire({
@@ -116,7 +142,6 @@ const [hasSorted, setHasSorted] = useState(false);
     const direction = sortField === field && sortDirection === "asc" ? "desc" : "asc";
     setSortField(field);
     setSortDirection(direction);
-    setHasSorted(true);
   };
 
   const filteredCategories = categories.filter((c) =>
@@ -205,22 +230,18 @@ const [hasSorted, setHasSorted] = useState(false);
                   S.No
                 </th>
 
-              <th
-  onClick={() => handleSort("category")}
-  style={{
-    width: "200px",
-    backgroundColor: "#2E3A59",
-    color: "white",
-    cursor: "pointer",
-    whiteSpace: "nowrap"
-  }}
->
-  VCI Category{" "}
-  {sortField === "category" && hasSorted && (
-    <span>{sortDirection === "asc" ? "▲" : "▼"}</span>
-  )}
-</th>
-
+                <th
+                  onClick={() => handleSort("category")}
+                  style={{
+                    width: "200px", // Increased for longer category names
+                    backgroundColor: "#2E3A59",
+                    color: "white",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  VCI Category {sortField === "category" && (sortDirection === "asc" ? "▲" : "▼")}
+                </th>
 
                 <th
                   style={{
