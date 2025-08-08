@@ -151,13 +151,7 @@ useEffect(() => {
                     return;
                 }
                 
-  if (name === "altMobile") {
-    if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
-        setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
-    } else {
-        setErrors(prev => ({ ...prev, altMobile: "" }));
-    }
-}
+
 
                 setFormData(prev => ({ ...prev, [name]: value }));
 
@@ -165,6 +159,16 @@ useEffect(() => {
                     setErrors(prev => ({ ...prev, [name]: "" }));
                 }
                 return;
+            }
+            if (name === "altMobile") {
+                if (!/^\d*$/.test(value)) {
+                    return;  
+                }
+                if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
+                    setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
+                } else {
+                    setErrors(prev => ({ ...prev, altMobile: "" }));
+                }
             }
 
             if (name === "pincode") {
@@ -191,6 +195,9 @@ if (name === "gst_no") {
         setErrors(prev => ({ ...prev, gst_no: "GST No. must be 15  characters." }));
     } else {
         setErrors(prev => ({ ...prev, gst_no: "" }));
+    }
+    if(value.length > 15){
+        return;
     }
 }
 
