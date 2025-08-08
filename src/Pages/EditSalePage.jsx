@@ -21,6 +21,7 @@ export default function EditSalePage() {
   const [availableSerials, setAvailableSerials] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [quantityError, setQuantityError] = useState('');
+  const [loadingSerials, setLoadingSerials] = useState(false);
   const errorTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -127,6 +128,7 @@ export default function EditSalePage() {
   const fetchSerialNumbers = async () => {
     const { batch_id, category_id, quantity, from_serial } = formData;
     if (!batch_id || !category_id || !quantity) return;
+      setLoadingSerials(true);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/available-serials`, {
@@ -143,10 +145,19 @@ export default function EditSalePage() {
 
 
       setAvailableSerials(uniqueAvailable);
+      
+          setFormData(prev => ({ ...prev, serial_numbers: [] }));
     } catch (error) {
       console.error('Serial fetch failed:', error);
+          setLoadingSerials(false);
     }
   };
+
+  useEffect(() => {
+  // When from_serial changes, reset serial_numbers to empty to force reselect
+  setFormData(prev => ({ ...prev, serial_numbers: [] }));
+}, [formData.from_serial]);
+
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/form-dropdowns`)
@@ -192,27 +203,46 @@ export default function EditSalePage() {
   }, [formData.batch_id, formData.category_id, formData.from_serial, formData.quantity]);
 
 
- useEffect(() => {
-  const qty = formData.quantity === '' ? '' : parseInt(formData.quantity, 10);
-  const current = formData.serial_numbers;
+useEffect(() => {
+  const qty = formData.quantity === '' ? 0 : parseInt(formData.quantity, 10);
+  const current = formData.serial_numbers || [];
 
-  // Filter availableSerials based on from_serial
-  let filteredSerials = availableSerials;
+  // Combine original serials (from sale) and newly fetched available serials
+  const combinedSerials = [...originalSerials, ...availableSerials];
+
+  // Create unique list of serials, avoid duplicates
+  const uniqueSerials = Array.from(
+    new Map(combinedSerials.map(item => [item.serial_no, item])).values()
+  );
+
+  // Sort serials lexicographically
+  uniqueSerials.sort((a, b) => a.serial_no.localeCompare(b.serial_no));
+
+  // Filter unique serials based on from_serial string comparison
+  let filteredSerials = uniqueSerials;
   if (formData.from_serial && formData.from_serial.trim() !== '') {
-    filteredSerials = availableSerials.filter(sn => sn.serial_no >= formData.from_serial);
+    const fromSerial = formData.from_serial.trim();
+    filteredSerials = uniqueSerials.filter(sn => sn.serial_no >= fromSerial);
   }
 
+  // Calculate how many serials are available excluding already selected
   const availableCount = filteredSerials.filter(
     sn => !current.some(c => c.serial_no === sn.serial_no)
   ).length;
+
+  // Total available serials including currently selected
   const totalAvailable = current.length + availableCount;
 
+  // Update serial_numbers based on quantity and availability
   if (typeof qty === 'number' && !isNaN(qty)) {
     if (qty > totalAvailable) {
       setTimeout(() => {
-        setQuantityError(`Only ${totalAvailable} serials are available starting from ${formData.from_serial || 'first'}, but you requested ${qty}.`);
+        setQuantityError(
+          `Only ${totalAvailable} serials are available starting from ${formData.from_serial || 'first'}, but you requested ${qty}.`
+        );
       }, 100);
 
+      // Add only needed serials to current to reach max available
       const needed = totalAvailable - current.length;
       const toAdd = filteredSerials
         .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
@@ -226,13 +256,15 @@ export default function EditSalePage() {
       setQuantityError('');
 
       if (current.length > qty) {
+        // Trim serial_numbers if too many selected
         const trimmed = current.slice(0, qty);
         setFormData(prev => ({
           ...prev,
           serial_numbers: trimmed,
-          quantity: trimmed.length
+          quantity: trimmed.length,
         }));
       } else if (current.length < qty) {
+        // Add serials to reach requested quantity
         const needed = qty - current.length;
         const toAdd = filteredSerials
           .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
@@ -242,7 +274,7 @@ export default function EditSalePage() {
           setFormData(prev => ({
             ...prev,
             serial_numbers: [...current, ...toAdd],
-            quantity: current.length + toAdd.length
+            quantity: current.length + toAdd.length,
           }));
         }
       }
@@ -250,7 +282,7 @@ export default function EditSalePage() {
   } else {
     setQuantityError('');
   }
-}, [formData.quantity, formData.from_serial, availableSerials]);
+}, [formData.quantity, formData.from_serial, availableSerials, originalSerials]);
 
 
   const handleSubmit = (e) => {
