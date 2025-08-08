@@ -118,7 +118,7 @@ export default function DistrictPage() {
       toast.warning("All fields are required!");
       return;
     }
-
+  
     const duplicate = districts.some(
       (d) =>
         d.district.toLowerCase() === newDistrictName.trim().toLowerCase() &&
@@ -129,26 +129,71 @@ export default function DistrictPage() {
       toast.error("District already exists in this state!");
       return;
     }
-
+  
     const payload = {
       district: newDistrictName.trim(),
       state_id: parseInt(modalStateId),
     };
-
+  
     try {
       if (editId) {
         await axios.put(`${API_BASE_URL}/districts/${editId}`, payload);
+  
+        
+        const updatedState = modalStates.find((s) => s.id === parseInt(modalStateId));
+        const updatedCountry = countries.find((c) => c.id === parseInt(modalCountryId));
+  
+        setDistricts((prev) =>
+          prev.map((d) =>
+            d.id === editId
+              ? {
+                  ...d,
+                  ...payload,
+                  state: {
+                    ...d.state,
+                    id: updatedState?.id || d.state?.id,
+                    state: updatedState?.state || d.state?.state,
+                    country: {
+                      ...d.state?.country,
+                      id: updatedCountry?.id || d.state?.country?.id,
+                      country: updatedCountry?.country || d.state?.country?.country,
+                    },
+                  },
+                }
+              : d
+          )
+        );
+  
         toast.success("District updated successfully!");
       } else {
-        await axios.post(`${API_BASE_URL}/districts`, payload);
+        const res = await axios.post(`${API_BASE_URL}/districts`, payload);
+  
+        
+        const newState = modalStates.find((s) => s.id === parseInt(modalStateId));
+        const newCountry = countries.find((c) => c.id === parseInt(modalCountryId));
+  
+        const newDistrict = {
+          ...res.data,
+          state: {
+            id: newState?.id,
+            state: newState?.state,
+            country: {
+              id: newCountry?.id,
+              country: newCountry?.country,
+            },
+          },
+        };
+  
+        setDistricts((prev) => [...prev, newDistrict]);
         toast.success("District added successfully!");
       }
-      await fetchDistricts();
+  
       handleModalClose();
-    } catch {
+    } catch (error) {
       toast.error("Failed to save district!");
     }
   };
+  
 
   const handleDelete = async (id) => {
     const result = await MySwal.fire({

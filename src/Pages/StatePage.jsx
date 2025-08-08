@@ -92,12 +92,12 @@ export default function StatePage() {
       toast.warning("State name is required!");
       return;
     }
-
+  
     if (!countryId) {
       toast.warning("Country is required!");
       return;
     }
-
+  
     const duplicate = states.some(
       (s) =>
         s.state.toLowerCase() === newStateName.trim().toLowerCase() &&
@@ -108,27 +108,44 @@ export default function StatePage() {
       toast.error("State already exists in this country!");
       return;
     }
-
+  
     const payload = {
       state: newStateName.trim(),
       country_id: parseInt(countryId),
     };
-
+  
     try {
       if (editingStateId) {
-        await axios.put(`${API_BASE_URL}/states/${editingStateId}`, payload);
+        const res = await axios.put(`${API_BASE_URL}/states/${editingStateId}`, payload);
+  
+        
+        setStates((prev) =>
+          prev.map((s) =>
+            s.id === editingStateId
+              ? {
+                  ...s,
+                  ...payload,
+                  country: countries.find((c) => c.id === parseInt(countryId)) || s.country,
+                }
+              : s
+          )
+        );
+  
         toast.success("State updated successfully!");
       } else {
-        await axios.post(`${API_BASE_URL}/states`, payload);
+        const res = await axios.post(`${API_BASE_URL}/states`, payload);
+  
+      
+        setStates((prev) => [...prev, res.data]);
         toast.success("State added successfully!");
       }
-
-      await fetchStates();
+  
       handleModalClose();
     } catch (error) {
       toast.error("Failed to save state!");
     }
   };
+  
 
   const handleDelete = async (id) => {
     try {

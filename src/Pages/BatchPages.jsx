@@ -62,7 +62,7 @@ export default function BatchPage() {
       toast.warning("Batch name is required!");
       return;
     }
-
+  
     const duplicate = batches.some(
       (b) =>
         b.batch.toLowerCase() === batchName.trim().toLowerCase() &&
@@ -72,45 +72,37 @@ export default function BatchPage() {
       toast.error("Batch already exists!");
       return;
     }
-
+  
     const payload = { batch: batchName.trim() };
-    let updatedId = editingBatchId;
-
+  
     try {
       if (editingBatchId) {
         await axios.put(`${API_BASE_URL}/batches/${editingBatchId}`, payload);
+  
+        // ✅ Update the batch in-place
+        setBatches((prev) =>
+          prev.map((b) =>
+            b.id === editingBatchId ? { ...b, batch: batchName.trim() } : b
+          )
+        );
+  
         toast.success("Batch updated successfully!");
       } else {
         const res = await axios.post(`${API_BASE_URL}/batches`, payload);
+        const newBatch = res.data;
+  
+        // ✅ Append the new batch
+        setBatches((prev) => [...prev, newBatch]);
+  
         toast.success("Batch added successfully!");
-        updatedId = res.data.id;
       }
-
-      const res = await axios.get(`${API_BASE_URL}/batches`);
-      let updatedList = Array.isArray(res.data) ? res.data : [];
-
-      if (sortField) {
-        updatedList.sort((a, b) => {
-          const valA = a[sortField]?.toLowerCase?.() || "";
-          const valB = b[sortField]?.toLowerCase?.() || "";
-          if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-          if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-          return 0;
-        });
-      }
-
-      const index = updatedList.findIndex((b) => b.id === updatedId);
-      if (index !== -1) {
-        const newPage = Math.floor(index / perPage) + 1;
-        setPage(newPage);
-      }
-
-      setBatches(updatedList);
+  
       handleModalClose();
     } catch {
       toast.error("Failed to save batch!");
     }
   };
+  
 
   const handleDelete = async (id) => {
     const result = await MySwal.fire({

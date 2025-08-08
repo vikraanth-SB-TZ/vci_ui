@@ -109,11 +109,18 @@ export default function ProductPage() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     let updatedData = { ...productData, [name]: value };
-    if (name === "test" && value === "Issue") {
-      updatedData.sale_status = "Reserved";
+  
+    if (name === "test") {
+      if (value === "Issue") {
+        updatedData.sale_status = "Reserved";
+      } else if (productData.test === "Issue" && value === "Ok") {
+        updatedData.sale_status = ""; 
+      }
     }
+  
     setProductData(updatedData);
   };
+  
 
   const validateForm = () => {
     const requiredFields = [
@@ -140,18 +147,28 @@ export default function ProductPage() {
     if (!validateForm()) return;
     try {
       if (isEditing) {
-        await axios.put(`${API_BASE_URL}/products/${productData.id}`, productData);
+        const response = await axios.put(`${API_BASE_URL}/products/${productData.id}`, productData);
         toast.success("Product updated!");
+  
+       
+        const updatedProducts = products.map((prod) =>
+          prod.id === productData.id ? response.data : prod
+        );
+        setProducts(updatedProducts);
       } else {
-        await axios.post(`${API_BASE_URL}/products`, productData);
+        const response = await axios.post(`${API_BASE_URL}/products`, productData);
         toast.success("Product added!");
+        
+       
+        setProducts([response.data, ...products]);
       }
-      fetchAllData();
+  
       setShowModal(false);
     } catch {
       toast.error("Failed to save product!");
     }
   };
+  
 
   const handleSort = (field) => {
     if (sortField === field) {
