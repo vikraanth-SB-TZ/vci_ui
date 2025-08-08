@@ -42,7 +42,7 @@ export default function Sidebar({ collapsed }) {
     <aside
       className="d-flex flex-column sidebar-container"
       style={{
-        width: collapsed ? "80px" : "317px",
+        width: collapsed ? "80px" : "280px",
         height: "100vh",
         backgroundColor: "#2E3A59",
         fontFamily: "Product Sans, sans-serif",
