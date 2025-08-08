@@ -15,7 +15,7 @@ export default function CategoryPage() {
   const [showModal, setShowModal] = useState(false);
   const [categoryName, setCategoryName] = useState("");
   const [editingCategoryId, setEditingCategoryId] = useState(null);
-  const [sortField, setSortField] = useState("category");
+  const [sortField, setSortField] = useState("asc");
   const [sortDirection, setSortDirection] = useState("asc");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
