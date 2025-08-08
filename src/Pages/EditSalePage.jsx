@@ -204,131 +204,124 @@ export default function EditSalePage() {
 
 
 useEffect(() => {
-  const qty = formData.quantity === '' ? 0 : parseInt(formData.quantity, 10);
+  // If quantity is empty or invalid, clear error and exit
+  if (formData.quantity === '') {
+    setQuantityError('');
+    return;
+  }
+
+  const qty = parseInt(formData.quantity, 10);
+  if (isNaN(qty) || qty <= 0) {
+    setQuantityError('');
+    return;
+  }
+
   const current = formData.serial_numbers || [];
-
-  // Combine original serials (from sale) and newly fetched available serials
   const combinedSerials = [...originalSerials, ...availableSerials];
-
-  // Create unique list of serials, avoid duplicates
-  const uniqueSerials = Array.from(
-    new Map(combinedSerials.map(item => [item.serial_no, item])).values()
-  );
-
-  // Sort serials lexicographically
+  const uniqueSerials = Array.from(new Map(combinedSerials.map(item => [item.serial_no, item])).values());
   uniqueSerials.sort((a, b) => a.serial_no.localeCompare(b.serial_no));
 
-  // Filter unique serials based on from_serial string comparison
   let filteredSerials = uniqueSerials;
   if (formData.from_serial && formData.from_serial.trim() !== '') {
     const fromSerial = formData.from_serial.trim();
     filteredSerials = uniqueSerials.filter(sn => sn.serial_no >= fromSerial);
   }
 
-  // Calculate how many serials are available excluding already selected
   const availableCount = filteredSerials.filter(
     sn => !current.some(c => c.serial_no === sn.serial_no)
   ).length;
 
-  // Total available serials including currently selected
   const totalAvailable = current.length + availableCount;
 
-  // Update serial_numbers based on quantity and availability
-  if (typeof qty === 'number' && !isNaN(qty)) {
-    if (qty > totalAvailable) {
-      setTimeout(() => {
-        setQuantityError(
-          `Only ${totalAvailable} serials are available starting from ${formData.from_serial || 'first'}, but you requested ${qty}.`
-        );
-      }, 100);
+  if (qty > totalAvailable) {
+    setTimeout(() => {
+      setQuantityError(`Only ${totalAvailable} serials are available starting from ${formData.from_serial || 'first'}, but you requested ${qty}.`);
+    }, 100);
 
-      // Add only needed serials to current to reach max available
-      const needed = totalAvailable - current.length;
+    // Add only as many as possible, but DO NOT change quantity value!
+    const needed = totalAvailable - current.length;
+    const toAdd = filteredSerials
+      .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
+      .slice(0, needed);
+
+    setFormData(prev => ({
+      ...prev,
+      serial_numbers: [...current, ...toAdd],
+      // quantity: prev.quantity,  <-- keep unchanged
+    }));
+  } else {
+    setQuantityError('');
+
+    if (current.length > qty) {
+      // Trim serials down to qty
+      const trimmed = current.slice(0, qty);
+      setFormData(prev => ({
+        ...prev,
+        serial_numbers: trimmed,
+        // quantity: prev.quantity,  <-- keep unchanged
+      }));
+    } else if (current.length < qty) {
+      // Add serials up to qty, but not changing quantity input
+      const needed = qty - current.length;
       const toAdd = filteredSerials
         .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
         .slice(0, needed);
 
-      setFormData(prev => ({
-        ...prev,
-        serial_numbers: [...current, ...toAdd],
-      }));
-    } else {
-      setQuantityError('');
-
-      if (current.length > qty) {
-        // Trim serial_numbers if too many selected
-        const trimmed = current.slice(0, qty);
+      if (toAdd.length > 0) {
         setFormData(prev => ({
           ...prev,
-          serial_numbers: trimmed,
-          quantity: trimmed.length,
+          serial_numbers: [...current, ...toAdd],
+          // quantity: prev.quantity,  <-- keep unchanged
         }));
-      } else if (current.length < qty) {
-        // Add serials to reach requested quantity
-        const needed = qty - current.length;
-        const toAdd = filteredSerials
-          .filter(sn => !current.some(c => c.serial_no === sn.serial_no))
-          .slice(0, needed);
-
-        if (toAdd.length > 0) {
-          setFormData(prev => ({
-            ...prev,
-            serial_numbers: [...current, ...toAdd],
-            quantity: current.length + toAdd.length,
-          }));
-        }
       }
     }
-  } else {
-    setQuantityError('');
   }
 }, [formData.quantity, formData.from_serial, availableSerials, originalSerials]);
 
-
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const requiredQty = parseInt(formData.quantity || 0, 10);
-    const currentSerials = formData.serial_numbers || [];
-    const available = availableSerials || [];
+  const requiredQty = parseInt(formData.quantity || 0, 10);
+  const availableCount = availableSerials.length;
 
-    // Remove duplicates based on serial_no
-    const merged = [...currentSerials, ...available];
-    const uniqueSerialsMap = {};
-    const uniqueSerials = [];
+  if (requiredQty > availableCount) {
+    // Show error, block submit
+    toast.error(`Cannot save: only ${availableCount} serials are available but quantity is ${requiredQty}.`);
+    return; // stop here, don't call API
+  }
 
-    for (const item of merged) {
-      if (!uniqueSerialsMap[item.serial_no]) {
-        uniqueSerialsMap[item.serial_no] = true;
-        uniqueSerials.push(item);
-      }
+  // Merge and deduplicate serials by serial_no
+  const currentSerials = formData.serial_numbers || [];
+  const merged = [...currentSerials, ...availableSerials];
+  const uniqueSerialsMap = {};
+  const uniqueSerials = [];
+
+  for (const item of merged) {
+    if (!uniqueSerialsMap[item.serial_no]) {
+      uniqueSerialsMap[item.serial_no] = true;
+      uniqueSerials.push(item);
     }
+  }
 
-    const finalSerials = uniqueSerials.slice(0, requiredQty);
+  // Limit serial_numbers to quantity or max available
+  const finalSerials = uniqueSerials.slice(0, requiredQty);
 
-    axios.put(`${API_BASE_URL}/salesUpdate/${id}`, updatedFormData)
-      .then(() => {
-        toast.success('Sale updated successfully!');
-        setTimeout(() => navigate('/salesOrder'), 1500);
-      })
-      .catch(err => {
-        console.error('Error updating sale:', err);
-         toast.error('Failed to update sale.');
-
-        
-  // if (err.response && err.response.status === 422) {
-  //   const { message, invalid_serials } = err.response.data;
-
-  //   if (invalid_serials && invalid_serials.length > 0) {
-  //     toast.error(`${message} (${invalid_serials.join(', ')})`, { autoClose: 5000 });
-  //   } else {
-  //     toast.error(message || 'Validation error occurred.', { autoClose: 5000 });
-  //   }
-  // } else {
-  //   toast.error('Failed to update sale.', { autoClose: 5000 });
-  // }
-       });
+  const updatedFormData = {
+    ...formData,
+    serial_numbers: finalSerials,
+    // quantity: formData.quantity, // keep user input
   };
+
+  axios.put(`${API_BASE_URL}/salesUpdate/${id}`, updatedFormData)
+    .then(() => {
+      toast.success('Sale updated successfully!');
+      setTimeout(() => navigate('/salesOrder'), 1500);
+    })
+    .catch(err => {
+      console.error('Error updating sale:', err);
+      toast.error('Failed to update sale.');
+    });
+};
 
   const customerOptions = customers.map(c => ({
     value: c.id,
