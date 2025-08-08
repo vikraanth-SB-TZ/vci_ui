@@ -234,8 +234,8 @@ export default function PcbPurchaseReturn() {
                     <td className="text-center" style={{ width: "130px" }}>
                       <div className="d-flex justify-content-center">
                         <ActionButtons
-                          onPdf={() => handleGenerateInvoice(item.id)}
-                          onEdit={() => handleEdit(item)}
+                          onPdf={() => handleGenerateReturnInvoice(item.id)}
+                          onEdit={() => navigate(`/pcb-purchase-return/edit/${item.id}`)}
                           onDelete={() => handleDelete(item.id)}
                         />
                       </div>
