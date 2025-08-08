@@ -173,13 +173,13 @@ export default function SalesListPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="9" className="text-center py-4">
+                  <td colSpan="10" className="text-center py-4">
                     <Spinner animation="border" />
                   </td>
                 </tr>
               ) : paginatedData.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="text-center py-4 text-muted">
+                  <td colSpan="10" className="text-center py-4 text-muted">
                     <img
                       src="/empty-box.png"
                       alt="No data"

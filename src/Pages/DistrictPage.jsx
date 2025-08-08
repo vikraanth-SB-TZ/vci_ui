@@ -46,14 +46,24 @@ export default function DistrictPage() {
   };
 
   const fetchStatesByCountry = async (countryId) => {
-    if (!countryId) return setModalStates([]);
+    if (!countryId) {
+      setModalStates([]);
+      return;
+    }
+  
     try {
       const res = await axios.get(`${API_BASE_URL}/states/country/${countryId}`);
       setModalStates(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      toast.error("Failed to fetch states!");
+    } catch (error) {
+      console.error("Error fetching states:", error);
+  
+      // Show error ONLY if the modal is open (editing or adding), not during prefill
+      if (showModal) {
+        toast.error("Failed to fetch states!");
+      }
     }
   };
+  
 
   const fetchDistricts = async () => {
     setLoading(true);
@@ -66,7 +76,7 @@ export default function DistrictPage() {
       }
     } catch (error) {
       const isServerError = error.response?.status >= 500 || !error.response;
-      if (isServerError) toast.error("Failed to fetch states!");
+      if (isServerError) toast.error("Failed to fetch Districts!");
       setDistricts([]);
     } finally {
       setLoading(false);

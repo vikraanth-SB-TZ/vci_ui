@@ -8,6 +8,7 @@ import Breadcrumb from "./Components/Breadcrumb";
 import Pagination from "./Components/Pagination";
 import Search from "./Components/Search";
 import { API_BASE_URL } from "../api";
+import ActionButtons from "./Components/ActionButtons";
 
 export default function CountryPage() {
   const [countries, setCountries] = useState([]);
@@ -266,32 +267,11 @@ export default function CountryPage() {
                       {(page - 1) * perPage + index + 1}
                     </td>
                     <td className="text-center">{country.country}</td>
-                    <td className="text-center">
-                      <Button
-                        variant=""
-                        size="sm"
-                        className="me-1"
-                        onClick={() => handleEdit(country)}
-                        style={{
-                          borderColor: '#2E3A59',
-                          color: '#2E3A59',
-                        }}
-                      >
-                        <i className="bi bi-pencil-square"></i>
-                      </Button>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        onClick={() => handleDelete(country.id)}
-                        style={{
-                          borderColor: '#2E3A59',
-                          color: '#2E3A59',
-                          backgroundColor: 'transparent',
-                        }}
-                      >
-                        <i className="bi bi-trash"></i>
-                      </Button>
-                    </td>
+                    <ActionButtons
+                      onPdf={false}
+                      onEdit={() => handleEdit(country)}
+                      onDelete={() => handleDelete(country.id)}
+                    />
                   </tr>
 
                 ))
