@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Button, Spinner, Form } from "react-bootstrap";
+import { Button, Spinner, Form, Card } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { ToastContainer, toast } from 'react-toastify';
@@ -10,6 +10,10 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 import "datatables.net";
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
+import Breadcrumb from "./Components/Breadcrumb";
+import Pagination from "./Components/Pagination";
+import Search from "./Components/Search";
+
 const MySwal = withReactContent(Swal);
 import { API_BASE_URL } from "../api";
 const CustomDropdown = ({ name, value, onChange, options, isInvalid, error }) => {
@@ -72,6 +76,11 @@ export default function App() {
   const [formData, setFormData] = useState(initialFormState());
   const [errors, setErrors] = useState({});
   const tableRef = useRef(null);
+const [perPage, setPerPage] = useState(10);
+const [page, setPage] = useState(1);
+const [search, setSearch] = useState("");
+const [sortField, setSortField] = useState("name"); // default sort field
+const [sortDirection, setSortDirection] = useState("asc"); // default sort direction
 
   function initialFormState() {
     return {
@@ -87,20 +96,35 @@ export default function App() {
     fetchSpareparts();
   }, []);
 
-  useEffect(() => {
-    if ($.fn.DataTable.isDataTable(tableRef.current)) {
-      $(tableRef.current).DataTable().destroy();
-    }
-    if (spareparts.length > 0) {
-      $(tableRef.current).DataTable({
-        ordering: true,
-        paging: true,
-        searching: true,
-        lengthChange: true,
-        columnDefs: [{ targets: 0, className: "text-center" }],
-      });
-    }
-  }, [spareparts]);
+  // useEffect(() => {
+  //   if ($.fn.DataTable.isDataTable(tableRef.current)) {
+  //     $(tableRef.current).DataTable().destroy();
+  //   }
+  //   if (spareparts.length > 0) {
+  //     $(tableRef.current).DataTable({
+  //       ordering: true,
+  //       paging: true,
+  //       searching: true,
+  //       lengthChange: true,
+  //       columnDefs: [{ targets: 0, className: "text-center" }],
+  //     });
+  //   }
+  // }, [spareparts]);
+useEffect(() => {
+  if ($.fn.DataTable.isDataTable(tableRef.current)) {
+    $(tableRef.current).DataTable().destroy();
+  }
+  if (spareparts.length > 0) {
+    $(tableRef.current).DataTable({
+      ordering: true,
+      paging: false,       // updated
+      searching: false,    // updated
+      lengthChange: false, // updated
+      info: false,         // updated
+      columnDefs: [{ targets: 0, className: "text-center" }],
+    });
+  }
+}, [spareparts]);
 
   const fetchSpareparts = async () => {
     setLoading(true);
@@ -201,20 +225,22 @@ export default function App() {
 
       setSpareparts(newData);
 
-      setTimeout(() => {
-        if ($.fn.DataTable.isDataTable(tableRef.current)) {
-          $(tableRef.current).DataTable().destroy();
-        }
-        if (newData.length > 0) {
-          $(tableRef.current).DataTable({
-            ordering: true,
-            paging: true,
-            searching: true,
-            lengthChange: true,
-            columnDefs: [{ targets: 0, className: "text-center" }],
-          });
-        }
-      }, 0);
+    setTimeout(() => {
+  if ($.fn.DataTable.isDataTable(tableRef.current)) {
+    $(tableRef.current).DataTable().destroy();
+  }
+  if (newData.length > 0) {
+    $(tableRef.current).DataTable({
+      ordering: true,
+      paging: false,       // updated
+      searching: false,    // updated
+      lengthChange: false, // updated
+      info: false,         // updated
+      columnDefs: [{ targets: 0, className: "text-center" }],
+    });
+  }
+}, 0);
+
     } catch (error) {
       console.error("Error saving sparepart:", error);
       if (error.response?.data) {
@@ -263,20 +289,22 @@ export default function App() {
       const updatedSpareparts = spareparts.filter(part => part.id !== id);
       setSpareparts(updatedSpareparts);
 
-      setTimeout(() => {
-        if ($.fn.DataTable.isDataTable(tableRef.current)) {
-          $(tableRef.current).DataTable().destroy();
-        }
-        if (updatedSpareparts.length > 0) {
-          $(tableRef.current).DataTable({
-            ordering: true,
-            paging: true,
-            searching: true,
-            lengthChange: true,
-            columnDefs: [{ targets: 0, className: "text-center" }],
-          });
-        }
-      }, 0);
+  setTimeout(() => {
+  if ($.fn.DataTable.isDataTable(tableRef.current)) {
+    $(tableRef.current).DataTable().destroy();
+  }
+  if (newData.length > 0) {
+    $(tableRef.current).DataTable({
+      ordering: true,
+      paging: false,       // updated
+      searching: false,    // updated
+      lengthChange: false, // updated
+      info: false,         // updated
+      columnDefs: [{ targets: 0, className: "text-center" }],
+    });
+  }
+}, 0);
+
     } catch (error) {
       console.error("Error deleting:", error);
       if (error.response?.data?.message) {
@@ -286,6 +314,16 @@ export default function App() {
       }
     }
   };
+const handleSort = (field) => {
+  if (field === sortField) {
+    // Toggle direction
+    setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+  } else {
+    // New sort field
+    setSortField(field);
+    setSortDirection("asc");
+  }
+};
 
   const handleEdit = (part) => {
     setEditingPart(part);
@@ -352,106 +390,183 @@ export default function App() {
     { value: "Enable", label: "Enable" },
     { value: "Disable", label: "Disable" },
   ];
+const paginated = spareparts
+  .filter(part => {
+    const searchLower = search.toLowerCase();
+
+    return (
+      part.name.toLowerCase().includes(searchLower) ||
+      part.is_active.toLowerCase().includes(searchLower) ||
+      part.quantity.toString().includes(searchLower)
+    );
+  })
+  .sort((a, b) => {
+    const valueA = a[sortField] ?? "";
+    const valueB = b[sortField] ?? "";
+    if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
+    if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  })
+  .slice((page - 1) * perPage, page * perPage);
 
   return (
-    <>
-      <div className="vh-80 d-flex flex-column position-relative bg-light">
-        <div className="d-flex justify-content-between align-items-center px-4 py-3 border-bottom bg-white">
-          <h5 className="mb-0 fw-bold">Spare parts ({spareparts.length})</h5>
-          <div>
-            <Button
-              variant="outline-secondary"
+   <div className="px-4 py-2">
+      <Breadcrumb title="Spare Parts" />
+
+      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
+        <div className="row mb-3">
+          <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+            <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+            <Form.Select
               size="sm"
-              className="me-2"
-              onClick={() => {
-                if (!loading) fetchSpareparts();
+              style={{ width: "100px" }}
+              value={perPage}
+              onChange={(e) => {
+                setPerPage(Number(e.target.value));
+                setPage(1);
               }}
             >
-              {loading ? (
-                <Spinner animation="border" size="sm" />
-              ) : (
+              {[5, 10, 25, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </Form.Select>
+          </div>
+
+          <div className="col-md-6 text-md-end">
+            <div className="mt-2 d-inline-block mb-2">
+<Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchSpareparts}>
                 <i className="bi bi-arrow-clockwise"></i>
-              )}
-            </Button>
-            <Button
-              size="sm"
-              onClick={openForm}
-              style={{
-                backgroundColor: '#2FA64F',
-                borderColor: '#2FA64F',
-                color: '#fff'
-              }}
-            >
-              + Add New
-            </Button>
-
+              </Button>
+              <Button
+                size="sm"
+                onClick={openForm}
+                style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
+              >
+                + Add Spare Part
+              </Button>
+            </div>
+            <Search
+              search={search}
+              setSearch={setSearch}
+              perPage={perPage}
+              setPerPage={setPerPage}
+              setPage={setPage}
+            />
           </div>
         </div>
-        <div className="flex-grow-1 px-4 py-3" style={{ overflowX: "auto", overflowY: "auto" }}>
-          <div style={{ minWidth: "900px" }}>
-            <table ref={tableRef} className="table custom-table" style={{ minWidth: "900px", width: "100%" }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "center", width: "70px" }}>S.No</th>
-                  <th>Spare Part Name</th>
-                  <th style={{ width: "150px" }}>Current Qty</th>
-                  <th style={{ width: "150px" }}>Quantity per VCI</th>
-                  <th style={{ width: "250px" }}>Notes</th>
-                  <th style={{ width: "120px" }}>Status</th>
-                  <th style={{ width: "120px" }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan="7" className="text-center py-4">
-                      <Spinner animation="border" />
-                    </td>
-                  </tr>
-                ) : spareparts.length === 0 ? (
-                  <tr>
-                    <td colSpan="7" className="text-center py-4 text-muted">
-                      No spare parts found.
-                    </td>
-                  </tr>
-                ) : (
-                  spareparts.map((part, index) => (
-                    <tr key={part.id}>
-                      <td style={{ textAlign: "center" }}>{index + 1}</td>
-                      <td style={{ wordBreak: "break-word" }}>{part.name}</td>
-                      <td>{part.quantity}</td>
-                      <td>{part.quantity_per_vci}</td>
-                      <td>{part.notes || "-"}</td>
-                      <td>
-                        <span className={`badge ${part.is_active === 'Enable' ? 'bg-success' : 'bg-danger'}`}>
-                          {part.is_active}
-                        </span>
+<div className="table-responsive">
+  <table className="table align-middle mb-0">
+<thead>
+  <tr>
+    <th style={{ width: "70px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>S.No</th>
+    <th
+      onClick={() => handleSort("name")}
+      style={{ cursor: "pointer", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
+    >
+      Spare Part Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
+    </th>
+    <th
+      onClick={() => handleSort("quantity")}
+      style={{ cursor: "pointer", width: "150px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
+    >
+      Current Qty {sortField === "quantity" && (sortDirection === "asc" ? "▲" : "▼")}
+    </th>
+    <th
+      onClick={() => handleSort("quantity_per_vci")}
+      style={{ cursor: "pointer", width: "170px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
+    >
+      Quantity per VCI {sortField === "quantity_per_vci" && (sortDirection === "asc" ? "▲" : "▼")}
+    </th>
+    <th 
+      onClick={() => handleSort("notes")}
+    style={{ width: "250px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>
+      Notes {sortField === "notes" && (sortDirection === "asc" ? "▲" : "▼")}
+    </th>
+    <th
+      onClick={() => handleSort("is_active")}
+      style={{ cursor: "pointer", width: "120px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
+    >
+      Status {sortField === "is_active" && (sortDirection === "asc" ? "▲" : "▼")}
+    </th>
+    <th style={{ width: "130px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>
+      Action
+    </th>
+  </tr>
+</thead>
+<tbody>
+  {loading ? (
+    <tr>
+      <td colSpan="7" className="text-center py-4">
+        <Spinner animation="border" />
+      </td>
+    </tr>
+  ) : paginated.length === 0 ? (
+    <tr>
+      <td colSpan="7" className="text-center py-4 text-muted">
+        <img
+          src="/empty-box.png"
+          alt="No data"
+          style={{ width: 80, height: 100, opacity: 0.6 }}
+        />
+      </td>
+    </tr>
+  ) : (
+    paginated.map((part, index) => (
+      <tr key={part.id}>
+        <td className="text-center" style={{ width: "70px" }}>
+          {(page - 1) * perPage + index + 1}
+        </td>
+        <td className="text-center" style={{ wordBreak: "break-word" }}>
+          {part.name}
+        </td>
+        <td className="text-center" style={{ width: "150px" }}>
+          {part.quantity}
+        </td>
+        <td className="text-center" style={{ width: "150px" }}>
+          {part.quantity_per_vci}
+        </td>
+        <td className="text-center" style={{ width: "250px" }}>
+          {part.notes || "—"}
+        </td>
+        <td className="text-center" style={{ width: "120px" }}>
+          <span className={`badge ${part.is_active === "Enable" ? "bg-success" : "bg-danger"}`}>
+            {part.is_active}
+          </span>
+        </td>
+        <td className="text-center" style={{ width: "130px" }}>
+          <Button
+            variant=""
+            size="sm"
+            className="me-1"
+            onClick={() => handleEdit(part)}
+            style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+          >
+            <i className="bi bi-pencil-square"></i>
+          </Button>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={() => handleDelete(part.id)}
+            style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+          >
+            <i className="bi bi-trash"></i>
+          </Button>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
 
-                      </td>
-                      <td>
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          className="me-1"
-                          onClick={() => handleEdit(part)}
-                        >
-                          <i className="bi bi-pencil-square me-1"></i>
-                        </Button>
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => handleDelete(part.id)}
-                        >
-                          <i className="bi bi-trash"></i>
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+
+  </table>
+</div>
+
+
+<Pagination page={page} setPage={setPage} perPage={perPage} totalEntries={spareparts.length} />
+      </Card>
+
         {showForm && (
           <div className={drawerClass} style={{
 
@@ -780,7 +895,6 @@ export default function App() {
   visibility: visible;
 }
         `}</style>
-      </div>
-    </>
+       </div>
   );
 }
