@@ -79,7 +79,7 @@ export default function App() {
 const [perPage, setPerPage] = useState(10);
 const [page, setPage] = useState(1);
 const [search, setSearch] = useState("");
-const [sortField, setSortField] = useState("name"); // default sort field
+const [sortField, setSortField] = useState("dec"); // default sort field
 const [sortDirection, setSortDirection] = useState("asc"); // default sort direction
 
   function initialFormState() {

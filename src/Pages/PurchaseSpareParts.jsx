@@ -22,9 +22,9 @@ export default function PurchaseSparepartsPage() {
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const MySwal = withReactContent(Swal);
-    const [sortField, setSortField] = useState("invoice_date");
+    const [sortField, setSortField] = useState("asc");
     const [sortDirection, setSortDirection] = useState("desc");
-
+    
 
     const [sparePartsRows, setSparePartsRows] = useState([{
         sparepart_id: "",
