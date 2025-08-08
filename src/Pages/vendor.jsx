@@ -156,13 +156,7 @@ useEffect(() => {
                     return;
                 }
                 
-  if (name === "altMobile") {
-    if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
-        setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
-    } else {
-        setErrors(prev => ({ ...prev, altMobile: "" }));
-    }
-}
+
 
                 setFormData(prev => ({ ...prev, [name]: value }));
 
@@ -170,6 +164,16 @@ useEffect(() => {
                     setErrors(prev => ({ ...prev, [name]: "" }));
                 }
                 return;
+            }
+            if (name === "altMobile") {
+                if (!/^\d*$/.test(value)) {
+                    return;  
+                }
+                if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
+                    setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
+                } else {
+                    setErrors(prev => ({ ...prev, altMobile: "" }));
+                }
             }
 
             if (name === "pincode") {
@@ -196,6 +200,9 @@ useEffect(() => {
         setErrors(prev => ({ ...prev, gst: "GST No. must be 15 alphanumeric characters." }));
     } else {
         setErrors(prev => ({ ...prev, gst: "" }));
+    }
+    if(value.length > 15){
+        return;
     }
 }
 
@@ -237,13 +244,14 @@ useEffect(() => {
                 setErrors(prev => ({ ...prev, [name]: "" }));
             }
         }
-if (name === "altMobile") {
-    if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
-        setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
-    } else {
-        setErrors(prev => ({ ...prev, altMobile: "" }));
-    }
-}
+
+        if (name === "altMobile") {
+            if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
+                setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
+            } else {
+                setErrors(prev => ({ ...prev, altMobile: "" }));
+            }
+        }
 
         if (name === "pincode") {
             if (!/^\d{6}$/.test(value)) {
