@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../api";
-
+import ActionButtons from "./Components/ActionButtons";
 import Breadcrumb from "./Components/Breadcrumb";
 import Search from "./Components/Search";
 import Pagination from "./Components/Pagination";
@@ -231,30 +231,14 @@ export default function PcbPurchaseReturn() {
                     <td>{item.invoice_no}</td>
                     <td>{item.invoice_date}</td>
                     <td>{item.quantity}</td>
-                    <td className="d-flex gap-2">
-                      <Button
-                        variant="outline-success"
-                        size="sm"
-                        onClick={() => handleGenerateReturnInvoice(item.id)}
-                      >
-                        <i className="bi bi-file-earmark-pdf"></i>
-                      </Button>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        onClick={() =>
-                          navigate(`/pcb-purchase-return/edit/${item.id}`)
-                        }
-                      >
-                        <i className="bi bi-pencil-square"></i>
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <i className="bi bi-trash"></i>
-                      </Button>
+                    <td className="text-center" style={{ width: "130px" }}>
+                      <div className="d-flex justify-content-center">
+                        <ActionButtons
+                          onPdf={() => handleGenerateInvoice(item.id)}
+                          onEdit={() => handleEdit(item)}
+                          onDelete={() => handleDelete(item.id)}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))

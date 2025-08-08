@@ -267,13 +267,16 @@ export default function CountryPage() {
                       {(page - 1) * perPage + index + 1}
                     </td>
                     <td className="text-center">{country.country}</td>
-                    <ActionButtons
-                      onPdf={false}
-                      onEdit={() => handleEdit(country)}
-                      onDelete={() => handleDelete(country.id)}
-                    />
+                    <td className="text-center" style={{ width: "130px" }}>
+                      <div className="d-flex justify-content-center">
+                        <ActionButtons
+                          // onPdf={() => handlePdf(item.id)}
+                          onEdit={() => handleEdit(country)}
+                          onDelete={() => handleDelete(country.id)}
+                        />
+                      </div>
+                    </td>
                   </tr>
-
                 ))
               )}
             </tbody>

@@ -243,11 +243,15 @@ export default function PurchaseListPage() {
                     <td>{item.batch}</td>
                     <td>{item.category}</td>
                     <td>{item.quantity}</td>
-                    <ActionButtons
-                      onPdf={() => handleGenerateInvoice(item.id)}
-                      onEdit={() => handleEdit(item)}
-                      onDelete={() => handleDelete(item.id)}
-                    />
+                    <td className="text-center" style={{ width: "130px" }}>
+                      <div className="d-flex justify-content-center">
+                        <ActionButtons
+                          onPdf={() => handleGenerateInvoice(item.id)}
+                          onEdit={() => handleEdit(item)}
+                          onDelete={() => handleDelete(item.id)}
+                        />
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
