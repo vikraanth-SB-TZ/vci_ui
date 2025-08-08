@@ -33,7 +33,8 @@ export default function LoginPage({ onLogin }) {
       setLoading(true);
       const res = await axios.post(`${API_BASE_URL}/login`, formData);
       localStorage.setItem('authToken', res.data.data.token);
-      localStorage.setItem('authEmail', formData.email); 
+      localStorage.setItem('authEmail', formData.email);
+      localStorage.setItem("authName", response.data.data.user.name); 
       onLogin();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login Failed' );

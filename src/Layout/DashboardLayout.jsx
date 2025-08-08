@@ -4,11 +4,14 @@ import { Button, Form, InputGroup } from "react-bootstrap";
 export default function DashboardLayout({ onLogout }) {
   const [showLogout, setShowLogout] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [userName, setUserName] = useState("");
   const logoutRef = useRef(null);
 
   useEffect(() => {
     const email = localStorage.getItem("authEmail");
+    const name = localStorage.getItem("authName");
     if (email) setUserEmail(email);
+    if (name) setUserName(name);
   }, []);
 
   const getInitial = () => {
@@ -18,6 +21,7 @@ export default function DashboardLayout({ onLogout }) {
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("authEmail");
+    localStorage.removeItem("authName");
     onLogout();
   };
 
@@ -74,7 +78,7 @@ export default function DashboardLayout({ onLogout }) {
         <div className="d-flex align-items-center gap-3 position-relative" ref={logoutRef}>
           {/* Email display */}
           <div className="text-end">
-            <div className="fw-bold">UserName</div>
+            <div className="fw-bold">{userName || "User"}</div>
             <div style={{ fontWeight: 400, color: "#5f6368", fontSize: "14px" }}>
               {userEmail}
             </div>
