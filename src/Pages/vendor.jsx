@@ -337,7 +337,7 @@ if (!formData.district) newErrors.district = "District is required.";
             state_id: formData.state ? parseInt(formData.state, 10) : null,
             district_id: formData.district ? parseInt(formData.district, 10) : null,
             pincode: formData.pincode,
-            gst_no: formData.gst_no,
+            gst_no: formData.gst,
             date_of_birth: formData.dob,
         };
 
