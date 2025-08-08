@@ -9,6 +9,7 @@ import { API_BASE_URL } from "../api";
 import Breadcrumb from "./Components/Breadcrumb";
 import Pagination from "./Components/Pagination";
 import Search from "./Components/Search";
+import ActionButtons from "./Components/ActionButtons";
 
 export default function PurchaseListPage() {
   const navigate = useNavigate();
@@ -242,29 +243,11 @@ export default function PurchaseListPage() {
                     <td>{item.batch}</td>
                     <td>{item.category}</td>
                     <td>{item.quantity}</td>
-                    <td className="d-flex gap-2">
-                      <Button
-                        variant="outline-success"
-                        size="sm"
-                        onClick={() => handleGenerateInvoice(item.id)}
-                      >
-                        <i className="bi bi-file-earmark-pdf"></i>
-                      </Button>
-                      <Button
-                        variant="outline-info"
-                        size="sm"
-                        onClick={() => handleEdit(item)}
-                      >
-                        <i className="bi bi-pencil-square"></i>
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <i className="bi bi-trash"></i>
-                      </Button>
-                    </td>
+                    <ActionButtons
+                      onPdf={() => handleGenerateInvoice(item.id)}
+                      onEdit={() => handleEdit(item)}
+                      onDelete={() => handleDelete(item.id)}
+                    />
                   </tr>
                 ))
               )}
