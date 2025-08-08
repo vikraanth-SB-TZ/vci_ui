@@ -1,213 +1,286 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Button, Spinner } from 'react-bootstrap'; 
-
-import axios from 'axios';
-import 'bootstrap-icons/font/bootstrap-icons.css';
-import { useNavigate } from 'react-router-dom';
-import $ from 'jquery';
-import 'datatables.net-dt/css/dataTables.dataTables.css';
-import 'datatables.net';
-import { ToastContainer, toast } from "react-toastify";
+import React, { useEffect, useState } from "react";
+import { Button, Spinner, Card, Form } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
 import { API_BASE_URL } from "../api";
-import Swal from 'sweetalert2';
-
+import Breadcrumb from "./Components/Breadcrumb";
+import Pagination from "./Components/Pagination";
+import Search from "./Components/Search";
 
 export default function PurchaseListPage() {
   const navigate = useNavigate();
-  const tableRef = useRef(null);
-  const hasFetched = useRef(false);
-const [loading, setLoading] = useState(false);
 
   const [purchaseData, setPurchaseData] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-const fetchPurchases = () => {
-  setLoading(true);
-  axios
-    .get(`${API_BASE_URL}/purchase`)
-    .then(res => setPurchaseData(res.data))
-    .catch(err => {
-      console.error('Error fetching purchase list:', err);
-      toast.error('Failed to fetch purchase list.');
-    })
-    .finally(() => {
-      setLoading(false);
-    });
-};
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [search, setSearch] = useState("");
 
+  const [sortColumn, setSortColumn] = useState("asc");
+  const [sortDirection, setSortDirection] = useState("asc");
+
+  const fetchPurchases = () => {
+    setLoading(true);
+    axios
+      .get(`${API_BASE_URL}/purchase`)
+      .then((res) => {
+        setPurchaseData(Array.isArray(res.data) ? res.data : []);
+      })
+      .catch((err) => {
+        console.error("Error fetching purchase list:", err);
+        toast.error("Failed to fetch purchase list.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   useEffect(() => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
     fetchPurchases();
   }, []);
-
-  useEffect(() => {
-    const $table = $(tableRef.current);
-
-    if ($.fn.DataTable.isDataTable($table)) {
-      $table.DataTable().destroy();
-    }
-
-    if (purchaseData.length > 0) {
-      setTimeout(() => {
-        $table.DataTable({
-          ordering: true,
-          paging: true,
-          searching: true,
-          lengthChange: true,
-          columnDefs: [{ targets: 0, className: 'text-center' }],
-        });
-      }, 0);
-    }
-  }, [purchaseData]);
 
   const handleEdit = (item) => {
     navigate(`/purchase/${item.id}/edit`);
   };
 
-  
-function handleDelete(purchaseId) {
-  Swal.fire({
-    title: 'Are you sure?',
-    text: "This action cannot be undone.",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!',
-    reverseButtons: true
-  }).then((result) => {
-    if (result.isConfirmed) {
-      // Proceed to delete
-      axios
-        .delete(`${API_BASE_URL}/purchase/${purchaseId}`)
-        .then((res) => {
-          toast.success(res.data.message || 'Purchase deleted successfully');
+  const handleDelete = (purchaseId) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios
+          .delete(`${API_BASE_URL}/purchase/${purchaseId}`)
+          .then((res) => {
+            toast.success(res.data.message || "Purchase deleted successfully");
+            fetchPurchases();
+          })
+          .catch((err) => {
+            toast.error(err.response?.data?.message || "Failed to delete purchase");
+          });
+      }
+    });
+  };
 
-          const $table = $(tableRef.current);
-          if ($.fn.DataTable.isDataTable($table)) {
-            $table.DataTable().destroy();
-          }
-
-          setPurchaseData(prev => prev.filter(item => item.id !== purchaseId));
-        })
-        .catch((err) => {
-          toast.error(
-            err.response?.data?.message || 'Failed to delete purchase'
-          );
-        });
+  const handleGenerateInvoice = (purchaseId) => {
+    const pdfWindow = window.open(`${API_BASE_URL}/pcb-purchase-invoice/${purchaseId}`, "_blank");
+    if (pdfWindow) {
+      toast.success("Invoice generated successfully!");
+    } else {
+      toast.error("Failed to generate invoice.");
     }
-  });
-}
+  };
 
-const handleGenerateInvoice = (purchaseId) => {
-  const pdfWindow = window.open(`${API_BASE_URL}/pcb-purchase-invoice/${purchaseId}`, '_blank');
-  if (pdfWindow) {
-    toast.success('Invoice generated successfully!');
-  } else {
-    toast.error('Failed to generate invoice.');
-  }
-};
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const filteredData = purchaseData
+    .filter((item) => {
+      const keyword = search.toLowerCase();
+      return (
+        item.vendor?.toLowerCase().includes(keyword) ||
+        item.invoice_no?.toLowerCase().includes(keyword) ||
+        item.batch?.toLowerCase().includes(keyword) ||
+        item.category?.toLowerCase().includes(keyword) ||
+        item.branch?.toLowerCase().includes(keyword) ||
+        item.invoice_date?.toLowerCase().includes(keyword) ||
+        String(item.quantity).toLowerCase().includes(keyword)
+      );
+    })
+    .sort((a, b) => {
+      const aValue = a[sortColumn];
+      const bValue = b[sortColumn];
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+      } else {
+        return sortDirection === "asc"
+          ? String(aValue).localeCompare(String(bValue))
+          : String(bValue).localeCompare(String(aValue));
+      }
+    });
+
+  const paginatedData = filteredData.slice((page - 1) * perPage, page * perPage);
+
+  const renderHeader = (label, columnKey) => (
+    <th
+      onClick={() => handleSort(columnKey)}
+      style={{
+        cursor: "pointer",
+        userSelect: "none",
+        backgroundColor: "#2E3A59",
+        color: "white",
+      }}
+    >
+      {label} {sortColumn === columnKey && (sortDirection === "asc" ? "▲" : "▼")}
+    </th>
+  );
 
   return (
-    <div className="w-100 py-4 bg-white" style={{ minHeight: '100vh', fontFamily: 'Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,Product Sans', fontSize: '14px', fontWeight: '500' }}>
-      <div className="d-flex justify-content-between align-items-center mb-3 px-4">
-        <h5 className="fw-bold  mb-0 ">
-          Purchase List <span className="text-dark fw-bold">({purchaseData.length})</span>
-        </h5>
+    <div className="px-4 py-2">
+      <Breadcrumb title="Purchase Order" />
 
-      <div className="d-flex gap-2">
-<Button
-  variant="outline-secondary"
-  className='p-0'
-  style={{ width: '38px', height: '38px' }}
-  onClick={() => {
-      // e.preventDefault(); // <== just in case it bubbles
-    // e.stopPropagation();
-      console.log('Refresh clicked');
-    if (!loading) fetchPurchases();
-  }}
-  disabled={loading}
->
-  {loading ? (
-    <Spinner animation="border" size="sm" className="text-secondary" />
-  ) : (
-    <i className="bi bi-arrow-clockwise fs-5 text-secondary"></i>
-  )}
-</Button>
+      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
+        <div className="row mb-3">
+          <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+            <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+            <Form.Select
+              size="sm"
+              style={{ width: "100px" }}
+              value={perPage}
+              onChange={(e) => {
+                setPerPage(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              {[5, 10, 25, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </Form.Select>
+          </div>
 
-  <Button variant="success" style={{
-                        backgroundColor: '#2FA64F',
-                        borderColor: '#2FA64F',
-                        color: '#fff',
+          <div className="col-md-6 text-md-end">
+            <div className="mt-2 d-inline-block mb-2">
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                className="me-2"
+                onClick={fetchPurchases}
+              >
+                <i className="bi bi-arrow-clockwise"></i>
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => navigate("/purchase/add")}
+                style={{ backgroundColor: "#2FA64F", borderColor: "#2FA64F", color: "#fff" }}
+              >
+                <i className="bi bi-plus-lg me-1"></i> Add Purchase
+              </Button>
+            </div>
+            <Search
+              search={search}
+              setSearch={setSearch}
+              perPage={perPage}
+              setPerPage={setPerPage}
+              setPage={setPage}
+            />
+          </div>
+        </div>
 
-                    }} onClick={() => navigate('/purchase/add')}>
-    <i className="bi bi-plus-lg me-1"></i> Add New
-  </Button>
-</div>
+        <div className="table-responsive">
+          <table className="table align-middle mb-0">
+            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+              <tr>
+                <th
+                  style={{
+                    width: "60px",
+                    textAlign: "center",
+                    backgroundColor: "#2E3A59",
+                    color: "white",
+                  }}
+                >
+                  S.No
+                </th>
+                {renderHeader("Vendor", "vendor")}
+                {renderHeader("Invoice No", "invoice_no")}
+                {renderHeader("Invoice Date", "invoice_date")}
+                {renderHeader("Batch", "batch")}
+                {renderHeader("Category", "category")}
+                {renderHeader("Quantity", "quantity")}
+                <th
+                  style={{
+                    width: "140px",
+                    backgroundColor: "#2E3A59",
+                    color: "white",
+                  }}
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-4">
+                    <Spinner animation="border" />
+                  </td>
+                </tr>
+              ) : paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-4 text-muted">
+                    <img
+                      src="/empty-box.png"
+                      alt="No data"
+                      style={{ width: "80px", height: "100px", opacity: 0.6 }}
+                    />
+                  </td>
+                </tr>
+              ) : (
+                paginatedData.map((item, index) => (
+                  <tr key={item.id}>
+                    <td className="text-center">{(page - 1) * perPage + index + 1}</td>
+                    <td>{item.vendor}</td>
+                    <td>{item.invoice_no}</td>
+                    <td>{item.invoice_date}</td>
+                    <td>{item.batch}</td>
+                    <td>{item.category}</td>
+                    <td>{item.quantity}</td>
+                    <td className="d-flex gap-2">
+                      <Button
+                        variant="outline-success"
+                        size="sm"
+                        onClick={() => handleGenerateInvoice(item.id)}
+                      >
+                        <i className="bi bi-file-earmark-pdf"></i>
+                      </Button>
+                      <Button
+                        variant="outline-info"
+                        size="sm"
+                        onClick={() => handleEdit(item)}
+                      >
+                        <i className="bi bi-pencil-square"></i>
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      </div>
-    <div className="mx-4 shadow-sm overflow-hidden" style={{ borderRadius: '0.5rem' }}>
-      <div className="table-responsive">
-  <table ref={tableRef} className="table custom-table">
-    <thead>
-      <tr>
-        <th style={{ width: "60px", textAlign: "start" }}>S.No</th>
-        <th>Vendor</th>
-        <th>Invoice No</th>
-        <th>Invoice Date</th>
-        <th>Batch</th>
-        <th>Category</th>
-        <th>Quantity</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-  <tbody>
-  {loading && purchaseData.length === 0 ? (
-    <tr>
-      <td colSpan="8" className="text-center py-4">
-        <Spinner animation="border" />
-      </td>
-    </tr>
-  ) : purchaseData.length === 0 ? (
-    <tr>
-      <td colSpan="8" className="text-center py-4 text-muted">
-        No purchase data available
-      </td>
-    </tr>
-  ) : (
-    purchaseData.map((item, index) => (
-      <tr key={item.id}>
-        <td className="fw-normal text-center">{index + 1}</td>
-        <td className="fw-normal">{item.vendor}</td>
-        <td className="fw-normal">{item.invoice_no}</td>
-        <td className="fw-normal">{item.invoice_date}</td>
-        <td className="fw-normal">{item.batch}</td>
-        <td className="fw-normal">{item.category}</td>
-        <td className="fw-normal">{item.quantity}</td>
-        <td className="py-2 pe-1 d-flex gap-2">
-          <Button variant="outline-success" size="sm" onClick={() => handleGenerateInvoice(item.id)}>
-            <i className="bi bi-file-earmark-pdf"></i>
-          </Button>
-          <Button variant="outline-info" size="sm" onClick={() => handleEdit(item)}>
-            <i className="bi bi-pencil-square"></i>
-          </Button>
-          <Button variant="outline-danger" size="sm" onClick={() => handleDelete(item.id)}>
-            <i className="bi bi-trash"></i>
-          </Button>
-        </td>
-      </tr>
-    ))
-  )}
-</tbody>
+        <Pagination
+          page={page}
+          setPage={setPage}
+          perPage={perPage}
+          totalEntries={filteredData.length}
+        />
+      </Card>
 
-  </table>
-</div>
-</div>
-
-
-      <ToastContainer position="top-right" autoClose={2500} hideProgressBar={false} newestOnTop />
+      <ToastContainer position="top-right" autoClose={2500} hideProgressBar={false} />
     </div>
   );
 }
