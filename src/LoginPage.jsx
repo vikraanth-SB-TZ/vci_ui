@@ -22,26 +22,48 @@ export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (localStorage.getItem('authToken')) {
+    const query = new URLSearchParams(window.location.search);
+    const isLoggingOut = query.get("logout") === "true";
+  
+    if (isLoggingOut) {
+      // ✅ Clear session properly
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authEmail");
+      localStorage.removeItem("authName");
+      return; // Stay on login page
+    }
+  
+    // ✅ Already logged in? Redirect to dashboard
+    const token = localStorage.getItem("authToken");
+    if (token && token !== "undefined") {
       navigate('/batch', { replace: true });
     }
-  }, []);
-
+  }, [navigate]);
+  
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
+      localStorage.removeItem("authToken"); // clear old token (safety)
+  
       const res = await axios.post(`${API_BASE_URL}/login`, formData);
-      localStorage.setItem('authToken', res.data.data.token);
-      localStorage.setItem('authEmail', formData.email);
-      localStorage.setItem("authName", response.data.data.user.name); 
-      onLogin();
+  
+      localStorage.setItem("authToken", res.data.data.token);
+      localStorage.setItem("authEmail", formData.email);
+      localStorage.setItem("authName", res.data.data.user.name); // fixed 'res' vs 'response'
+  
+      toast.success("Login successful");
+  
+      if (onLogin) onLogin(); // optional callback
+      navigate("/batch"); // redirect to your main page
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login Failed' );
+      toast.error(err.response?.data?.message || "Login Failed");
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleSendOtp = async () => {
     try {

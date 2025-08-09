@@ -1,54 +1,54 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-
-// import SalesList from './Pages/SalesList';
+// Pages
 import LoginPage from './LoginPage';
 import AppLayout from './Layout/AppLayout';
+
+import Overview from './Pages/Overview/Overview';
 import BatchPage from './Pages/BatchPages';
 import StatePage from './Pages/StatePage';
-
-import CategoryPage from './pages/CategoryPage';
-import SoldPage from './pages/SoldPage';
 import DistrictPage from './Pages/DistrictPage';
+import CountryPage from './Pages/Countrypage';
+import CategoryPage from './pages/CategoryPage';
+import ProductPage from './Pages/ProductPage';
+
+import SoldPage from './pages/SoldPage';
+import SalesList from './Pages/SalesList';
 import AddNewSalePage from './Pages/AddNewSalePage';
 import EditSalePage from './Pages/EditSalePage';
 import ViewSalePage from './Pages/ViewSalePage';
 import SaleReturnPage from './Pages/SaleReturnPage';
 import SaleReturns from './Pages/SaleReturns';
+import EditSaleReturnPage from './Pages/EditSaleReturnPage';
 import SaleInvoice from './Pages/SaleInvoice';
-import PcbPurchaseList from './Pages/PcbPurchaseList';
 
+import PcbPurchaseList from './Pages/PcbPurchaseList';
 import AddPurchasePage from './Pages/AddPurchasePage';
 import EditPurchasePage from './Pages/EditPurchasePage';
 
 import PcbPurchaseReturn from './Pages/PcbPurchaseReturn';
-
-import PcbPurchaseReturnEdit from './Pages/PcbPurchaseReturnEdit';
-import EditSaleReturnPage from './Pages/EditSaleReturnPage';
-
 import AddPcbReturnPage from './Pages/AddPcbReturnPage';
-import Overview from './Pages/Overview/Overview';
-import SalesList from './Pages/SalesList';
-import SparepartsPage from "./Pages/SpareParts";
+import PcbPurchaseReturnEdit from './Pages/PcbPurchaseReturnEdit';
+
+import SparepartsPage from './Pages/SpareParts';
 import PurchaseSparepartsPage from './Pages/PurchaseSpareParts';
-import VciCustomer from './Pages/VciCustomer';
 import ReturnSparePartsPage from './Pages/ReturnSpareParts';
 import Vendor from './Pages/vendor';
-import CountryPage from './Pages/Countrypage';
-import ProductPage from './Pages/ProductPage';
-
-
-
-
+import VciCustomer from './Pages/VciCustomer';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('authToken'));
+    const handleStorageChange = () => {
+      setIsLoggedIn(!!localStorage.getItem('authToken'));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const handleLogin = () => {
@@ -59,12 +59,13 @@ export default function App() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('authEmail');
     setIsLoggedIn(false);
+    window.location.href = '/login'; // ✅ Force immediate navigation
   };
 
   return (
     <Router>
       <Routes>
-        {/* Redirect /login to /overview if logged in */}
+        {/* Redirect /login to /overview if already logged in */}
         <Route
           path="/login"
           element={
@@ -76,7 +77,7 @@ export default function App() {
           }
         />
 
-        {/* Protected layout wrapper */}
+        {/* Protected routes wrapper */}
         <Route
           path="/"
           element={
@@ -87,10 +88,10 @@ export default function App() {
             )
           }
         >
-          {/* Default home route inside layout */}
+          {/* Default route inside layout */}
           <Route index element={<Navigate to="overview" replace />} />
 
-          {/* Protected pages */}
+          {/* Protected Pages */}
           <Route path="overview" element={<Overview />} />
           <Route path="batch" element={<BatchPage />} />
           <Route path="state" element={<StatePage />} />
@@ -99,9 +100,8 @@ export default function App() {
           <Route path="category" element={<CategoryPage />} />
           <Route path="productTest" element={<ProductPage />} />
           <Route path="sold" element={<SoldPage />} />
-          
-          
-          
+
+          {/* Sales Routes */}
           <Route path="salesOrder" element={<SalesList />} />
           <Route path="sales/add" element={<AddNewSalePage />} />
           <Route path="sales/edit/:id" element={<EditSalePage />} />
@@ -109,27 +109,32 @@ export default function App() {
           <Route path="salesReturn" element={<SaleReturnPage />} />
           <Route path="returns/add" element={<SaleReturns />} />
           <Route path="returns/edit/:id" element={<EditSaleReturnPage />} />
-
           <Route path="pdf" element={<SaleInvoice />} />
+
+          {/* Purchase Routes */}
           <Route path="purchaseOrder" element={<PcbPurchaseList />} />
           <Route path="purchase/add" element={<AddPurchasePage />} />
           <Route path="purchase/:id/edit" element={<EditPurchasePage />} />
 
+          {/* Purchase Return Routes */}
           <Route path="purchaseReturn" element={<PcbPurchaseReturn />} />
           <Route path="pcb-purchase-return/add" element={<AddPcbReturnPage />} />
           <Route path="pcb-purchase-return/edit/:id" element={<PcbPurchaseReturnEdit />} />
 
+          {/* Spare Parts */}
           <Route path="spareparts" element={<SparepartsPage />} />
           <Route path="PurchaseSpareParts" element={<PurchaseSparepartsPage />} />
           <Route path="ReturnSpareParts" element={<ReturnSparePartsPage />} />
+
+          {/* Other Master Pages */}
           <Route path="Vendor" element={<Vendor />} />
           <Route path="VciCustomer" element={<VciCustomer />} />
         </Route>
 
-        {/* Redirect all unknown routes */}
+        {/* Fallback to default routes based on auth */}
         <Route
           path="*"
-          element={<Navigate to={isLoggedIn ? "/overview" : "/login"} replace />}
+          element={<Navigate to={isLoggedIn ? '/overview' : '/login'} replace />}
         />
       </Routes>
 
