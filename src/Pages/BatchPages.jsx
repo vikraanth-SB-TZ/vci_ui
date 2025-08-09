@@ -78,26 +78,16 @@ export default function BatchPage() {
     try {
       if (editingBatchId) {
         await axios.put(`${API_BASE_URL}/batches/${editingBatchId}`, payload);
-  
-        // ✅ Update the batch in-place
-        setBatches((prev) =>
-          prev.map((b) =>
-            b.id === editingBatchId ? { ...b, batch: batchName.trim() } : b
-          )
-        );
-  
         toast.success("Batch updated successfully!");
       } else {
-        const res = await axios.post(`${API_BASE_URL}/batches`, payload);
-        const newBatch = res.data;
-  
-        // ✅ Append the new batch
-        setBatches((prev) => [...prev, newBatch]);
-  
+        await axios.post(`${API_BASE_URL}/batches`, payload);
         toast.success("Batch added successfully!");
       }
-  
+
+      // ✅ Always re-fetch from server so list is correct immediately
+      await fetchBatches();
       handleModalClose();
+
     } catch {
       toast.error("Failed to save batch!");
     }

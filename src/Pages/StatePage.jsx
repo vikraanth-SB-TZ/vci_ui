@@ -116,31 +116,16 @@ export default function StatePage() {
   
     try {
       if (editingStateId) {
-        const res = await axios.put(`${API_BASE_URL}/states/${editingStateId}`, payload);
-  
-        
-        setStates((prev) =>
-          prev.map((s) =>
-            s.id === editingStateId
-              ? {
-                  ...s,
-                  ...payload,
-                  country: countries.find((c) => c.id === parseInt(countryId)) || s.country,
-                }
-              : s
-          )
-        );
-  
+        await axios.put(`${API_BASE_URL}/states/${editingStateId}`, payload);
         toast.success("State updated successfully!");
       } else {
-        const res = await axios.post(`${API_BASE_URL}/states`, payload);
-  
-      
-        setStates((prev) => [...prev, res.data]);
+        await axios.post(`${API_BASE_URL}/states`, payload);
         toast.success("State added successfully!");
       }
-  
+
+      await fetchStates();
       handleModalClose();
+
     } catch (error) {
       toast.error("Failed to save state!");
     }
