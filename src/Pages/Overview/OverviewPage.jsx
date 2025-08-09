@@ -23,30 +23,51 @@ ChartJS.register(
 
 export default function OverviewPage() {
   const [stats, setStats] = useState({
-    customers: 10,
-    vendors: "05",
-    productSales: 2,
+    customers: 0,
+    vendors: 0,
+    productSales: 0,
   });
   const [graphData, setGraphData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [duration, setDuration] = useState("Month"); // NEW
+  const [countLoading, setCountLoading] = useState(true);
+  const [duration, setDuration] = useState("Month");
 
   const apiBase = "http://127.0.0.1:8000/api";
 
   useEffect(() => {
     fetchOverviewData();
-  }, [duration]); // refetch when duration changes
+    fetchCounts();
+  }, [duration]);
+
+  const fetchCounts = async () => {
+    setCountLoading(true);
+    try {
+      const [vendorsRes, customersRes, productSalesRes] = await Promise.all([
+        axios.get(`${apiBase}/vendors/count`),
+        axios.get(`${apiBase}/customers/count`),
+        axios.get(`${apiBase}/products/sold-count`),
+      ]);
+
+      setStats({
+        vendors: vendorsRes.data.count ?? 0,
+        customers: customersRes.data.count ?? 0,
+        productSales: productSalesRes.data.count ?? 0,
+      });
+    } catch {
+      setStats({ vendors: 0, customers: 0, productSales: 0 });
+    } finally {
+      setCountLoading(false);
+    }
+  };
 
   const fetchOverviewData = async () => {
+    setLoading(true);
     try {
       const res = await axios.get(`${apiBase}/dashboard-overview`, {
-        params: { duration: duration.toLowerCase() }, // Send "month" or "year"
+        params: { duration: duration.toLowerCase() },
       });
-
-      setStats(res.data.stats ?? { customers: 0, vendors: 0, productSales: 0 });
       setGraphData(res.data.graphData ?? []);
     } catch {
-      // Fallback data if API fails
       if (duration === "Year") {
         setGraphData([
           { month: "2021", value: 25000 },
@@ -71,6 +92,13 @@ export default function OverviewPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Format number with "k" notation
+  const formatCount = (num) => {
+    if (!num) return 0;
+    if (num >= 1000) return `${Math.round(num / 1000)}k`;
+    return num;
   };
 
   const chartData = {
@@ -98,26 +126,14 @@ export default function OverviewPage() {
     },
     scales: {
       x: {
-        grid: {
-          display: false,
-          drawBorder: false,
-        },
-        ticks: {
-          font: {
-            size: 12,
-          },
-        },
+        grid: { display: false, drawBorder: false },
+        ticks: { font: { size: 12 } },
       },
       y: {
-        grid: {
-          display: false,
-          drawBorder: false,
-        },
+        grid: { display: false, drawBorder: false },
         ticks: {
           callback: (val) => `${val / 1000}k`,
-          font: {
-            size: 12,
-          },
+          font: { size: 12 },
         },
       },
     },
@@ -130,7 +146,7 @@ export default function OverviewPage() {
           <Card className="border-0 shadow-sm h-100" style={{ backgroundColor: "#E3F5FF" }}>
             <Card.Body>
               <h6 className="fw-semibold">Customer</h6>
-              <h2>{stats.customers}</h2>
+              {countLoading ? <Spinner animation="border" size="sm" /> : <h2>{formatCount(stats.customers)}</h2>}
             </Card.Body>
           </Card>
         </Col>
@@ -138,7 +154,7 @@ export default function OverviewPage() {
           <Card className="border-0 shadow-sm h-100" style={{ backgroundColor: "#E5ECF6" }}>
             <Card.Body>
               <h6 className="fw-semibold">Vendor</h6>
-              <h2>{stats.vendors}</h2>
+              {countLoading ? <Spinner animation="border" size="sm" /> : <h2>{formatCount(stats.vendors)}</h2>}
             </Card.Body>
           </Card>
         </Col>
@@ -146,7 +162,7 @@ export default function OverviewPage() {
           <Card className="border-0 shadow-sm h-100" style={{ backgroundColor: "#E5ECF6" }}>
             <Card.Body>
               <h6 className="fw-semibold">Product Sale</h6>
-              <h2>{stats.productSales}K</h2>
+              {countLoading ? <Spinner animation="border" size="sm" /> : <h2>{formatCount(stats.productSales)}</h2>}
             </Card.Body>
           </Card>
         </Col>
