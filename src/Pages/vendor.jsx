@@ -747,7 +747,7 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
               color: "white",
             }}
           >
-            {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}
+           State {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}
           </th>
     <th
             onClick={() => handleSort("district")}
