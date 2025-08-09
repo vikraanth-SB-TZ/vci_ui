@@ -144,30 +144,25 @@ export default function ProductPage() {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
-    try {
-      if (isEditing) {
-        const response = await axios.put(`${API_BASE_URL}/products/${productData.id}`, productData);
-        toast.success("Product updated!");
-  
-       
-        const updatedProducts = products.map((prod) =>
-          prod.id === productData.id ? response.data : prod
-        );
-        setProducts(updatedProducts);
-      } else {
-        const response = await axios.post(`${API_BASE_URL}/products`, productData);
-        toast.success("Product added!");
-        
-       
-        setProducts([response.data, ...products]);
-      }
-  
-      setShowModal(false);
-    } catch {
-      toast.error("Failed to save product!");
+  if (!validateForm()) return;
+  try {
+    if (isEditing) {
+      await axios.put(`${API_BASE_URL}/products/${productData.id}`, productData);
+      toast.success("Product updated!");
+    } else {
+      await axios.post(`${API_BASE_URL}/products`, productData);
+      toast.success("Product added!");
     }
-  };
+
+    setShowModal(false);
+
+    fetchAllData();
+    
+  } catch {
+    toast.error("Failed to save product!");
+  }
+};
+
   
 
   const handleSort = (field) => {
