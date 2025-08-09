@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../../api";
 import { Card, Row, Col, Spinner, Form } from "react-bootstrap";
 import {
   Chart as ChartJS,
@@ -32,7 +33,6 @@ export default function OverviewPage() {
   const [countLoading, setCountLoading] = useState(true);
   const [duration, setDuration] = useState("Month");
 
-  const apiBase = "http://127.0.0.1:8000/api";
 
   useEffect(() => {
     fetchOverviewData();
@@ -43,9 +43,9 @@ export default function OverviewPage() {
     setCountLoading(true);
     try {
       const [vendorsRes, customersRes, productSalesRes] = await Promise.all([
-        axios.get(`${apiBase}/vendors/count`),
-        axios.get(`${apiBase}/customers/count`),
-        axios.get(`${apiBase}/products/sold-count`),
+        axios.get(`${API_BASE_URL}/vendors/count`),
+        axios.get(`${API_BASE_URL}/customers/count`),
+        axios.get(`${API_BASE_URL}/products/sold-count`),
       ]);
 
       setStats({
@@ -63,7 +63,7 @@ export default function OverviewPage() {
   const fetchOverviewData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${apiBase}/dashboard-overview`, {
+      const res = await axios.get(`${API_BASE_URL}/dashboard-overview`, {
         params: { duration: duration.toLowerCase() },
       });
       setGraphData(res.data.graphData ?? []);
