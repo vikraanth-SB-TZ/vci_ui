@@ -193,21 +193,18 @@ useEffect(() => {
                 return;
             }
 
-            if (name === "gst") {
-                if (value.length > 15) {
-                    return; 
-                }
-
-                if (value.trim() === "") {
-                    setErrors(prev => ({ ...prev, gst: "" }));
-                } 
-
-                else if (!/^[0-9A-Z]{15}$/.test(value)) {
-                    setErrors(prev => ({ ...prev, gst: "GST No. must be 15 alphanumeric characters." }));
-                } else {
-                    setErrors(prev => ({ ...prev, gst: "" }));
-                }
-            }
+          if (name === "gst") {
+    if (value.trim() === "") {
+        setErrors(prev => ({ ...prev, gst: "" }));  // No error if empty
+    } else if (!/^[0-9A-Z]{15}$/.test(value)) {
+        setErrors(prev => ({ ...prev, gst: "GST No. must be 15 alphanumeric characters." }));
+    } else {
+        setErrors(prev => ({ ...prev, gst: "" }));
+    }
+    if(value.length > 15){
+        return;
+    }
+}
 
 
         }
@@ -271,17 +268,6 @@ useEffect(() => {
                 setErrors(prev => ({ ...prev, [name]: "" }));
             }
         }
-
-        if (name === "gst") {
-            if (!value.trim()) {
-                setErrors(prev => ({ ...prev, gst: "GST_NO is required." }));
-            } 
-            else if (!/^[0-9A-Z]{15}$/.test(value)) {
-                setErrors(prev => ({ ...prev, gst: "GST No. must be 15 alphanumeric characters." }));
-            } else {
-                setErrors(prev => ({ ...prev, gst: "" })); // Clear error when correct
-            }
-        }
     };
 
     const handleSelectBlur = (fieldName) => {
@@ -328,11 +314,7 @@ const validateForm = () => {
     if (!formData.address.trim()) newErrors.address = "Address is required.";
     if (!formData.city.trim()) newErrors.city = "City is required.";
 
-    if (!formData.gst.trim()) {
-        newErrors.gst = "GST_NO is required.";
-    } else if (!/^[0-9A-Z]{15}$/.test(formData.gst)) {
-        newErrors.gst = "GST No. must be 15 alphanumeric characters.";
-    }
+    if (!formData.gst.trim()) newErrors.gst = "GST_NO is required.";
 if (!formData.state) newErrors.state = "State is required.";
 if (!formData.district) newErrors.district = "District is required.";
 
@@ -373,14 +355,7 @@ if (!formData.district) newErrors.district = "District is required.";
 
         request
             .then(() => {
-                if (isEditing) {
-                    toast.success("Vendor updated successfully!", { autoClose: 1500 });
-                } else {
-                    toast.success("Vendor added successfully!", { autoClose: 1500 });
-                }
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500); 
+                window.location.reload();
             })
             .catch((err) => {
                 if (err.response && err.response.data) {
@@ -1010,11 +985,7 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
                                     }}
                                 />
 
-                                {errors.dob && (
-                                    <div style={{ ...errorStyle, position: "absolute", top: "100%", left: 0 }}>
-                                    {errors.dob}
-                                    </div>
-                                )}
+                                {errors.dob && <div style={errorStyle}>{errors.dob}</div>}
 
                                 {showCalendar && (
                                     <div
