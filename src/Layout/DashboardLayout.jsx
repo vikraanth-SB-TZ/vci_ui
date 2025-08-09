@@ -1,52 +1,60 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button, Form, InputGroup } from "react-bootstrap";
 
-export default function DashboardLayout({ onLogout }) {
-  const [showLogout, setShowLogout] = useState(false);
-  const [userEmail, setUserEmail] = useState("");
-  const [userName, setUserName] = useState("");
+export default function DashboardLayout() {
+  const navigate = useNavigate();
   const logoutRef = useRef(null);
 
-  useEffect(() => {
-    const email = localStorage.getItem("authEmail");
-    const name = localStorage.getItem("authName");
-    if (email) setUserEmail(email);
-    if (name) setUserName(name);
-  }, []);
+  const [showLogout, setShowLogout] = useState(false);
+  const [isAuth, setIsAuth] = useState(() => {
+    return !!localStorage.getItem("authToken");
+  });
 
-  const getInitial = () => {
-    return userEmail ? userEmail.charAt(0).toUpperCase() : "M";
-  };
+  const userEmail = localStorage.getItem("authEmail");
+  const userName = localStorage.getItem("authName");
+
+  const getInitial = () => (userEmail ? userEmail.charAt(0).toUpperCase() : "U");
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("authEmail");
-    localStorage.removeItem("authName");
-    onLogout();
+      localStorage.removeItem("authName");
+    setIsAuth(false);
+    console.log("Logged out");
+    navigate('/login');
   };
 
-  // Handle outside click
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      navigate("/login", { replace: true });
+    } else {
+      setIsAuth(true);
+    }
+  }, [navigate]);
+
+  // ✅ Hide Dashboard layout if not authenticated
+  if (!isAuth) {
+    return null; // don't render anything if not authenticated
+  }
+
+  // ✅ Dropdown close on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        logoutRef.current &&
-        !logoutRef.current.contains(event.target)
-      ) {
+      if (logoutRef.current && !logoutRef.current.contains(event.target)) {
         setShowLogout(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <header className="p-2 border-bottom" style={{ backgroundColor: '#2E3A590A' }}>
+    <header className="p-2 border-bottom" style={{ backgroundColor: "#2E3A590A" }}>
       <div className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
-
-        {/* Search Input */}
+        {/* Search Box */}
         <InputGroup
           style={{
             maxWidth: "300px",
@@ -54,7 +62,7 @@ export default function DashboardLayout({ onLogout }) {
             marginInlineStart: "20px",
             borderRadius: "6px",
             border: "1px solid #ced4da",
-            overflow: "hidden"
+            overflow: "hidden",
           }}
         >
           <InputGroup.Text style={{ backgroundColor: "#F4F4F8", border: "none" }}>
@@ -69,22 +77,26 @@ export default function DashboardLayout({ onLogout }) {
             style={{
               backgroundColor: "#F4F4F8",
               border: "none",
-              boxShadow: "none"
+              boxShadow: "none",
             }}
           />
         </InputGroup>
 
-        {/* User Info and Logout */}
+        {/* User Info & Logout */}
         <div className="d-flex align-items-center gap-3 position-relative" ref={logoutRef}>
-          {/* Email display */}
           <div className="text-end">
-            <div className="fw-bold">{userName || "User"}</div>
-            <div style={{ fontWeight: 400, color: "#5f6368", fontSize: "14px" }}>
+            <div className="fw-bold">{userName}</div>
+            <div
+              style={{
+                fontWeight: 400,
+                color: "#5f6368",
+                fontSize: "14px",
+              }}
+            >
               {userEmail}
             </div>
           </div>
 
-          {/* Avatar circle */}
           <div
             className="rounded-circle d-flex justify-content-center align-items-center"
             style={{
@@ -100,7 +112,6 @@ export default function DashboardLayout({ onLogout }) {
             {getInitial()}
           </div>
 
-          {/* Logout dropdown */}
           {showLogout && (
             <div
               className="position-absolute top-100 end-0 mt-2 bg-white border shadow-sm p-2 rounded"
