@@ -15,7 +15,7 @@
 }
 
 .sales-table-wrapper {
-  max-height: 280px;
+  max-height: 200px;
   overflow-y: auto;
   overflow-x: auto; 
   scrollbar-width: thin;
@@ -35,70 +35,64 @@
 .sales-table-wrapper::-webkit-scrollbar-thumb {
   background-color: #c0cbd9;
   border-radius: 10px;
-  /* border: 2px solid #f5f7f9; */
 }
 
 .sales-table {
   width: 100%;
   table-layout: fixed;
-  border-collapse: separate;
-  border-spacing: 0 12px;
+  border-collapse: collapse;
   font-size: 14px;
   min-width: 600px; 
 }
 
 .sales-table thead th {
   text-align: left;
-  font-weight: 500;
-  color: #000000A6;
+  font-weight: 600;
+  color: #444;
   font-family: 'Inter', 'Poppins', 'Segoe UI', sans-serif;
-  padding: 8px 12px;
-  font-size: 13.5px;
-  letter-spacing: 0.2px;
+  padding: 6px 10px;
+  font-size: 13px;
   white-space: nowrap;
-  border: none;
+  /* border-bottom: 2px solid #eee; */
 }
 
 .sales-table tbody td {
   text-align: left;
   font-weight: 500;
-  padding: 8px 12px;
+  padding: 6px 10px;
   color: #111;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border: none;
+  /* border-bottom: 1px solid #f0f0f0; */
 }
 
-
+/* Column widths */
 .sales-table th:nth-child(1),
 .sales-table td:nth-child(1) {
-  width: 8%;
+  width: 60px; /* S.No */
+  text-align: center;
 }
 
 .sales-table th:nth-child(2),
 .sales-table td:nth-child(2) {
-  width: 20%;
+  width: 160px; /* Customer */
 }
 
 .sales-table th:nth-child(3),
 .sales-table td:nth-child(3) {
-  width: 20%;
+  width: 140px; /* Shipment Date */
 }
 
 .sales-table th:nth-child(4),
 .sales-table td:nth-child(4) {
-  width: 15%;
+  width: 160px; /* Product */
 }
 
 .sales-table th:nth-child(5),
 .sales-table td:nth-child(5) {
-  width: 20%;
-}
-
-.sales-table th:nth-child(6),
-.sales-table td:nth-child(6) {
-  width: 17%;
+  width: 100px; /* Quantity */
+  text-align: center;
 }
 
 .sales-table tbody tr {
@@ -109,7 +103,6 @@
 .sales-table tbody tr:hover {
   background-color: #f9f9f9;
 }
-
 
 @media (max-width: 576px) {
   .sales-table {

@@ -1,46 +1,96 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { Card, Spinner } from "react-bootstrap";
+import { API_BASE_URL } from "../../api";
 import "../../assets/css/LastSalesList.css";
 
-const salesData = [
-  { vendor: "MAHLE", invoiceDate: "10/05/2025", batch: "Batch 1", product: "7 series", quantity: 400 },
-  { vendor: "MAHLE", invoiceDate: "05/05/2025", batch: "Batch 2", product: "7 series", quantity: 300 },
-  { vendor: "MAHLE", invoiceDate: "04/04/2025", batch: "Batch 3", product: "7 series", quantity: 400 },
-  { vendor: "MAHLE", invoiceDate: "03/03/2025", batch: "Batch 4", product: "7 series", quantity: 500 },
-];
-
 const LastPurchaseList = () => {
+  const [purchaseData, setPurchaseData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLastPurchases();
+  }, []);
+
+  const fetchLastPurchases = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/purchase`);
+
+      const purchases = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data.data)
+        ? res.data.data
+        : [];
+
+      if (purchases.length === 0) {
+        setPurchaseData([]);
+        return;
+      }
+
+      // Sort by latest invoice date
+      const sorted = [...purchases].sort(
+        (a, b) => new Date(b.invoice_date) - new Date(a.invoice_date)
+      );
+
+      // Take the latest 10
+      setPurchaseData(sorted.slice(0, 10));
+    } catch (error) {
+      console.error("Error fetching purchases:", error);
+      setPurchaseData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="sales-card">
-      <h5 className="sales-title">Last Purchase List</h5>
-      <div className="sales-table-wrapper">
-        <div className="table-responsive">
-          <table className="sales-table table">
-            <thead>
-              <tr>
-                <th>S.No.</th>
-                <th>Vendor</th>
-                <th>Invoice Date</th>
-                <th>Batch</th>
-                <th>Product</th>
-                <th>Quantity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {salesData.map((item, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td>{item.vendor}</td>
-                  <td>{item.invoiceDate}</td>
-                  <td>{item.batch}</td>
-                  <td>{item.product}</td>
-                  <td>{item.quantity}</td>
+    <Card className="border-0 shadow-sm h-100">
+      <Card.Body>
+        <h5 className="fw-semibold text-dark mb-4">Last Purchase List</h5>
+
+        {loading ? (
+          <div className="d-flex justify-content-center align-items-center py-5">
+            <Spinner animation="border" />
+          </div>
+        ) : (
+          <div className="sales-table-wrapper">
+            <table className="sales-table">
+              <thead>
+                <tr>
+                  <th>S.No.</th>
+                  <th>Vendor</th>
+                  <th>Invoice Date</th>
+                  <th>Product</th>
+                  <th>Quantity</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+              </thead>
+              <tbody>
+                {purchaseData.length > 0 ? (
+                  purchaseData.map((item, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>{item.vendor}</td>
+                      <td>{new Date(item.invoice_date).toLocaleDateString()}</td>
+                      <td>{item.category}</td>
+                      <td>{item.quantity}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="text-center py-4 text-muted">
+                      <img
+                        src="/empty-box.png"
+                        alt="No data"
+                        style={{ width: "80px", height: "100px", opacity: 0.6 }}
+                      />
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card.Body>
+    </Card>
   );
 };
 

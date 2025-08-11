@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import axios from "axios";
 import "../../assets/css/Componentstock.css";
+import { API_BASE_URL } from "../../api";
 
 // Dummy data (fallback)
 const dummyData = [
@@ -16,7 +17,6 @@ const dummyData = [
   { name: "Mahle Sticker", qty: 1000, usedVCI: 100, up: true },
 ];
 
-// Helper to format category name
 function formatName(name) {
   return name
     .replace(/[_\-]+/g, " ")
@@ -26,7 +26,6 @@ function formatName(name) {
     .join(" ");
 }
 
-// Transform API response
 function transformData(data) {
   const grouped = {};
 
@@ -56,7 +55,7 @@ const ComponentStock = () => {
 
   useEffect(() => {
     axios
-      .get("http://127.0.0.1:8000/api/products") 
+      .get(`${API_BASE_URL}/products`)  
       .then((res) => {
         if (Array.isArray(res.data) && res.data.length > 0) {
           const transformed = transformData(res.data);

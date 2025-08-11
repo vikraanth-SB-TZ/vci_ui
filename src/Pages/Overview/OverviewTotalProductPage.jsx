@@ -3,13 +3,13 @@ import axios from "axios";
 import { Card, Spinner } from "react-bootstrap";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa";
 import "../../assets/css/TotalProduct.css";
+import { API_BASE_URL } from "../../api";
 
 export default function TotalProductPage() {
   const [stockData, setStockData] = useState([]);
   const [totalProducts, setTotalProducts] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const apiBase = "http://127.0.0.1:8000/api";
 
   useEffect(() => {
     fetchStockData();
@@ -17,7 +17,7 @@ export default function TotalProductPage() {
 
   const fetchStockData = async () => {
     try {
-      const res = await axios.get(`${apiBase}/products/category/count`);
+      const res = await axios.get(`${API_BASE_URL}/products/category/count`);
       if (res.data && res.data.success) {
         const mappedData = res.data.data.map((item) => ({
           series: item.series,
