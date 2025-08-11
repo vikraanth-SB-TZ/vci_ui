@@ -38,6 +38,7 @@ import PurchaseSparepartsPage from './Pages/PurchaseSpareParts';
 import ReturnSparePartsPage from './Pages/ReturnSpareParts';
 import Vendor from './Pages/vendor';
 import VciCustomer from './Pages/VciCustomer';
+// import AddProduct from './Pages/AddProduct';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('authToken'));
@@ -125,6 +126,7 @@ export default function App() {
           <Route path="spareparts" element={<SparepartsPage />} />
           <Route path="PurchaseSpareParts" element={<PurchaseSparepartsPage />} />
           <Route path="ReturnSpareParts" element={<ReturnSparePartsPage />} />
+          {/* <Route path="AddProducts" element={<AddProduct />} /> */}
 
           {/* Other Master Pages */}
           <Route path="Vendor" element={<Vendor />} />

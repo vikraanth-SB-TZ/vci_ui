@@ -536,6 +536,17 @@ export default function Sidebar({ collapsed }) {
         onClick={(e) => {
           e.preventDefault();
           setComponentsOpen(true);
+          handleLinkClick("AddProducts");
+        }}
+        className={subLinkClass("AddProducts")}
+      >
+        - Add Products
+      </a>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          setComponentsOpen(true);
           handleLinkClick("Spareparts");
         }}
         className={subLinkClass("Spareparts")}
