@@ -531,7 +531,7 @@ export default function Sidebar({ collapsed }) {
 
   {!collapsed && componentsOpen && (
     <div className="ms-2">
-      <a
+      {/* <a
         href="#"
         onClick={(e) => {
           e.preventDefault();
@@ -541,7 +541,7 @@ export default function Sidebar({ collapsed }) {
         className={subLinkClass("AddProducts")}
       >
         - Add Products
-      </a>
+      </a> */}
       <a
         href="#"
         onClick={(e) => {
