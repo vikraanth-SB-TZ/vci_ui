@@ -17,17 +17,23 @@ export default function TotalProductPage() {
 
   const fetchStockData = async () => {
     try {
-      const res = await axios.get(`${apiBase}/products`);
-      setStockData(res.data.stockData || []);
-      setTotalProducts(res.data.totalProducts || 0);
+      const res = await axios.get(`${apiBase}/products/category/count`);
+      if (res.data && res.data.success) {
+        const mappedData = res.data.data.map((item) => ({
+          series: item.series,
+          label: "Tech_pro",
+          change: item.product_count,
+        }));
+        setStockData(mappedData);
+        setTotalProducts(res.data.total_count || 0);
+      }
     } catch (err) {
-      console.error("Failed to load stock data");
+      console.error("Failed to load stock data", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Dummy fallback data
   const fallbackData = [
     { series: "7 Series", label: "Tech_pro", change: 0 },
     { series: "8 Series", label: "Tech_pro", change: 0 },
@@ -52,75 +58,76 @@ export default function TotalProductPage() {
           {loading ? (
             <Spinner animation="border" />
           ) : (
-            displayData.map((item, idx) => {
-              const isUp = item.change >= 0;
-              const barWidth = Math.min(Math.abs(item.change) / 5, 100);
+            <div
+              style={{
+                maxHeight: "278px", 
+                overflowY: displayData.length > 4 ? "auto" : "visible",
+                paddingRight: "5px",
+              }}
+            >
+              {displayData.map((item, idx) => {
+                const isUp = item.change >= 0;
+                const barWidth = Math.min(Math.abs(item.change) / 5, 100);
 
-              return (
-                <div key={idx} className="mb-4">
-                  {/* First row: Series, Progress bar, Arrow */}
-                  <div className="d-flex align-items-center ms-5">
-
-                    <div style={{ minWidth: "100px" }}>
-                      <div className="fw-semibold">{item.series}</div>
-                    </div>
-
-
-                    <div className="flex-grow-1 mx-3">
-                      <div
-                        className="progress"
-                        style={{ height: "6px", backgroundColor: "#e9ecef" }}
-                      >
+                return (
+                  <div key={idx} className="mb-4">
+                    <div className="d-flex align-items-center ms-5">
+                      <div style={{ minWidth: "100px" }}>
+                        <div className="fw-semibold">{item.series}</div>
+                      </div>
+                      <div className="flex-grow-1 mx-3">
                         <div
-                          className={`progress-bar ${
-                            isUp ? "bg-success" : "bg-danger"
-                          }`}
-                          style={{
-                            width: `${barWidth}%`,
-                            transition: "width 0.6s ease",
-                          }}
-                        ></div>
+                          className="progress"
+                          style={{ height: "6px", backgroundColor: "#e9ecef" }}
+                        >
+                          <div
+                            className={`progress-bar ${
+                              isUp ? "bg-success" : "bg-danger"
+                            }`}
+                            style={{
+                              width: `${barWidth}%`,
+                              transition: "width 0.6s ease",
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div
+                        className={`d-flex align-items-center gap-1 me-5 ${
+                          isUp ? "text-success" : "text-danger"
+                        }`}
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: 600,
+                          minWidth: "60px",
+                          justifyContent: "flex-end",
+                        }}
+                      >
+                        {isUp ? (
+                          <FaChevronUp size={12} />
+                        ) : (
+                          <FaChevronDown size={12} />
+                        )}
+                        <span>{Math.abs(item.change)}</span>
                       </div>
                     </div>
-
                     <div
-                      className={`d-flex align-items-center gap-1 me-5 ${
-                        isUp ? "text-success" : "text-danger"
-                      }`}
+                      className="text-muted ms-5"
                       style={{
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        minWidth: "60px",
-                        justifyContent: "flex-end",
+                        fontSize: "13px",
+                        marginLeft: "0px",
+                        marginTop: "2px",
+                        paddingLeft: "2px",
                       }}
                     >
-                      {isUp ? (
-                        <FaChevronUp size={12} />
-                      ) : (
-                        <FaChevronDown size={12} />
-                      )}
-                      <span>{Math.abs(item.change)}</span>
+                      {item.label}
                     </div>
                   </div>
-
-
-                  <div
-                    className="text-muted ms-5"
-                    style={{
-                      fontSize: "13px",
-                      marginLeft: "0px",
-                      marginTop: "2px",
-                      paddingLeft: "2px",
-                    }}
-                  >
-                    {item.label}
-                  </div>
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
         </Card.Body>
       </Card>
     </div>
   );
-} 
+}

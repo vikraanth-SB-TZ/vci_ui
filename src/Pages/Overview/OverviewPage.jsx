@@ -45,13 +45,13 @@ export default function OverviewPage() {
       const [vendorsRes, customersRes, productSalesRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/vendors/count`),
         axios.get(`${API_BASE_URL}/customers/count`),
-        axios.get(`${API_BASE_URL}/products/sold-count`),
+        axios.get(`${API_BASE_URL}/products/sold/count`),
       ]);
 
       setStats({
         vendors: vendorsRes.data.count ?? 0,
         customers: customersRes.data.count ?? 0,
-        productSales: productSalesRes.data.count ?? 0,
+        productSales: productSalesRes.data.soldCount ?? 0,
       });
     } catch {
       setStats({ vendors: 0, customers: 0, productSales: 0 });
