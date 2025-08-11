@@ -39,7 +39,15 @@ export default function VciCustomer() {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState(initialForm());
+    const [formData, setFormData] = useState({
+            city: "",
+            state: "",
+            district: "",
+            pincode: "",
+        });
+    const [cityMenuIsOpen, setCityMenuIsOpen] = useState(false);
+    const [cityOptions, setCityOptions] = useState([]);
+
     const [isEditing, setIsEditing] = useState(false);
     const [states, setStates] = useState([]);
     const [districtsForTable, setDistrictsForTable] = useState([]);
@@ -172,35 +180,59 @@ useEffect(() => {
             }
 
             if (name === "pincode") {
-                if (!/^\d*$/.test(value)) {
-                    return; 
-                }
-
-                if (value.length > 6) {
-                    return;
-                }
+                if (!/^\d*$/.test(value)) return;
+                if (value.length > 6) return;
 
                 setFormData(prev => ({ ...prev, [name]: value }));
 
                 if (value.length === 6) {
                     setErrors(prev => ({ ...prev, [name]: "" }));
+
+                    fetch(`https://api.postalpincode.in/pincode/${value}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
+                        const cities = data[0].PostOffice.map(po => ({
+                            label: po.Name,
+                            value: po.Name,
+                        }));
+                        setCityOptions(cities);
+                        setCityMenuIsOpen(true);  
+                        setFormData(prev => ({
+                            ...prev,
+                            city: cities[0]?.value || "",
+                            state: data[0].PostOffice[0]?.State || "",
+                            district: data[0].PostOffice[0]?.District || "",
+                        }));
+                        setErrors(prev => ({ ...prev, pincode: "", city: "" }));
+                        } else {
+                        setCityOptions([]);
+                        setFormData(prev => ({ ...prev, city: "", state: "", district: "" }));
+                        setCityMenuIsOpen(false);
+                        setErrors(prev => ({ ...prev, pincode: "Invalid pincode" }));
+                        }
+                    })
+                    .catch(() => {
+                        setCityOptions([]);
+                        setCityMenuIsOpen(false);
+                        setErrors(prev => ({ ...prev, pincode: "Error fetching pincode data" }));
+                    });
                 }
                 return;
             }
-
-if (name === "gst_no") {
-    if (value.trim() === "") {
-        setErrors(prev => ({ ...prev, gst_no: "" }));
-    } else if (!/^[0-9A-Z]{15}$/.test(value)) {
-        setErrors(prev => ({ ...prev, gst_no: "GST No. must be 15  characters." }));
-    } else {
-        setErrors(prev => ({ ...prev, gst_no: "" }));
-    }
-    if(value.length > 15){
-        return;
-    }
-}
-
+     
+            if (name === "gst_no") {
+                if (value.trim() === "") {
+                    setErrors(prev => ({ ...prev, gst_no: "" }));
+                } else if (!/^[0-9A-Z]{15}$/.test(value)) {
+                    setErrors(prev => ({ ...prev, gst_no: "GST No. must be 15  characters." }));
+                } else {
+                    setErrors(prev => ({ ...prev, gst_no: "" }));
+                }
+                if(value.length > 15){
+                    return;
+                }
+            }
 
         }
 
@@ -217,12 +249,14 @@ if (name === "gst_no") {
 
     const handleBlur = (e) => {
         const { name, value } = e.target;
-
         if (!value.trim()) {
-            setErrors(prev => ({ ...prev, [name]: `${name.replace("_", " ")} is required.` }));
+            if (name === "city") {
+                setErrors(prev => ({ ...prev, city: "City or Town is required." }));
+            } else {
+                setErrors(prev => ({ ...prev, [name]: `${name.replace("_", " ")} is required.` }));
+            }
             return;
         }
-
        if (name === "email") {
             const emailRegex = /^[^\s@]+@[^\s@]+\.(com)$/i;
             if (!emailRegex.test(value)) {
@@ -262,6 +296,35 @@ if (name === "altMobile") {
                 setErrors(prev => ({ ...prev, [name]: "" }));
             }
         }
+    };
+
+    const handlePincodeChange = async (e) => {
+    const value = e.target.value;
+    setPincode(value);
+
+    // Require 6 digits before making API call
+    if (value.length === 6) {
+        try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+        const data = await res.json();
+
+        if (data[0].Status === "Success") {
+            const cities = [
+            ...new Set(data[0].PostOffice.map((po) => po.Name)),
+            ].map((city) => ({ label: city, value: city }));
+
+            setCityOptions(cities);
+            toast.success("Pincode matched! Please select city.");
+        } else {
+            toast.error("Invalid Pincode");
+            setCityOptions([]);
+        }
+        } catch (err) {
+        toast.error("Error fetching pincode data");
+        }
+    } else {
+        setCityOptions([]);
+    }
     };
 
     const handleSelectBlur = (fieldName) => {
@@ -306,7 +369,7 @@ const validateForm = () => {
 
     if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
     if (!formData.address.trim()) newErrors.address = "Address is required.";
-    if (!formData.city.trim()) newErrors.city = "City is required.";
+    if (!formData.city.trim()) newErrors.city = "City or Town is required.";
 
 if (!formData.gst_no.trim()) newErrors.gst_no = "GST No is required.";
 if (!formData.state) newErrors.state = "State is required.";
@@ -1133,54 +1196,21 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
                             </Form.Control.Feedback>
                         </div>
                         <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>City</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleChange}
-                                placeholder="Enter City"
-                                size="sm"
-                                isInvalid={!!errors.city}
-                                style={getInputStyle("city")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.city}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>State</Form.Label>
-                            <Select
-                                name="state"
-                                value={stateOptions.find(option => option.value === formData.state) || null}
-                                onChange={(selectedOption) => handleChange(selectedOption, "state")}
-                                onBlur={() => handleSelectBlur("state")}
-                                options={stateOptions}
-                                placeholder="Select State"
-                                isClearable={true}
-                                styles={customSelectStyles}
-                                components={{ Option: SimpleOption }}
-                                classNamePrefix="react-select"
-                                errors={errors}
-                            />
-                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>District</Form.Label>
-                            <Select
-                                name="district"
-                                value={districtOptions.find(option => option.value === formData.district) || null}
-                                onChange={(selectedOption) => handleChange(selectedOption, "district")}
-                                options={districtOptions}
-                                placeholder="Select District"
-                                isClearable={true}
-                                styles={customSelectStyles}
-                                components={{ Option: SimpleOption }}
-                                classNamePrefix="react-select"
-                                isDisabled={!formData.state}
-                                errors={errors}
-                            />
-                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
+                        <Form.Label className="mb-1" style={labelStyle}>
+                            City / Town
+                        </Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="city"
+                            // value={formData.city}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            size="sm"
+                            style={getInputStyle && getInputStyle("city")}
+                            isInvalid={!!errors.city}
+                            placeholder="Enter city or town name"
+                        />
+                        {errors.city && <div style={errorStyle}>{errors.city}</div>}
                         </div>
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={labelStyle}>Pincode</Form.Label>
@@ -1198,6 +1228,37 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
                                 {errors.pincode}
                             </Form.Control.Feedback>
                         </div>
+                        {formData.pincode && formData.pincode.length === 6 && !errors.pincode &&  (
+                        <>
+                            <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={labelStyle}>State</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="state"
+                                value={formData.state}
+                                readOnly
+                                size="sm"
+                                style={getInputStyle && getInputStyle("state")}
+                                isInvalid={!!errors.state}
+                            />
+                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
+                            </div>
+
+                            <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={labelStyle}>District</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="district"
+                                value={formData.district}
+                                readOnly
+                                size="sm"
+                                style={getInputStyle && getInputStyle("district")}
+                                isInvalid={!!errors.district}
+                            />
+                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
+                            </div>
+                        </>
+                        )}  
                     </div>
 
                     <div className="d-flex justify-content-end py-3 px-2">
