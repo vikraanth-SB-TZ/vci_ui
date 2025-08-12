@@ -73,7 +73,7 @@ const [perPage, setPerPage] = useState(10);
   const [formErrors, setFormErrors] = useState({});
   const tableRef = useRef(null);
   const dataTableInstance = useRef(null);
- 
+  
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
@@ -484,40 +484,37 @@ setReturns(updatedReturns);
                         </Form.Select>
                     </div>
 
-                    <div className="col-md-6 text-md-end">
-                        <div className="mt-2 d-inline-block mb-2">
-                            <Button
-                                variant="outline-secondary"
-                                size="sm"
-                                className="me-2"
-                                onClick={fetchAllData}
-                            >
-                                {loading ? (
-                                    <Spinner animation="border" size="sm" />
-                                ) : (
-                                    <i className="bi bi-arrow-clockwise"></i>
-                                )}
-                            </Button>
-                            <Button
-                                size="sm"
-                                onClick={() => handleShowForm()}
-                                style={{
-                                    backgroundColor: '#2FA64F',
-                                    borderColor: '#2FA64F',
-                                    color: '#fff'
-                                }}
-                            >
-                                + Add New
-                            </Button>
-                        </div>
-                        <Search
-                            search={search}
-                            setSearch={setSearch}
-                            perPage={perPage}
-                            setPerPage={setPerPage}
-                            setPage={setPage}
-                        />
-                    </div>
+<div className="col-md-6 text-md-end">
+    <div className="mt-2 d-inline-block mb-2">
+        <Button
+            variant="outline-secondary"
+            size="sm"
+            className="me-2"
+            onClick={fetchAllData}
+        >
+            <i className="bi bi-arrow-clockwise"></i>
+        </Button> 
+        <Button
+            size="sm"
+            onClick={() => handleShowForm()}
+            style={{
+                backgroundColor: '#2FA64F',
+                borderColor: '#2FA64F',
+                color: '#fff'
+            }}
+        >
+            + Add New
+        </Button>
+    </div>
+    <Search
+        search={search}
+        setSearch={setSearch}
+        perPage={perPage}
+        setPerPage={setPerPage}
+        setPage={setPage}
+    />
+</div>
+
                 </div>
             <div className="table-responsive">
                            <table ref={tableRef} className="table align-middle mb-0">
@@ -635,7 +632,7 @@ setReturns(updatedReturns);
         }}
       >
         <div className="d-flex justify-content-between align-items-start mb-4">
-          <h5 className="fw-bold mb-0">{editingReturn ? "Edit Spare part Return" : "Add New Spare part Return"}</h5>
+          <h5 className="fw-bold mb-0">{editingReturn ? "Edit Spare part Return" : " Spare part Return"}</h5>
           <button
             onClick={() => {
               setShowForm(false);

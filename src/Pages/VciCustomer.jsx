@@ -803,11 +803,57 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
           >
             Email {sortField === "email" && (sortDirection === "asc" ? "▲" : "▼")}
           </th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Gender</th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Company</th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Address</th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>State</th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>District</th>
+             <th
+            onClick={() => handleSort("gender")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            Gender {sortField === "gender" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>
+    <th
+            onClick={() => handleSort("company")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            company {sortField === "company" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>         
+    <th
+            onClick={() => handleSort("address")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            address {sortField === "address" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>         
+  <th
+            onClick={() => handleSort("state")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            state {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>                   
+  <th
+            onClick={() => handleSort("district")}
+            style={{
+              cursor: "pointer",
+              backgroundColor: "#2E3A59",
+              color: "white",
+            }}
+          >
+            district {sortField === "district" && (sortDirection === "asc" ? "▲" : "▼")}
+          </th>                   
+
           <th
             style={{
               width: "130px",
