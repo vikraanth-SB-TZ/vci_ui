@@ -62,7 +62,7 @@ export default function CategoryPage() {
       toast.warning("Category name is required!");
       return;
     }
-  
+
     const duplicate = categories.some(
       (c) =>
         c.category.toLowerCase() === categoryName.trim().toLowerCase() &&
@@ -72,10 +72,10 @@ export default function CategoryPage() {
       toast.error("Category already exists!");
       return;
     }
-  
+
     const payload = { category: categoryName.trim() };
     let updatedId = editingCategoryId;
-  
+
     try {
       if (editingCategoryId) {
         await axios.put(`${API_BASE_URL}/categories/${editingCategoryId}`, payload);
@@ -85,12 +85,12 @@ export default function CategoryPage() {
         toast.success("Category added successfully!");
         updatedId = res.data.id;
       }
-  
-     
+
+
       const res = await axios.get(`${API_BASE_URL}/categories`);
       let updatedList = Array.isArray(res.data) ? res.data : [];
-  
-     
+
+
       if (sortField) {
         updatedList.sort((a, b) => {
           const valA = a[sortField]?.toLowerCase?.() || "";
@@ -100,21 +100,21 @@ export default function CategoryPage() {
           return 0;
         });
       }
-  
-      
+
+
       const index = updatedList.findIndex((c) => c.id === updatedId);
       if (index !== -1) {
         const newPage = Math.floor(index / perPage) + 1;
         setPage(newPage);
       }
-  
+
       setCategories(updatedList);
       handleModalClose();
     } catch {
       toast.error("Failed to save category!");
     }
   };
-  
+
 
   const handleDelete = async (id) => {
     const result = await MySwal.fire({
@@ -162,11 +162,11 @@ export default function CategoryPage() {
   );
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Category" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -185,9 +185,8 @@ export default function CategoryPage() {
               ))}
             </Form.Select>
           </div>
-
-          <div className="col-md-6 text-md-end">
-            <div className="mt-2 d-inline-block mb-2">
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
               <Button
                 variant="outline-secondary"
                 size="sm"
@@ -199,7 +198,15 @@ export default function CategoryPage() {
               <Button
                 size="sm"
                 onClick={handleAddNewClick}
-                style={{ backgroundColor: "#2FA64F", borderColor: "#2FA64F", color: "#fff" }}
+                style={{
+                  backgroundColor: '#2FA64F',
+                  borderColor: '#2FA64F',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem',
+                  minWidth: '90px',
+                  height: '28px',
+                }}
               >
                 + Add Category
               </Button>
@@ -215,16 +222,17 @@ export default function CategoryPage() {
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle mb-0">
-            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+          <table className="table table-sm align-middle mb-0 custom-table" style={{ fontSize: "0.75rem" }}>
+            <thead style={{ backgroundColor: "#2E3A59", color: "white", fontSize: "0.82rem", height: "40px", verticalAlign: "middle" }}>
               <tr>
                 <th
                   style={{
-                    width: "80px", // Increased for better spacing of serial number
+                    width: "70px",
                     textAlign: "center",
                     backgroundColor: "#2E3A59",
                     color: "white",
-                    whiteSpace: "nowrap"
+                    cursor: "default",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   S.No
@@ -233,11 +241,13 @@ export default function CategoryPage() {
                 <th
                   onClick={() => handleSort("category")}
                   style={{
-                    width: "200px", // Increased for longer category names
+                    width: "150px",
                     backgroundColor: "#2E3A59",
                     color: "white",
                     cursor: "pointer",
-                    whiteSpace: "nowrap"
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
                   }}
                 >
                   VCI Category {sortField === "category" && (sortDirection === "asc" ? "▲" : "▼")}
@@ -245,17 +255,16 @@ export default function CategoryPage() {
 
                 <th
                   style={{
-                    width: "120px", // Slightly reduced but keeps buttons aligned
+                    width: "110px",
                     textAlign: "center",
                     backgroundColor: "#2E3A59",
                     color: "white",
-                    whiteSpace: "nowrap"
+                    whiteSpace: "nowrap",
                   }}
                 >
                   Action
                 </th>
               </tr>
-
             </thead>
             <tbody>
               {loading ? (
@@ -270,28 +279,30 @@ export default function CategoryPage() {
                     <img
                       src="/empty-box.png"
                       alt="No categories found"
-                      style={{ width: "80px", height: "100px", opacity: 0.6 }}
+                      style={{ width: "70px", height: "90px", opacity: 0.6 }}
                     />
                   </td>
                 </tr>
               ) : (
                 paginatedCategories.map((category, index) => (
                   <tr key={category.id}>
-                    <td
-                      className="text-center"
-                      style={{ width: "80px", whiteSpace: "nowrap" }}
-                    >
+                    <td className="text-center" style={{ width: "70px", whiteSpace: "nowrap" }}>
                       {(page - 1) * perPage + index + 1}
                     </td>
 
-                    <td style={{ width: "200px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <td
+                      style={{
+                        width: "150px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                      title={category.category}
+                    >
                       {category.category}
                     </td>
 
-                    <td
-                      className="text-center"
-                      style={{ width: "120px", whiteSpace: "nowrap" }}
-                    >
+                    <td className="text-center" style={{ width: "110px", whiteSpace: "nowrap" }}>
                       <Button
                         variant=""
                         size="sm"
@@ -315,11 +326,11 @@ export default function CategoryPage() {
                       </Button>
                     </td>
                   </tr>
-
                 ))
               )}
             </tbody>
           </table>
+
         </div>
 
         <Pagination
