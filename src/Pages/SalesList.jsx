@@ -92,7 +92,7 @@ export default function SalesListPage() {
   const paginatedData = sortedData.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
+    <div className="px-4" style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Sales List" />
 
       <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
