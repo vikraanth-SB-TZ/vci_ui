@@ -39,7 +39,14 @@ export default function vendor() {
     const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState(initialForm());
+    const [cityOptions, setCityOptions] = useState([]);
+    const [cityMenuIsOpen, setCityMenuIsOpen] = useState(false);
+    const [formData, setFormData] = useState({
+        city: "",
+        state: "",
+        district: "",
+        pincode: "",
+    });
     const [isEditing, setIsEditing] = useState(false);
     const [states, setStates] = useState([]);
     const [districtsForTable, setDistrictsForTable] = useState([]);
@@ -177,18 +184,50 @@ useEffect(() => {
             }
 
             if (name === "pincode") {
-                if (!/^\d*$/.test(value)) {
-                    return; 
-                }
-
-                if (value.length > 6) {
-                    return;
-                }
-
+                if (!/^\d*$/.test(value)) return;
+                if (value.length > 6) return;
+            
                 setFormData(prev => ({ ...prev, [name]: value }));
-
+            
                 if (value.length === 6) {
                     setErrors(prev => ({ ...prev, [name]: "" }));
+            
+                    fetch(`https://api.postalpincode.in/pincode/${value}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
+                                const cities = [...new Set(data[0].PostOffice.map(po => po.Name))].map(city => ({
+                                    label: city,
+                                    value: city,
+                                }));
+                                setCityOptions(cities);
+                                setCityMenuIsOpen(true);
+                                setFormData(prev => ({
+                                    ...prev,
+                                    city: cities[0]?.value || "",
+                                    state: data[0].PostOffice[0]?.State || "",
+                                    district: data[0].PostOffice[0]?.District || "",
+                                }));
+                                setErrors(prev => ({ ...prev, pincode: "", city: "", state: "", district: "" }));
+                                toast.success("Pincode matched! Please select city.", { autoClose: 1500 });
+                            } else {
+                                setCityOptions([]);
+                                setFormData(prev => ({ ...prev, city: "", state: "", district: "" }));
+                                setCityMenuIsOpen(false);
+                                setErrors(prev => ({ ...prev, pincode: "Invalid pincode" }));
+                                toast.error("Invalid Pincode", { autoClose: 1500 });
+                            }
+                        })
+                        .catch(() => {
+                            setCityOptions([]);
+                            setCityMenuIsOpen(false);
+                            setErrors(prev => ({ ...prev, pincode: "Error fetching pincode data" }));
+                            toast.error("Error fetching pincode data", { autoClose: 1500 });
+                        });
+                } else {
+                    setCityOptions([]);
+                    setCityMenuIsOpen(false);
+                    setFormData(prev => ({ ...prev, city: "", state: "", district: "" }));
                 }
                 return;
             }
@@ -222,9 +261,12 @@ useEffect(() => {
 
     const handleBlur = (e) => {
         const { name, value } = e.target;
-
         if (!value.trim()) {
-            setErrors(prev => ({ ...prev, [name]: `${name.replace("_", " ")} is required.` }));
+            if (name === "city") {
+                setErrors(prev => ({ ...prev, city: "City or Town is required." }));
+            } else {
+                setErrors(prev => ({ ...prev, [name]: `${name.replace("_", " ")} is required.` }));
+            }
             return;
         }
 
@@ -270,6 +312,34 @@ useEffect(() => {
         }
     };
 
+    const handlePincodeChange = async (e) => {
+        const value = e.target.value;
+        setPincode(value);
+    
+        if (value.length === 6) {
+            try {
+            const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+            const data = await res.json();
+    
+            if (data[0].Status === "Success") {
+                const cities = [
+                ...new Set(data[0].PostOffice.map((po) => po.Name)),
+                ].map((city) => ({ label: city, value: city }));
+    
+                setCityOptions(cities);
+                toast.success("Pincode matched! Please select city.");
+            } else {
+                toast.error("Invalid Pincode");
+                setCityOptions([]);
+            }
+            } catch (err) {
+            toast.error("Error fetching pincode data");
+            }
+        } else {
+            setCityOptions([]);
+        }
+        };
+
     const handleSelectBlur = (fieldName) => {
         const value = formData[fieldName];
         if (!value) {
@@ -281,49 +351,50 @@ useEffect(() => {
 
 
 
-const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
-    if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
-    if (!formData.email.trim()) newErrors.email = "Email is required.";
-    else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
-
-    if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
-    else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
-
-    if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) {
-        newErrors.altMobile = "Alternative mobile number must be 10 digits.";
-    }
-
-    if (
-        formData.mobile &&
-        formData.altMobile &&
-        formData.mobile === formData.altMobile
-    ) {
-        newErrors.altMobile = "Mobile and alternative mobile numbers should not be the same.";
-    }
-
-    if (!formData.gender) newErrors.gender = "Gender is required.";
-
-    const today = new Date().toISOString().slice(0, 10);
-    if (!formData.dob) newErrors.dob = "Date of Birth is required.";
-    else if (formData.dob > today) newErrors.dob = "Date of Birth cannot be in the future.";
-
-    if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
-    if (!formData.address.trim()) newErrors.address = "Address is required.";
-    if (!formData.city.trim()) newErrors.city = "City is required.";
-
-    if (!formData.gst.trim()) newErrors.gst = "GST_NO is required.";
-if (!formData.state) newErrors.state = "State is required.";
-if (!formData.district) newErrors.district = "District is required.";
-
-    if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
-    else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-};
+    const validateForm = () => {
+        const newErrors = {};
+    
+        if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
+        if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
+        if (!formData.email.trim()) newErrors.email = "Email is required.";
+        else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
+    
+        if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
+        else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
+    
+        if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) {
+            newErrors.altMobile = "Alternative mobile number must be 10 digits.";
+        }
+    
+        if (
+            formData.mobile &&
+            formData.altMobile &&
+            formData.mobile === formData.altMobile
+        ) {
+            newErrors.altMobile = "Mobile and alternative mobile numbers should not be the same.";
+        }
+    
+        if (!formData.gender) newErrors.gender = "Gender is required.";
+    
+        const today = new Date().toISOString().slice(0, 10);
+        if (!formData.dob) newErrors.dob = "Date of Birth is required.";
+        else if (formData.dob > today) newErrors.dob = "Date of Birth cannot be in the future.";
+    
+        if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
+        if (!formData.address.trim()) newErrors.address = "Address is required.";
+        if (!formData.city.trim()) newErrors.city = "City or Town is required.";
+        if (!formData.state.trim()) newErrors.state = "State is required.";
+        if (!formData.district.trim()) newErrors.district = "District is required.";
+    
+        if (!formData.gst.trim()) newErrors.gst = "GST No. is required.";
+        else if (!/^[0-9A-Z]{15}$/.test(formData.gst)) newErrors.gst = "GST No. must be 15 alphanumeric characters.";
+    
+        if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
+        else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
+    
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
 
     const handleSubmit = (e) => {
@@ -1147,54 +1218,21 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
                             </Form.Control.Feedback>
                         </div>
                         <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>City</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="city"
-                                value={formData.city}
-                                onChange={handleChange}
-                                placeholder="Enter City"
-                                size="sm"
-                                isInvalid={!!errors.city}
-                                style={getInputStyle("city")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.city}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>State</Form.Label>
-                            <Select
-                                name="state"
-                                value={stateOptions.find(option => option.value === formData.state) || null}
-                                onChange={(selectedOption) => handleChange(selectedOption, "state")}
-                                onBlur={() => handleSelectBlur("state")}
-                                options={stateOptions}
-                                placeholder="Select State"
-                                isClearable={true}
-                                styles={customSelectStyles}
-                                components={{ Option: SimpleOption }}
-                                classNamePrefix="react-select"
-                                errors={errors}
-                            />
-                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>District</Form.Label>
-                            <Select
-                                name="district"
-                                value={districtOptions.find(option => option.value === formData.district) || null}
-                                onChange={(selectedOption) => handleChange(selectedOption, "district")}
-                                options={districtOptions}
-                                placeholder="Select District"
-                                isClearable={true}
-                                styles={customSelectStyles}
-                                components={{ Option: SimpleOption }}
-                                classNamePrefix="react-select"
-                                isDisabled={!formData.state}
-                                errors={errors}
-                            />
-                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
+                        <Form.Label className="mb-1" style={labelStyle}>
+                            City / Town
+                        </Form.Label>
+                        <Form.Control
+                            type="text"
+                            name="city"
+                            value={formData.city || ""}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            size="sm"
+                            style={getInputStyle && getInputStyle("city")}
+                            isInvalid={!!errors.city}
+                            placeholder="Enter city or town name"
+                        />
+                        {errors.city && <div style={errorStyle}>{errors.city}</div>}
                         </div>
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={labelStyle}>Pincode</Form.Label>
@@ -1212,6 +1250,38 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
                                 {errors.pincode}
                             </Form.Control.Feedback>
                         </div>
+                        {formData.pincode && formData.pincode.length === 6 && !errors.pincode &&  (
+                        <>
+                            <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={labelStyle}>State</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="state"
+                                value={formData.state || ""}
+                                readOnly
+                                size="sm"
+                                style={getInputStyle && getInputStyle("state")}
+                                isInvalid={!!errors.state}
+                            />
+                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
+                        </div>
+
+                        <div className="col-6 mb-2">
+                            <Form.Label className="mb-1" style={labelStyle}>District</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="district"
+                                value={formData.district || ""}
+                                readOnly
+                                size="sm"
+                                style={getInputStyle && getInputStyle("district")}
+                                isInvalid={!!errors.district}
+                            />
+                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
+                        </div>
+                        
+                        </>
+                        )}  
                     </div>
 
                     <div className="d-flex justify-content-end py-3 px-2">
