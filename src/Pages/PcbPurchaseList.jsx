@@ -11,6 +11,7 @@ import Pagination from "./Components/Pagination";
 import Search from "./Components/Search";
 import ActionButtons from "./Components/ActionButtons";
 
+
 export default function PurchaseListPage() {
   const navigate = useNavigate();
 
@@ -47,6 +48,11 @@ export default function PurchaseListPage() {
   const handleEdit = (item) => {
     navigate(`/purchase/${item.id}/edit`);
   };
+
+const handleReturn = (invoice_no) => {
+  navigate(`/pcb-purchase-return/add?invoice=${encodeURIComponent(invoice_no)}`);
+};
+
 
   const handleDelete = (purchaseId) => {
     Swal.fire({
@@ -202,7 +208,7 @@ export default function PurchaseListPage() {
                 {renderHeader("Vendor", "vendor")}
                 {renderHeader("Invoice No", "invoice_no")}
                 {renderHeader("Invoice Date", "invoice_date")}
-                {renderHeader("Batch", "batch")}
+                {/* {renderHeader("Batch", "batch")} */}
                 {renderHeader("Category", "category")}
                 {renderHeader("Quantity", "quantity")}
                 <th
@@ -240,15 +246,16 @@ export default function PurchaseListPage() {
                     <td>{item.vendor}</td>
                     <td>{item.invoice_no}</td>
                     <td>{item.invoice_date}</td>
-                    <td>{item.batch}</td>
+                    {/* <td>{item.batch}</td> */}
                     <td>{item.category}</td>
                     <td>{item.quantity}</td>
                     <td className="text-center" style={{ width: "130px" }}>
-                      <div className="d-flex justify-content-center">
+                      <div className="d-flex justify-content-center gap-1">
                         <ActionButtons
                           onPdf={() => handleGenerateInvoice(item.id)}
                           onEdit={() => handleEdit(item)}
                           onDelete={() => handleDelete(item.id)}
+                           onReturn={() => handleReturn(item.invoice_no)}
                         />
                       </div>
                     </td>

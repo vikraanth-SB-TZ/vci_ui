@@ -83,7 +83,7 @@ export default function PcbPurchaseReturn() {
   const sortedReturns = [...returns]
     .filter((r) =>
       r.vendor_name?.toLowerCase().includes(search.toLowerCase()) ||
-      r.batch_name?.toLowerCase().includes(search.toLowerCase()) ||
+      // r.batch_name?.toLowerCase().includes(search.toLowerCase()) ||
       r.category_name?.toLowerCase().includes(search.toLowerCase()) ||
       r.invoice_no?.toLowerCase().includes(search.toLowerCase()) ||
       r.invoice_date?.toLowerCase().includes(search.toLowerCase()) ||
@@ -179,10 +179,10 @@ export default function PcbPurchaseReturn() {
                     color: "white" }}>
                   Vendor{renderSortArrow("vendor_name")}
                 </th>
-                <th onClick={() => handleSort("batch_name")} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
+                {/* <th onClick={() => handleSort("batch_name")} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
                     color: "white" }}>
                   Batch{renderSortArrow("batch_name")}
-                </th>
+                </th> */}
                 <th onClick={() => handleSort("category_name")} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
                     color: "white" }}>
                   Category{renderSortArrow("category_name")}
@@ -226,7 +226,7 @@ export default function PcbPurchaseReturn() {
                       {(page - 1) * perPage + index + 1}
                     </td>
                     <td>{item.vendor_name}</td>
-                    <td>{item.batch_name}</td>
+                    {/* <td>{item.batch_name}</td> */}
                     <td>{item.category_name}</td>
                     <td>{item.invoice_no}</td>
                     <td>{item.invoice_date}</td>
