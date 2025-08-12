@@ -507,7 +507,7 @@ export default function PurchaseSparepartsPage() {
             }
 
             // Reset form
-            setFormData({ vendor_id: "", invoiceNo: "",  notes: "" });
+            setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
             setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
             setEditingReturn(null);
             setShowReturnForm(false);
@@ -590,7 +590,7 @@ export default function PurchaseSparepartsPage() {
         } else {
             setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
             setInvoiceDate(new Date().toISOString().split("T")[0]);
-            setFormData({ vendor_id: "",  invoiceNo: "", notes: "" });
+            setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
         }
         setShowForm(true);
         setShowReturnForm(false);
@@ -660,30 +660,30 @@ export default function PurchaseSparepartsPage() {
     const paginatedSpareparts = sortedSpareparts.slice((page - 1) * perPage, page * perPage);
 
     return (
-        <div className="px-4 py-2">
+        <div className="px-4 " style={{ fontSize: "0.75rem" }}>
             <Breadcrumb title="Purchase Spare Parts" />
-            <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-                <div className="row mb-3">
+            <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+                <div className="row mb-2">
                     <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
                         <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
                         <Form.Select
                             size="sm"
                             style={{ width: "100px" }}
                             value={perPage}
-                            onChange={e => {
+                            onChange={(e) => {
                                 setPerPage(Number(e.target.value));
                                 setPage(1);
                             }}
                         >
-                            {[5, 10, 25, 50].map(n => (
+                            {[5, 10, 25, 50].map((n) => (
                                 <option key={n} value={n}>
                                     {n}
                                 </option>
                             ))}
                         </Form.Select>
                     </div>
-                    <div className="col-md-6 text-md-end">
-                        <div className="mt-2 d-inline-block mb-2">
+                    <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+                        <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
                             <Button
                                 variant="outline-secondary"
                                 size="sm"
@@ -696,9 +696,13 @@ export default function PurchaseSparepartsPage() {
                                 size="sm"
                                 onClick={() => handleShowForm()}
                                 style={{
-                                    backgroundColor: "#2FA64F",
-                                    borderColor: "#2FA64F",
-                                    color: "#fff",
+                                    backgroundColor: '#2FA64F',
+                                    borderColor: '#2FA64F',
+                                    color: '#fff',
+                                    padding: '0.25rem 0.5rem',
+                                    fontSize: '0.8rem',
+                                    minWidth: '90px',
+                                    height: '28px',
                                 }}
                             >
                                 + Add New
@@ -714,7 +718,7 @@ export default function PurchaseSparepartsPage() {
                     </div>
                 </div>
                 <div className="table-responsive">
-                    <table ref={tableRef} className="table align-middle mb-0">
+                    <table ref={tableRef} className=" custom-table table align-middle mb-0">
                         <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
                             <tr>
                                 <th
@@ -773,45 +777,45 @@ export default function PurchaseSparepartsPage() {
                                         <td>{new Date(purchase.invoice_date).toLocaleDateString("en-GB")}</td>
                                         <td>{purchase.invoice_no}</td>
                                         <td>
-                                        <div className="d-flex align-items-center gap-1">
-  <Button
-    variant=""
-    size="sm"
-    className="p-1"
-    onClick={() => handleShowForm(purchase)}
-    style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-  >
-    <i className="bi bi-pencil-square"></i>
-  </Button>
+                                            <div className="d-flex align-items-center gap-1">
+                                                <Button
+                                                    variant=""
+                                                    size="sm"
+                                                    className="p-1"
+                                                    onClick={() => handleShowForm(purchase)}
+                                                    style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                                                >
+                                                    <i className="bi bi-pencil-square"></i>
+                                                </Button>
 
-  <Button
-    variant="outline-primary"
-    size="sm"
-    className="p-1"
-    onClick={() => handleDelete(purchase.id)}
-    style={{
-      borderColor: "#2E3A59",
-      color: "#2E3A59",
-      backgroundColor: "transparent",
-    }}
-  >
-    <i className="bi bi-trash"></i>
-  </Button>
+                                                <Button
+                                                    variant="outline-primary"
+                                                    size="sm"
+                                                    className="p-1"
+                                                    onClick={() => handleDelete(purchase.id)}
+                                                    style={{
+                                                        borderColor: "#2E3A59",
+                                                        color: "#2E3A59",
+                                                        backgroundColor: "transparent",
+                                                    }}
+                                                >
+                                                    <i className="bi bi-trash"></i>
+                                                </Button>
 
-  <Button
-    variant="outline-warning"
-    size="sm"
-    className="p-1"
-    onClick={() => handleShowReturnForm(purchase)}
-    style={{
-      borderColor: "#2E3A59",
-      color: "#2E3A59",
-      backgroundColor: "transparent",
-    }}
-  >
-    <i className="bi bi-arrow-return-left"></i>
-  </Button>
-</div>
+                                                <Button
+                                                    variant="outline-warning"
+                                                    size="sm"
+                                                    className="p-1"
+                                                    onClick={() => handleShowReturnForm(purchase)}
+                                                    style={{
+                                                        borderColor: "#2E3A59",
+                                                        color: "#2E3A59",
+                                                        backgroundColor: "transparent",
+                                                    }}
+                                                >
+                                                    <i className="bi bi-arrow-return-left"></i>
+                                                </Button>
+                                            </div>
 
                                         </td>
                                     </tr>
