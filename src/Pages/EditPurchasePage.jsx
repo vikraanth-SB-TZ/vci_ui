@@ -75,7 +75,7 @@ export default function EditPurchasePage() {
     toast.success('Serial removed');
   };
 
-  const handleAddNewSerials = () => {
+const handleAddNewSerials = async () => {
   const input = newSerialsInput.trim();
   if (!input) return;
 
@@ -84,27 +84,39 @@ export default function EditPurchasePage() {
     .map(sn => sn.trim())
     .filter(sn => sn !== '');
 
-  // Check for duplicates within the input itself
+  // Check duplicates within input itself
   const inputDuplicates = rawEntries.filter((item, index) => rawEntries.indexOf(item) !== index);
   if (inputDuplicates.length > 0) {
     toast.error(`Duplicate serials in input: ${[...new Set(inputDuplicates)].join(', ')}`);
     return;
   }
 
-  // Check against existing serials in state
-  const newEntries = rawEntries
-    .filter(sn => !serials.some(s => s.serial_no === sn))
-    .map(sn => ({ serial_no: sn, remark: '', quality_check: '' }));
-
-  if (newEntries.length === 0) {
+  // Check duplicates against current serials loaded in state
+  const uniqueEntries = rawEntries.filter(sn => !serials.some(s => s.serial_no === sn));
+  if (uniqueEntries.length === 0) {
     toast.warning('No valid or unique serials entered.');
     return;
   }
 
-  setSerials([...serials, ...newEntries]);
-  setNewSerialsInput('');
-  toast.success(`${newEntries.length} serial(s) added.`);
+  try {
+    // Call your backend checkSerials API to find global duplicates
+    const res = await axios.post(`${API_BASE_URL}/check-serials`, { serials: uniqueEntries });
+
+    if (res.data.status && res.data.duplicates && res.data.duplicates.length > 0) {
+      toast.error(`These serials already exist: ${res.data.duplicates.join(', ')}`);
+      return;
+    }
+
+    // Add new unique serials to state
+    const newEntries = uniqueEntries.map(sn => ({ serial_no: sn, remark: '', quality_check: '' }));
+    setSerials([...serials, ...newEntries]);
+    setNewSerialsInput('');
+    toast.success(`${newEntries.length} serial(s) added.`);
+  } catch (err) {
+    toast.error('Failed to validate serials. Please try again.');
+  }
 };
+
 
 
   const handleSubmit = (e) => {
@@ -115,7 +127,7 @@ const payload = {
   invoice_no: purchase.invoice_no, // ✅ Add this line
   invoice_date: purchase.invoice_date,
   vendor_id: purchase.vendor_id,
-  batch_id: purchase.batch_id,
+  // batch_id: purchase.batch_id,
   category_id: purchase.category_id,
   remark_quality: serials.map(item => ({
     serial_no: item.serial_no,
@@ -203,7 +215,7 @@ const payload = {
             />
           </Col>
           <Col md={6}>
-            <Form.Group>
+            {/* <Form.Group>
               <Form.Label className="text-muted mb-1">Batch</Form.Label>
               <Form.Select
                 name="batch_id"
@@ -216,7 +228,7 @@ const payload = {
                   <option key={b.id} value={b.id}>{b.name || `Batch ${b.id}`}</option>
                 ))}
               </Form.Select>
-            </Form.Group>
+            </Form.Group> */}
           </Col>
         </Row>
 

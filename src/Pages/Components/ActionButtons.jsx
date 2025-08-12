@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "react-bootstrap";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
-export default function ActionButtons({ onPdf, onEdit, onDelete }) {
+export default function ActionButtons({ onPdf, onEdit, onDelete ,onReturn }) {
   return (
     <>
       {onPdf && (
@@ -69,6 +69,17 @@ export default function ActionButtons({ onPdf, onEdit, onDelete }) {
         >
           <i className="bi bi-trash"></i>
         </Button>
+      )}
+
+
+         {onReturn && (
+        <button
+          className="btn btn-sm btn-outline-info"
+          title="Return Purchase"
+          onClick={onReturn}
+        >
+          <i className="bi bi-arrow-return-left"></i>
+        </button>
       )}
     </>
   );

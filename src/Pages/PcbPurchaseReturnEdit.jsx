@@ -1,174 +1,219 @@
 import React, { useEffect, useState } from 'react';
+import { Form, Row, Col, Button, Container, Table, Spinner } from 'react-bootstrap';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Form, Button, Table } from 'react-bootstrap';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { API_BASE_URL } from "../api";
-
-
+import { API_BASE_URL } from '../api';
 
 export default function EditPurchaseReturnPage() {
-  const [selectedInvoice, setSelectedInvoice] = useState('');
+  const navigate = useNavigate();
+  const { id } = useParams();
   const [purchaseData, setPurchaseData] = useState(null);
   const [returnItems, setReturnItems] = useState([]);
   const [returnId, setReturnId] = useState(null);
   const [reason, setReason] = useState('');
-   const [submitting, setSubmitting] = useState(false); 
-  const { id } = useParams(); 
-  const navigate = useNavigate();
-
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (id) {
-      axios.get(`${API_BASE_URL}/purchase-return-by-id/${id}`)
-        .then(res => {
-          setSelectedInvoice(res.data.purchase.invoice_no); 
+      axios
+        .get(`${API_BASE_URL}/purchase-return-by-id/${id}`)
+        .then((res) => {
           setPurchaseData(res.data.purchase);
           setReturnId(res.data.return_id ?? null);
           setReason(res.data.purchase.reason || '');
 
-          const items = res.data.items.map(item => ({
+          const items = res.data.items.map((item) => ({
             ...item,
             selected: item.selected || false,
             remark: item.remark || '',
-            quality_check: item.quality_check || ''
+            quality_check: item.quality_check || '',
           }));
           setReturnItems(items);
+        })
+        .catch((err) => {
+          toast.error(err.response?.data?.message || 'Failed to load purchase return details.');
+        })
+        .finally(() => {
+          setLoading(false);
         });
     }
   }, [id]);
 
-  const handleSubmit = () => {
-    if (submitting) return; // 🔒 Prevent multiple clicks
-    setSubmitting(true);     // ✅ Lock the button
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-    const selectedItems = returnItems.filter(i => i.selected);
+    if (submitting) return;
+    setSubmitting(true);
+
+    const selectedItems = returnItems.filter((i) => i.selected);
 
     const payload = {
       pcb_board_purchase_id: purchaseData.id,
       reason: reason,
-      items: selectedItems.map(item => ({
+      items: selectedItems.map((item) => ({
         id: item.id,
         remark: item.remark,
-        quality_check: item.quality_check
-      }))
+        quality_check: item.quality_check,
+      })),
     };
 
-    const url = `${API_BASE_URL}/purchase-returns/${returnId}`;
-    axios.put(url, payload)
+    axios
+      .put(`${API_BASE_URL}/purchase-returns/${returnId}`, payload)
       .then(() => {
-        toast.success('Return updated successfully!');
+        toast.success('Return updated successfully!', { autoClose: 3000 });
         setTimeout(() => navigate(-1), 1500);
       })
-      .catch(err => {
+      .catch((err) => {
         toast.error('Failed: ' + (err.response?.data?.message || err.message));
-        setSubmitting(false); 
+        setSubmitting(false);
       });
   };
 
+  if (loading) {
+    return (
+      <Container className="py-5 text-center">
+        <Spinner animation="border" />
+      </Container>
+    );
+  }
 
   return (
-    <div className="bg-white min-vh-100 p-4">
-      <h5>Edit Purchase Return</h5>
-     <div className='text-end pt-0'>
-             <Button
-                variant="secondary"
-            
-                className="me-2"
-                onClick={() => navigate(-1)}
-              >
-                <i className="bi bi-arrow-left" />  Back
-              </Button>
+    <Container className="py-5">
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4 className="fw-bold text-dark">Edit Purchase Return</h4>
+        <Button variant="outline-secondary" onClick={() => navigate(-1)}>
+          <i className="bi bi-arrow-left" /> Back
+        </Button>
       </div>
 
+      <Form onSubmit={handleSubmit} className="border p-4 rounded shadow-sm bg-white">
+        {/* Row 1 - Basic Purchase Info */}
+        <Row className="mb-3">
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Vendor</Form.Label>
+              <Form.Control
+                readOnly
+                value={purchaseData.vendor_name}
+                className="bg-light border-0 text-muted"
+              />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Category</Form.Label>
+              <Form.Control
+                readOnly
+                value={purchaseData.category_name}
+                className="bg-light border-0 text-muted"
+              />
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group>
+              <Form.Label>Invoice No</Form.Label>
+              <Form.Control
+                readOnly
+                value={purchaseData.invoice_no}
+                className="bg-light border-0 text-muted"
+              />
+            </Form.Group>
+          </Col>
+        </Row>
 
-      <Form.Group>
-        <Form.Label>Invoice Number</Form.Label>
-        <Form.Control
-          type="text"
-          value={selectedInvoice}
-          readOnly
-          plaintext
-        />
-      </Form.Group>
+        {/* Row 2 - Reason */}
+        <Row className="mb-3">
+          <Col>
+            <Form.Group>
+              <Form.Label>Return Reason</Form.Label>
+              <Form.Control
+                as="textarea"
+                rows={2}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
 
-      {purchaseData && (
-        <>
-          <Form.Group className="mt-3">
-            <Form.Label>Reason</Form.Label>
-            <Form.Control
-              as="textarea"
-              placeholder="Optional reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-            />
-          </Form.Group>
+        {/* Returned Items Table */}
+        <Row className="mb-4">
+          <Col>
+            <h5 className="fw-semibold mb-3">Returned Product Serials</h5>
+            <div className="table-responsive">
+              <Table bordered size="sm">
+                <thead>
+                  <tr className="table-light">
+                    <th>S.No</th>
+                    <th>Serial No</th>
+                    <th>Remark</th>
+                    <th>Quality Check</th>
+                    <th className="text-center">Returned</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {returnItems.map((item, idx) => (
+                    <tr key={item.id}>
+                      <td>{idx + 1}</td>
+                      <td>{item.serial_no}</td>
+                      <td>
+                        <Form.Control
+                          size="sm"
+                          value={item.remark}
+                          onChange={(e) => {
+                            const updated = [...returnItems];
+                            updated[idx].remark = e.target.value;
+                            setReturnItems(updated);
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          size="sm"
+                          value={item.quality_check}
+                          onChange={(e) => {
+                            const updated = [...returnItems];
+                            updated[idx].quality_check = e.target.value;
+                            setReturnItems(updated);
+                          }}
+                        />
+                      </td>
+                      <td className="text-center">
+                        <Form.Check
+                          type="checkbox"
+                          checked={item.selected || false}
+                          onChange={(e) => {
+                            const updated = [...returnItems];
+                            updated[idx].selected = e.target.checked;
+                            setReturnItems(updated);
+                          }}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </div>
+          </Col>
+        </Row>
 
-          <Table className="mt-3">
-            <thead>
-              <tr>
-                <th>Sno</th>
-                <th>Serial No</th>
-                <th>Remark</th>
-                <th>Return?</th>
-              </tr>
-            </thead>
-            <tbody>
-              {returnItems.map((item, index) => (
-                <tr key={item.id}>
-                  <td>{index + 1}</td>
-                  <td>{item.serial_no}</td>
-                  <td>
-                    <Form.Control
-                      size="sm"
-                      value={item.remark}
-                      onChange={(e) => {
-                        const newItems = [...returnItems];
-                        newItems[index].remark = e.target.value;
-                        setReturnItems(newItems);
-                      }}
-                    />
-                  </td>
-                  <td>
-                    <Form.Check
-                      type="checkbox"
-                      checked={item.selected}
-                      onChange={(e) => {
-                        const newItems = [...returnItems];
-                        newItems[index].selected = e.target.checked;
-                        setReturnItems(newItems);
-                      }}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-
-  <div className="text-end mb-3">
-  <Button
-    variant="secondary"
-
-    className="me-2"
-    onClick={() => navigate(-1)}
-  >
-    Cancel
-  </Button>
-    <Button
-              onClick={handleSubmit}
-              variant="success"
-              disabled={submitting} 
-            >
-              {submitting ? 'Updating...' : 'Update Return'}
+        {/* Final Actions */}
+        <Row className="mt-4">
+          <Col className="text-end">
+            <Button type="submit" variant="success" className="me-2" disabled={submitting}>
+              {submitting ? 'Updating...' : 'Update'}
             </Button>
-</div>
-
-        </>
-      )}
-      <ToastContainer position="top-right" autoClose={2000} />
-
-    </div>
+            <Button variant="secondary" onClick={() => navigate(-1)}>
+              Cancel
+            </Button>
+          </Col>
+        </Row>
+      </Form>
+    </Container>
   );
 }
