@@ -8,7 +8,7 @@ const Search = ({ search, setSearch, setPage }) => {
                 <input
                     type="search"
                     className="form-control form-control-sm"
-                    style={{ width: 160 }}
+                    style={{ width: 160 ,height: 25 }}
                     value={search}
                     onChange={(e) => {
                         setSearch(e.target.value);

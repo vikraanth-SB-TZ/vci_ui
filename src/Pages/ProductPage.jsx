@@ -87,40 +87,61 @@ export default function ProductPage() {
   };
 
   const handleDelete = async (id) => {
-    const result = await MySwal.fire({
-      title: "Are you sure?",
-      text: "Do you really want to delete this product?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-    });
-    if (!result.isConfirmed) return;
-    try {
-      await axios.delete(`${API_BASE_URL}/products/${id}`);
-      toast.success("Product deleted!");
-      fetchAllData();
-    } catch {
-      toast.error("Failed to delete product!");
-    }
-  };
+  const result = await MySwal.fire({
+    title: "Are you sure?",
+    text: "Do you really want to delete this product?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+    didOpen: (popup) => {
+      const title = popup.querySelector(".swal2-title");
+      const content = popup.querySelector(".swal2-html-container");
+      const confirmBtn = popup.querySelector(".swal2-confirm");
+      const cancelBtn = popup.querySelector(".swal2-cancel");
+      const container = popup.querySelector(".swal2-popup");
+
+      if (title) title.style.fontSize = "0.9rem";
+      if (content) content.style.fontSize = "0.8rem";
+      if (confirmBtn) confirmBtn.style.fontSize = "0.85rem";
+      if (cancelBtn) cancelBtn.style.fontSize = "0.85rem";
+
+      if (container) {
+        container.style.width = "150px";       // Set modal width
+        container.style.height = "100px";      // Set modal height
+        container.style.maxHeight = "90vh";    // Optional max height for responsiveness
+        container.style.padding = "0.5rem 0.5rem"; // Adjust padding for compactness
+      }
+    },
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await axios.delete(`${API_BASE_URL}/products/${id}`);
+    toast.success("Product deleted!");
+    fetchAllData();
+  } catch {
+    toast.error("Failed to delete product!");
+  }
+};
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     let updatedData = { ...productData, [name]: value };
-  
+
     if (name === "test") {
       if (value === "Issue") {
         updatedData.sale_status = "Reserved";
       } else if (productData.test === "Issue" && value === "Ok") {
-        updatedData.sale_status = ""; 
+        updatedData.sale_status = "";
       }
     }
-  
+
     setProductData(updatedData);
   };
-  
 
   const validateForm = () => {
     const requiredFields = [
@@ -144,26 +165,22 @@ export default function ProductPage() {
   };
 
   const handleSave = async () => {
-  if (!validateForm()) return;
-  try {
-    if (isEditing) {
-      await axios.put(`${API_BASE_URL}/products/${productData.id}`, productData);
-      toast.success("Product updated!");
-    } else {
-      await axios.post(`${API_BASE_URL}/products`, productData);
-      toast.success("Product added!");
+    if (!validateForm()) return;
+    try {
+      if (isEditing) {
+        await axios.put(`${API_BASE_URL}/products/${productData.id}`, productData);
+        toast.success("Product updated!");
+      } else {
+        await axios.post(`${API_BASE_URL}/products`, productData);
+        toast.success("Product added!");
+      }
+
+      setShowModal(false);
+      fetchAllData();
+    } catch {
+      toast.error("Failed to save product!");
     }
-
-    setShowModal(false);
-
-    fetchAllData();
-    
-  } catch {
-    toast.error("Failed to save product!");
-  }
-};
-
-  
+  };
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -205,16 +222,18 @@ export default function ProductPage() {
   const paginatedProducts = sortedProducts.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4" style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Products" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-3 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
-            <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+            <label className="me-2 fw-semibold mb-0" style={{ fontSize: "0.8rem" }}>
+              Records Per Page:
+            </label>
             <Form.Select
               size="sm"
-              style={{ width: "100px" }}
+              style={{ width: "90px", fontSize: "0.8rem", padding: "4px 8px" }}
               value={perPage}
               onChange={(e) => {
                 setPerPage(Number(e.target.value));
@@ -222,38 +241,81 @@ export default function ProductPage() {
               }}
             >
               {[5, 10, 25, 50].map((n) => (
-                <option key={n} value={n}>{n}</option>
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </Form.Select>
           </div>
-          <div className="col-md-6 text-md-end">
+          <div className="col-md-6 text-md-end" style={{ fontSize: "0.8rem" }}>
             <div className="mt-2 d-inline-block mb-2">
               <Button
                 variant="outline-secondary"
                 size="sm"
-                className="me-2"
+                className="me-2 p-1"
                 onClick={fetchAllData}
+                style={{ fontSize: "0.8rem", minWidth: "32px", height: "28px" }}
               >
                 <i className="bi bi-arrow-clockwise"></i>
               </Button>
               <Button
                 size="sm"
                 onClick={handleAddNewClick}
-                style={{ backgroundColor: "#2FA64F", borderColor: "#2FA64F", color: "#fff" }}
+                style={{
+                  backgroundColor: "#2FA64F",
+                  borderColor: "#2FA64F",
+                  color: "#fff",
+                  padding: "0.25rem 0.5rem",
+                  fontSize: "0.8rem",
+                  minWidth: "90px",
+                  height: "28px",
+                }}
+                className="btn-success text-white"
               >
                 + Add Product
               </Button>
             </div>
-            <Search search={search} setSearch={setSearch} perPage={perPage} setPerPage={setPerPage} setPage={setPage} />
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+              <div style={{ maxWidth: "220px", marginTop: "0.25rem", marginRight: "0.5rem" }}>
+                {/* Empty div for spacing if needed */}
+              </div>
+              <Search
+                search={search}
+                setSearch={setSearch}
+                perPage={perPage}
+                setPerPage={setPerPage}
+                setPage={setPage}
+                style={{ fontSize: "0.8rem" }}
+              />
+            </div>
           </div>
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle mb-0">
-            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+          <table className="table table-sm align-middle mb-0" style={{ fontSize: "0.85rem" }}>
+            <thead
+              style={{
+                backgroundColor: "#2E3A59",
+                color: "white",
+                fontSize: "0.82rem",
+                height: "40px",
+                verticalAlign: "middle",
+              }}
+            >
               <tr>
-                <th className="text-center" style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                  color: "white", }}>S.No</th>
+                <th
+                  style={{
+                    width: "70px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    backgroundColor: "#2E3A59",
+                    color: "white",
+                    padding: "6px 8px",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  S.No
+                </th>
                 {[
                   { key: "batch", label: "Batch" },
                   { key: "category", label: "Category" },
@@ -262,45 +324,90 @@ export default function ProductPage() {
                   { key: "firmware_version", label: "Firmware" },
                   { key: "hsn_code", label: "HSN Code" },
                   { key: "test", label: "Test" },
-                  { key: "sale_status", label: "Sale Status" }
+                  { key: "sale_status", label: "Sale Status" },
                 ].map(({ key, label }) => (
-                  <th key={key} onClick={() => handleSort(key)} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                  color: "white", }}>
+                  <th
+                    key={key}
+                    onClick={() => handleSort(key)}
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor: "#2E3A59",
+                      color: "white",
+                      padding: "6px 8px",
+                      verticalAlign: "middle",
+                    }}
+                  >
                     {label} {sortField === key && (sortDirection === "asc" ? "▲" : "▼")}
                   </th>
                 ))}
-                <th className="text-center"style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                  color: "white", }}>Action</th>
+                <th
+                  style={{
+                    width: "130px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    backgroundColor: "#2E3A59",
+                    color: "white",
+                    padding: "6px 8px",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  Action
+                </th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="10" className="text-center py-4"><Spinner animation="border" /></td></tr>
+                <tr>
+                  <td colSpan="10" className="text-center py-3" style={{ fontSize: "0.85rem" }}>
+                    <Spinner animation="border" size="sm" />
+                  </td>
+                </tr>
               ) : paginatedProducts.length === 0 ? (
-                <tr><td colSpan="10" className="text-center py-4 text-muted">
-                  <img src="/empty-box.png" alt="No products" style={{ width: "80px", opacity: 0.6 }} />
-                </td></tr>
+                <tr>
+                  <td colSpan="10" className="text-center py-3 text-muted" style={{ fontSize: "0.85rem" }}>
+                    <img src="/empty-box.png" alt="No products" style={{ width: "60px", opacity: 0.6 }} />
+                  </td>
+                </tr>
               ) : (
                 paginatedProducts.map((p, index) => (
-                  <tr key={p.id}>
-                    <td className="text-center">{(page - 1) * perPage + index + 1}</td>
-                    <td>{p.batch?.batch || "—"}</td>
-                    <td>{p.category?.category || "—"}</td>
-                    <td>{p.serial_no}</td>
-                    <td>{p.manufacture_no}</td>
-                    <td>{p.firmware_version}</td>
-                    <td>{p.hsn_code}</td>
-                    <td>{p.test}</td>
-                    <td>{p.sale_status}</td>
-                    <td className="text-center">
-                      <Button size="sm" variant="" onClick={() => handleEdit(p)} className="me-1" style={{ borderColor: "#2E3A59", color: "#2E3A59" }}>
+                  <tr key={p.id} style={{ height: "36px" }}>
+                    <td className="text-center" style={{ padding: "6px 8px", verticalAlign: "middle" }}>
+                      {(page - 1) * perPage + index + 1}
+                    </td>
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.batch?.batch || "—"}</td>
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.category?.category || "—"}</td>
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.serial_no}</td>
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.manufacture_no}</td>
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.firmware_version}</td>
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.hsn_code}</td>
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.test}</td>
+                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.sale_status}</td>
+                    <td className="text-center" style={{ padding: "6px 8px", verticalAlign: "middle" }}>
+                      <Button
+                        size="sm"
+                        variant=""
+                        onClick={() => handleEdit(p)}
+                        className="me-1"
+                        style={{
+                          borderColor: "#2E3A59",
+                          color: "#2E3A59",
+                          padding: "3px 6px",
+                          fontSize: "0.8rem",
+                        }}
+                      >
                         <i className="bi bi-pencil-square"></i>
                       </Button>
-                      <Button size="sm" onClick={() => handleDelete(p.id)}  style={{
-                          borderColor: '#2E3A59',
-                          color: '#2E3A59',
-                          backgroundColor: 'transparent'
-                        }}>
+                      <Button
+                        size="sm"
+                        onClick={() => handleDelete(p.id)}
+                        style={{
+                          borderColor: "#2E3A59",
+                          color: "#2E3A59",
+                          backgroundColor: "transparent",
+                          padding: "3px 6px",
+                          fontSize: "0.8rem",
+                        }}
+                      >
                         <i className="bi bi-trash"></i>
                       </Button>
                     </td>
@@ -319,50 +426,102 @@ export default function ProductPage() {
         />
       </Card>
 
-      {/* Sidebar Add/Edit */}
-      <Offcanvas show={showModal} onHide={() => setShowModal(false)} placement="end" backdrop="static" className="custom-offcanvas">
+      {/* Offcanvas Sidebar for Add/Edit */}
+      <Offcanvas
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        placement="end"
+        backdrop="static"
+        className="custom-offcanvas "
+        style={{ fontSize: "0.85rem" }}
+      >
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title className="fw-bold">{isEditing ? "Edit Product" : "Add New Product"}</Offcanvas.Title>
+          <Offcanvas.Title className="fw-semibold">
+            {isEditing ? "Edit Product" : "Add New Product"}
+          </Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body>
           <Form className="row g-3">
             <Form.Group className="col-md-6">
               <Form.Label>Batch</Form.Label>
-              <Form.Select name="batch_id" value={productData.batch_id} onChange={handleChange}>
+              <Form.Select
+                name="batch_id"
+                value={productData.batch_id}
+                onChange={handleChange}
+                size="sm"
+              >
                 <option value="">Select Batch</option>
                 {batches.map((b) => (
-                  <option key={b.id} value={b.id}>{b.batch}</option>
+                  <option key={b.id} value={b.id}>
+                    {b.batch}
+                  </option>
                 ))}
               </Form.Select>
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>Category</Form.Label>
-              <Form.Select name="category_id" value={productData.category_id} onChange={handleChange}>
+              <Form.Select
+                name="category_id"
+                value={productData.category_id}
+                onChange={handleChange}
+                size="sm"
+              >
                 <option value="">Select Category</option>
                 {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.category}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.category}
+                  </option>
                 ))}
               </Form.Select>
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>Serial No.</Form.Label>
-              <Form.Control name="serial_no" value={productData.serial_no} onChange={handleChange} placeholder="Enter Serial No." />
+              <Form.Control
+                name="serial_no"
+                value={productData.serial_no}
+                onChange={handleChange}
+                placeholder="Enter Serial No."
+                size="sm"
+              />
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>Manufacture No.</Form.Label>
-              <Form.Control name="manufacture_no" value={productData.manufacture_no} onChange={handleChange} placeholder="Enter Manufacture No." />
+              <Form.Control
+                name="manufacture_no"
+                value={productData.manufacture_no}
+                onChange={handleChange}
+                placeholder="Enter Manufacture No."
+                size="sm"
+              />
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>Firmware Version</Form.Label>
-              <Form.Control name="firmware_version" value={productData.firmware_version} onChange={handleChange} placeholder="Enter Firmware Version" />
+              <Form.Control
+                name="firmware_version"
+                value={productData.firmware_version}
+                onChange={handleChange}
+                placeholder="Enter Firmware Version"
+                size="sm"
+              />
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>HSN Code</Form.Label>
-              <Form.Control name="hsn_code" value={productData.hsn_code} onChange={handleChange} placeholder="Enter HSN Code" />
+              <Form.Control
+                name="hsn_code"
+                value={productData.hsn_code}
+                onChange={handleChange}
+                placeholder="Enter HSN Code"
+                size="sm"
+              />
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>Test Status</Form.Label>
-              <Form.Select name="test" value={productData.test} onChange={handleChange}>
+              <Form.Select
+                name="test"
+                value={productData.test}
+                onChange={handleChange}
+                size="sm"
+              >
                 <option value="">Select Test Status</option>
                 <option value="Ok">OK</option>
                 <option value="Issue">Issue</option>
@@ -370,7 +529,13 @@ export default function ProductPage() {
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>Sale Status</Form.Label>
-              <Form.Select name="sale_status" value={productData.sale_status} onChange={handleChange} disabled={productData.test === "Issue"}>
+              <Form.Select
+                name="sale_status"
+                value={productData.sale_status}
+                onChange={handleChange}
+                disabled={productData.test === "Issue"}
+                size="sm"
+              >
                 <option value="">Select Sale Status</option>
                 <option value="Available">Available</option>
                 <option value="Sold">Sold</option>
@@ -379,7 +544,7 @@ export default function ProductPage() {
             </Form.Group>
           </Form>
           <div className="d-flex justify-content-end mt-4">
-            <Button variant="success" onClick={handleSave} style={{ minWidth: "120px" }}>
+            <Button variant="success" onClick={handleSave} size="sm" style={{ minWidth: "120px" }}>
               {isEditing ? "Update" : "Save"}
             </Button>
           </div>

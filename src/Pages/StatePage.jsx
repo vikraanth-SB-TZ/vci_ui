@@ -92,12 +92,12 @@ export default function StatePage() {
       toast.warning("State name is required!");
       return;
     }
-  
+
     if (!countryId) {
       toast.warning("Country is required!");
       return;
     }
-  
+
     const duplicate = states.some(
       (s) =>
         s.state.toLowerCase() === newStateName.trim().toLowerCase() &&
@@ -108,12 +108,12 @@ export default function StatePage() {
       toast.error("State already exists in this country!");
       return;
     }
-  
+
     const payload = {
       state: newStateName.trim(),
       country_id: parseInt(countryId),
     };
-  
+
     try {
       if (editingStateId) {
         await axios.put(`${API_BASE_URL}/states/${editingStateId}`, payload);
@@ -130,7 +130,7 @@ export default function StatePage() {
       toast.error("Failed to save state!");
     }
   };
-  
+
 
   const handleDelete = async (id) => {
     try {
@@ -182,11 +182,11 @@ export default function StatePage() {
   const paginatedStates = sortedStates.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="State" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -206,67 +206,75 @@ export default function StatePage() {
             </Form.Select>
           </div>
 
-          <div className="col-md-6 text-md-end">
-            <div className="mt-2 d-inline-block mb-2">
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                className="me-2"
-                onClick={fetchStates}
-              >
-                <i className="bi bi-arrow-clockwise"></i>
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleAddNewClick}
-                style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
-                className="btn-success text-white"
-              >
-                + Add State
-              </Button>
-            </div>
-            <Search
-              search={search}
-              setSearch={setSearch}
-              perPage={perPage}
-              setPerPage={setPerPage}
-              setPage={setPage}
-            />
-          </div>
-        </div>
+        <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+  <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
+    <Button
+      variant="outline-secondary"
+      size="sm"
+      className="me-2 p-1"  // reduce padding
+      onClick={fetchStates}
+      style={{ fontSize: '0.8rem', minWidth: '32px', height: '28px' }}
+    >
+      <i className="bi bi-arrow-clockwise"></i>
+    </Button>
+    <Button
+      size="sm"
+      onClick={handleAddNewClick}
+      style={{
+        backgroundColor: '#2FA64F',
+        borderColor: '#2FA64F',
+        color: '#fff',
+        padding: '0.25rem 0.5rem',
+        fontSize: '0.8rem',
+        minWidth: '90px',
+        height: '28px',
+      }}
+      className="btn-success text-white"
+    >
+      + Add State
+    </Button>
+  </div>
+<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+  <div style={{ maxWidth: '220px', marginTop: '0.25rem', marginRight: '0.5rem' }}></div>
 
+    <Search
+      search={search}
+      setSearch={setSearch}
+      perPage={perPage}
+      setPerPage={setPerPage}
+      setPage={setPage}
+      style={{ fontSize: '0.8rem' }}
+    />
+  </div>
+</div>
+
+        </div>
         <div className="table-responsive">
-          <table className="table  align-middle mb-0 ">
-            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+          <table className="table table-sm align-middle mb-0" style={{ fontSize: "0.85rem" }}>
+            <thead style={{
+              backgroundColor: "#2E3A59", color: "white", fontSize: "0.82rem", height: "40px",           // Increased height
+
+              verticalAlign: "middle",
+            }}>
               <tr>
                 <th style={{
-                  width: "70px", textAlign: "center", backgroundColor: "#2E3A59",
+                  width: "70px", textAlign: "center", cursor: "pointer",
+                  backgroundColor: "#2E3A59",
                   color: "white",
                 }}>S.No</th>
                 <th
                   onClick={() => handleSort("state")}
-                  style={{
-                    backgroundColor: "#2E3A59",
-                    color: "white",
-                    cursor: "pointer"
-                  }}
+                  style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
                 >
                   State {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
                 <th
                   onClick={() => handleSort("country")}
-                  style={{
-                    backgroundColor: "#2E3A59",
-                    color: "white",
-                    cursor: "pointer"
-                  }}
+                  style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
                 >
                   Country {sortField === "country" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
-                <th style={{
-                  width: "130px", backgroundColor: "#2E3A59",
-                  color: "white",
-                }}>Action</th>
+                <th style={{ width: "130px", textAlign: "center", backgroundColor: "#2E3A59", color: "white", }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -284,7 +292,7 @@ export default function StatePage() {
                       alt="No states found"
                       style={{ width: "80px", height: "100px", opacity: 0.6 }}
                     />
-                  
+
                   </td>
                 </tr>
               ) : (
