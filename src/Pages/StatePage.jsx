@@ -206,47 +206,47 @@ export default function StatePage() {
             </Form.Select>
           </div>
 
-        <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
-  <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
-    <Button
-      variant="outline-secondary"
-      size="sm"
-      className="me-2 p-1"  // reduce padding
-      onClick={fetchStates}
-      style={{ fontSize: '0.8rem', minWidth: '32px', height: '28px' }}
-    >
-      <i className="bi bi-arrow-clockwise"></i>
-    </Button>
-    <Button
-      size="sm"
-      onClick={handleAddNewClick}
-      style={{
-        backgroundColor: '#2FA64F',
-        borderColor: '#2FA64F',
-        color: '#fff',
-        padding: '0.25rem 0.5rem',
-        fontSize: '0.8rem',
-        minWidth: '90px',
-        height: '28px',
-      }}
-      className="btn-success text-white"
-    >
-      + Add State
-    </Button>
-  </div>
-<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-  <div style={{ maxWidth: '220px', marginTop: '0.25rem', marginRight: '0.5rem' }}></div>
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                className="me-2 p-1"  // reduce padding
+                onClick={fetchStates}
+                style={{ fontSize: '0.8rem', minWidth: '32px', height: '28px' }}
+              >
+                <i className="bi bi-arrow-clockwise"></i>
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleAddNewClick}
+                style={{
+                  backgroundColor: '#2FA64F',
+                  borderColor: '#2FA64F',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem',
+                  minWidth: '90px',
+                  height: '28px',
+                }}
+                className="btn-success text-white"
+              >
+                + Add State
+              </Button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+              <div style={{ maxWidth: '220px', marginTop: '0.25rem', marginRight: '0.5rem' }}></div>
 
-    <Search
-      search={search}
-      setSearch={setSearch}
-      perPage={perPage}
-      setPerPage={setPerPage}
-      setPage={setPage}
-      style={{ fontSize: '0.8rem' }}
-    />
-  </div>
-</div>
+              <Search
+                search={search}
+                setSearch={setSearch}
+                perPage={perPage}
+                setPerPage={setPerPage}
+                setPage={setPage}
+                style={{ fontSize: '0.8rem' }}
+              />
+            </div>
+          </div>
 
         </div>
         <div className="table-responsive">
