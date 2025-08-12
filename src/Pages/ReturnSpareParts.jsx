@@ -17,7 +17,7 @@ import Breadcrumb from "./Components/Breadcrumb";
 import Pagination from "./Components/Pagination";
 import Search from "./Components/Search";
 
- 
+
 const getBlueBorderStyles = (value, isInvalid) => {
   if (isInvalid) {
     return { borderColor: "none" };
@@ -27,7 +27,7 @@ const getBlueBorderStyles = (value, isInvalid) => {
   }
   return {};
 };
- 
+
 const getTableInputStyles = (value, isInvalid) => {
   if (isInvalid) {
     return { borderColor: "#dc3545" };
@@ -37,7 +37,7 @@ const getTableInputStyles = (value, isInvalid) => {
   }
   return {};
 };
- 
+
 export default function ReturnSparePartsPage() {
   const [vendors, setVendors] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -54,26 +54,26 @@ export default function ReturnSparePartsPage() {
   });
   // const [returnDate, setReturnDate] = useState("");
   const [showReturnCalendar, setShowReturnCalendar] = useState(false);
-     const [sortField, setSortField] = useState("asc");
-     const [sortDirection, setSortDirection] = useState("desc");
- 
+  const [sortField, setSortField] = useState("asc");
+  const [sortDirection, setSortDirection] = useState("desc");
+
   const dateInputRef = useRef();
   const [editingReturn, setEditingReturn] = useState(null);
- 
+
   const [formData, setFormData] = useState({
     vendor_id: "",
     batch_id: "",
     invoiceNo: "",
     notes: ""
   });
- const [page, setPage] = useState(1);
-const [perPage, setPerPage] = useState(10);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
   const [search, setSearch] = useState("");
   const [invoiceSpareparts, setInvoiceSpareparts] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const tableRef = useRef(null);
   const dataTableInstance = useRef(null);
-  
+
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
@@ -84,13 +84,13 @@ const [perPage, setPerPage] = useState(10);
         axios.get(`${API_BASE_URL}/spareparts`, { headers: { Accept: "application/json" } }),
         axios.get(`${API_BASE_URL}/sparepart-returns`, { headers: { Accept: "application/json" } }),
       ]);
- 
+
       setVendors(vendorsRes.data.data ?? vendorsRes.data ?? []);
       setBatches(batchesRes.data.batches ?? batchesRes.data.data ?? batchesRes.data ?? []);
       setPurchases(purchasesRes.data.data ?? purchasesRes.data ?? []);
       setAvailableSpareparts(sparepartsRes.data.data ?? sparepartsRes.data ?? []);
       setReturns(returnsRes.data.data ?? returnsRes.data ?? []);
- 
+
     } catch (err) {
       console.error("Error loading initial data:", err);
       toast.error("Failed to load data. Please check the server connection.");
@@ -98,17 +98,17 @@ const [perPage, setPerPage] = useState(10);
       setLoading(false);
     }
   }, []);
- 
+
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
- 
+
   // useEffect(() => {
   //   if (dataTableInstance.current) {
   //     dataTableInstance.current.destroy();
   //     dataTableInstance.current = null;
   //   }
- 
+
   //   if (!loading && returns.length > 0 && tableRef.current) {
   //     dataTableInstance.current = $(tableRef.current).DataTable({
   //       ordering: true,
@@ -119,7 +119,7 @@ const [perPage, setPerPage] = useState(10);
   //     });
   //   }
   // }, [returns, loading]);
- 
+
   useEffect(() => {
     if (formData.invoiceNo) {
       const selectedPurchase = purchases.find(p => String(p.invoice_no) === String(formData.invoiceNo));
@@ -133,11 +133,11 @@ const [perPage, setPerPage] = useState(10);
       setInvoiceSpareparts([]);
     }
   }, [formData.invoiceNo, purchases, availableSpareparts]);
- 
+
   const handleAddRow = () => {
     setSparePartsRows((rows) => [...rows, { sparepart_id: "", quantity: "" }]);
   };
- 
+
   const handleRemoveRow = (index) => {
     setSparePartsRows((rows) => rows.filter((_, i) => i !== index));
     setFormErrors((prevErrors) => {
@@ -147,247 +147,247 @@ const [perPage, setPerPage] = useState(10);
       return newErrors;
     });
   };
- 
-const handleRowChange = (index, field, value) => {
-  const updatedRows = [...sparePartsRows];
-  updatedRows[index][field] = value;
 
-  // Only live validation for quantity being negative or zero
-  if (field === "quantity") {
-    const quantity = parseInt(value, 10);
+  const handleRowChange = (index, field, value) => {
+    const updatedRows = [...sparePartsRows];
+    updatedRows[index][field] = value;
 
-    if (!value || isNaN(quantity) || quantity < 1) {
-      setFormErrors((prev) => ({
-        ...prev,
-        [`quantity-${index}`]: "Quantity must be a positive number.",
-      }));
-    } else {
-      // Clear the error if the value is valid
-      setFormErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[`quantity-${index}`];
-        return newErrors;
-      });
+    // Only live validation for quantity being negative or zero
+    if (field === "quantity") {
+      const quantity = parseInt(value, 10);
+
+      if (!value || isNaN(quantity) || quantity < 1) {
+        setFormErrors((prev) => ({
+          ...prev,
+          [`quantity-${index}`]: "Quantity must be a positive number.",
+        }));
+      } else {
+        // Clear the error if the value is valid
+        setFormErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[`quantity-${index}`];
+          return newErrors;
+        });
+      }
     }
-  }
 
-  setSparePartsRows(updatedRows);
-};
+    setSparePartsRows(updatedRows);
+  };
 
 
- 
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
- 
+
   const handleReturnDateChange = (e) => {
     const { value } = e.target;
     setReturnDate(value);
     setFormErrors((prev) => ({ ...prev, return_date: "" }));
   };
- 
-const validateForm = (payload, items) => {
-  let errors = {};
 
-  if (!payload.vendor_id) {
-    errors.vendor_id = "Vendor is required.";
-  }
+  const validateForm = (payload, items) => {
+    let errors = {};
 
-  if (!payload.invoice_no) {
-    errors.invoiceNo = "Invoice No. is required.";
-  }
+    if (!payload.vendor_id) {
+      errors.vendor_id = "Vendor is required.";
+    }
 
-  if (!payload.return_date) {
-    errors.return_date = "Return Date is required.";
-  }
+    if (!payload.invoice_no) {
+      errors.invoiceNo = "Invoice No. is required.";
+    }
 
-  if (!payload.batch_id) {
-    errors.batch_id = "Batch is required.";
-  }
+    if (!payload.return_date) {
+      errors.return_date = "Return Date is required.";
+    }
 
-  if (
-    items.length === 0 ||
-    items.every(item => !item.sparepart_id || !parseInt(item.quantity))
-  ) {
-    errors.items = "Please add at least one spare part with a valid quantity.";
-  } else {
-    items.forEach((item, index) => {
-      const returnedQuantity = parseInt(item.quantity, 10);
+    if (!payload.batch_id) {
+      errors.batch_id = "Batch is required.";
+    }
 
-      // Get purchased quantity for this spare part from the selected invoice
-      const selectedPurchase = purchases.find(p => String(p.invoice_no) === String(payload.invoice_no));
-      let purchasedQty = 0;
-      if (selectedPurchase) {
-        const purchasedItem = selectedPurchase.items.find(pi => String(pi.sparepart_id) === String(item.sparepart_id));
-        if (purchasedItem) {
-          purchasedQty = parseInt(purchasedItem.quantity, 10);
+    if (
+      items.length === 0 ||
+      items.every(item => !item.sparepart_id || !parseInt(item.quantity))
+    ) {
+      errors.items = "Please add at least one spare part with a valid quantity.";
+    } else {
+      items.forEach((item, index) => {
+        const returnedQuantity = parseInt(item.quantity, 10);
+
+        // Get purchased quantity for this spare part from the selected invoice
+        const selectedPurchase = purchases.find(p => String(p.invoice_no) === String(payload.invoice_no));
+        let purchasedQty = 0;
+        if (selectedPurchase) {
+          const purchasedItem = selectedPurchase.items.find(pi => String(pi.sparepart_id) === String(item.sparepart_id));
+          if (purchasedItem) {
+            purchasedQty = parseInt(purchasedItem.quantity, 10);
+          }
         }
-      }
 
-      // Get available quantity from global spareparts list
-      const sparepart = availableSpareparts.find(sp => String(sp.id) === String(item.sparepart_id));
-      const availableQty = sparepart ? parseInt(sparepart.quantity, 10) : 0;
+        // Get available quantity from global spareparts list
+        const sparepart = availableSpareparts.find(sp => String(sp.id) === String(item.sparepart_id));
+        const availableQty = sparepart ? parseInt(sparepart.quantity, 10) : 0;
 
-      if (!item.sparepart_id) {
-        errors[`sparepart-${index}`] = "Spare part is required.";
-      }
-
-      if (!item.quantity || isNaN(returnedQuantity) || returnedQuantity < 1) {
-        errors[`quantity-${index}`] = "Quantity must be a positive number.";
-      } else {
-        if (returnedQuantity > purchasedQty) {
-          errors[`quantity-${index}`] = `Return quantity (${returnedQuantity}) cannot exceed purchased quantity (${purchasedQty}).`;
-        } else if (returnedQuantity > availableQty) {
-          errors[`quantity-${index}`] = `Return quantity (${returnedQuantity}) cannot exceed current available quantity (${availableQty}).`;
+        if (!item.sparepart_id) {
+          errors[`sparepart-${index}`] = "Spare part is required.";
         }
-      }
-    });
-  }
 
-  setFormErrors(errors);
+        if (!item.quantity || isNaN(returnedQuantity) || returnedQuantity < 1) {
+          errors[`quantity-${index}`] = "Quantity must be a positive number.";
+        } else {
+          if (returnedQuantity > purchasedQty) {
+            errors[`quantity-${index}`] = `Return quantity (${returnedQuantity}) cannot exceed purchased quantity (${purchasedQty}).`;
+          } else if (returnedQuantity > availableQty) {
+            errors[`quantity-${index}`] = `Return quantity (${returnedQuantity}) cannot exceed current available quantity (${availableQty}).`;
+          }
+        }
+      });
+    }
 
-  if (Object.keys(errors).length > 0) {
-    const firstErrorMsg = errors[Object.keys(errors)[0]];
-    toast.error(firstErrorMsg || "Please correct the errors in the form.");
-  }
+    setFormErrors(errors);
 
-  return Object.keys(errors).length === 0;
-};
+    if (Object.keys(errors).length > 0) {
+      const firstErrorMsg = errors[Object.keys(errors)[0]];
+      toast.error(firstErrorMsg || "Please correct the errors in the form.");
+    }
 
-const handleFormSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-
-  const items = sparePartsRows
-    .map((row) => ({
-      sparepart_id: row.sparepart_id,
-      quantity: parseInt(row.quantity, 10),
-    }))
-    .filter((i) => i.sparepart_id && i.quantity > 0);
-
-  const payload = {
-    vendor_id: formData.vendor_id,
-    invoice_no: formData.invoiceNo,
-    return_date: returnDate,
-    batch_id: formData.batch_id,
-    notes: formData.notes,
-    items,
+    return Object.keys(errors).length === 0;
   };
 
-  const isValid = validateForm(payload, items);
-  if (!isValid) {
-    setLoading(false);
-    return;
-  }
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    if (editingReturn && editingReturn.id) {
-      await axios.put(`${API_BASE_URL}/sparepart-returns/${editingReturn.id}`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      });
-      toast.success("Return updated successfully");
-    } else {
-      await axios.post(`${API_BASE_URL}/sparepart-returns`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      });
-      toast.success("Return added successfully");
+    const items = sparePartsRows
+      .map((row) => ({
+        sparepart_id: row.sparepart_id,
+        quantity: parseInt(row.quantity, 10),
+      }))
+      .filter((i) => i.sparepart_id && i.quantity > 0);
+
+    const payload = {
+      vendor_id: formData.vendor_id,
+      invoice_no: formData.invoiceNo,
+      return_date: returnDate,
+      batch_id: formData.batch_id,
+      notes: formData.notes,
+      items,
+    };
+
+    const isValid = validateForm(payload, items);
+    if (!isValid) {
+      setLoading(false);
+      return;
     }
 
-    setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", notes: "" });
-    setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-    setEditingReturn(null);
-    setShowForm(false);
-    await fetchAllData();
-  } catch (error) {
-    console.error("Error saving return:", error);
-    toast.error("Failed to save return");
-  } finally {
-    setLoading(false);
-  }
-};
-
-    const getVendorNameById = (id) => {
-        const vendor = vendors.find((v) => String(v.id) === String(id));
-        return vendor ?
-            `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim() :
-            `ID: ${id}`;
-    };
-    const handleDelete = async (id) => {
-        const result = await MySwal.fire({
-            title: "Are you sure?",
-            text: "Do you really want to delete this return?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, delete it!",
+    try {
+      if (editingReturn && editingReturn.id) {
+        await axios.put(`${API_BASE_URL}/sparepart-returns/${editingReturn.id}`, payload, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
         });
+        toast.success("Return updated successfully");
+      } else {
+        await axios.post(`${API_BASE_URL}/sparepart-returns`, payload, {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });
+        toast.success("Return added successfully");
+      }
 
-        if (!result.isConfirmed) return;
+      setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", notes: "" });
+      setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+      setEditingReturn(null);
+      setShowForm(false);
+      await fetchAllData();
+    } catch (error) {
+      console.error("Error saving return:", error);
+      toast.error("Failed to save return");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        try {
-            if (dataTableInstance.current) {
-                dataTableInstance.current.destroy();
-                dataTableInstance.current = null;
-            }
+  const getVendorNameById = (id) => {
+    const vendor = vendors.find((v) => String(v.id) === String(id));
+    return vendor ?
+      `${vendor.first_name ?? ""} ${vendor.last_name ?? ""}`.trim() :
+      `ID: ${id}`;
+  };
+  const handleDelete = async (id) => {
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this return?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
 
-            const {
-                data
-            } = await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`, {
-                headers: {
-                    Accept: "application/json"
-                },
-            });
+    if (!result.isConfirmed) return;
 
-if (data?.success) {
-const updatedReturns = returns.filter((r) => String(r.id) !== String(id));
-setReturns(updatedReturns);
-
-    if (dataTableInstance.current) {
+    try {
+      if (dataTableInstance.current) {
         dataTableInstance.current.destroy();
         dataTableInstance.current = null;
-    }
+      }
 
-    setSparePartsRows(updatedReturns);
+      const {
+        data
+      } = await axios.delete(`${API_BASE_URL}/sparepart-returns/${id}`, {
+        headers: {
+          Accept: "application/json"
+        },
+      });
 
-    
-                setTimeout(() => {
-                    if (updatedReturns.length && tableRef.current) {
-                        dataTableInstance.current = $(tableRef.current).DataTable({
-                            ordering: true,
-                            paging: true,
-                            searching: true,
-                            lengthChange: true,
-                            columnDefs: [{
-                                targets: 0,
-                                className: "text-center"
-                            }],
-                        });
-                    }
-                }, 0);
+      if (data?.success) {
+        const updatedReturns = returns.filter((r) => String(r.id) !== String(id));
+        setReturns(updatedReturns);
 
-
-                toast.success("Purchase deleted successfully!");
-            } else {
-                toast.error(data?.message || "Failed to delete.");
-            }
-        } catch (err) {
-            console.error("Delete Error:", err);
-            toast.error("Failed to delete purchase. Check logs.");
+        if (dataTableInstance.current) {
+          dataTableInstance.current.destroy();
+          dataTableInstance.current = null;
         }
-    };
+
+        setSparePartsRows(updatedReturns);
+
+
+        setTimeout(() => {
+          if (updatedReturns.length && tableRef.current) {
+            dataTableInstance.current = $(tableRef.current).DataTable({
+              ordering: true,
+              paging: true,
+              searching: true,
+              lengthChange: true,
+              columnDefs: [{
+                targets: 0,
+                className: "text-center"
+              }],
+            });
+          }
+        }, 0);
+
+
+        toast.success("Purchase deleted successfully!");
+      } else {
+        toast.error(data?.message || "Failed to delete.");
+      }
+    } catch (err) {
+      console.error("Delete Error:", err);
+      toast.error("Failed to delete purchase. Check logs.");
+    }
+  };
   const handleShowForm = (returnedItem = null) => {
     setEditingReturn(returnedItem);
     setFormErrors({});
- 
+
     if (returnedItem) {
       // Find the corresponding purchase to get the correct spare parts list
       const purchase = purchases.find(p => String(p.invoice_no) === String(returnedItem.invoice_no));
@@ -396,7 +396,7 @@ setReturns(updatedReturns);
         sparepartOptions = purchase.items.map(item => availableSpareparts.find(sp => sp.id === item.sparepart_id)).filter(Boolean);
       }
       setInvoiceSpareparts(sparepartOptions);
- 
+
       setSparePartsRows(
         returnedItem.items && returnedItem.items.length > 0
           ? returnedItem.items.map((item) => ({
@@ -420,199 +420,202 @@ setReturns(updatedReturns);
     }
     setShowForm(true);
   };
-   const handleSort = (field) => {
-        if (sortField === field) {
-            setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
-        } else {
-            setSortField(field);
-            setSortDirection("asc");
-        }
-    };
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
-    const filteredSpareparts = returns.filter((returnedItem) =>
-        getVendorNameById(returnedItem.vendor_id).toLowerCase().includes(search.toLowerCase()) ||
-        returnedItem.invoice_no.toLowerCase().includes(search.toLowerCase())
-    );
+  const filteredSpareparts = returns.filter((returnedItem) =>
+    getVendorNameById(returnedItem.vendor_id).toLowerCase().includes(search.toLowerCase()) ||
+    returnedItem.invoice_no.toLowerCase().includes(search.toLowerCase())
+  );
 
-    const sortedSpareparts = [...filteredSpareparts].sort((a, b) => {
-        if (!sortField) return 0;
+  const sortedSpareparts = [...filteredSpareparts].sort((a, b) => {
+    if (!sortField) return 0;
 
-        let valA, valB;
+    let valA, valB;
 
-        if (sortField === "vendor_name") {
-            valA = getVendorNameById(a.vendor_id).toLowerCase();
-            valB = getVendorNameById(b.vendor_id).toLowerCase();
-        } else {
-            valA = a[sortField];
-            valB = b[sortField];
-        }
+    if (sortField === "vendor_name") {
+      valA = getVendorNameById(a.vendor_id).toLowerCase();
+      valB = getVendorNameById(b.vendor_id).toLowerCase();
+    } else {
+      valA = a[sortField];
+      valB = b[sortField];
+    }
 
-        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-        return 0;
-    });
+    if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+    if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
 
-    const paginatedSpareparts = sortedSpareparts.slice(
-        (page - 1) * perPage,
-        page * perPage
-    );
+  const paginatedSpareparts = sortedSpareparts.slice(
+    (page - 1) * perPage,
+    page * perPage
+  );
 
 
- 
+
   return (
-        <div className="px-4 py-2">
-            <Breadcrumb title="Return Spare Parts" />
+ <div className="px-4 " style={{ fontSize: "0.75rem" }}>
+      <Breadcrumb title="Return Spare Parts" />
 
-            <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-                <div className="row mb-3">
-                    <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
-                        <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
-                        <Form.Select
-                            size="sm"
-                            style={{ width: "100px" }}
-                            value={perPage}
-                            onChange={(e) => {
-                                setPerPage(Number(e.target.value));
-                                setPage(1);
-                            }}
-                        >
-                            {[5, 10, 25, 50].map((n) => (
-                                <option key={n} value={n}>
-                                    {n}
-                                </option>
-                            ))}
-                        </Form.Select>
-                    </div>
+       <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+                     <div className="row mb-2">
+                         <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+                             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+                             <Form.Select
+                                 size="sm"
+                                 style={{ width: "100px" }}
+                                 value={perPage}
+                                 onChange={(e) => {
+                                     setPerPage(Number(e.target.value));
+                                     setPage(1);
+                                 }}
+                             >
+                                 {[5, 10, 25, 50].map((n) => (
+                                     <option key={n} value={n}>
+                                         {n}
+                                     </option>
+                                 ))}
+                             </Form.Select>
+                         </div>
+                         <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+                             <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                className="me-2"
+                onClick={fetchAllData}
+              >
+                <i className="bi bi-arrow-clockwise"></i>
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleShowForm()}
+                 style={{
+                                    backgroundColor: '#2FA64F',
+                                    borderColor: '#2FA64F',
+                                    color: '#fff',
+                                    padding: '0.25rem 0.5rem',
+                                    fontSize: '0.8rem',
+                                    minWidth: '90px',
+                                    height: '28px',
+                                }}
+              >
+                + Add New
+              </Button>
+            </div>
+            <Search
+              search={search}
+              setSearch={setSearch}
+              perPage={perPage}
+              setPerPage={setPerPage}
+              setPage={setPage}
+            />
+          </div>
 
-<div className="col-md-6 text-md-end">
-    <div className="mt-2 d-inline-block mb-2">
-        <Button
-            variant="outline-secondary"
-            size="sm"
-            className="me-2"
-            onClick={fetchAllData}
-        >
-            <i className="bi bi-arrow-clockwise"></i>
-        </Button> 
-        <Button
-            size="sm"
-            onClick={() => handleShowForm()}
-            style={{
-                backgroundColor: '#2FA64F',
-                borderColor: '#2FA64F',
-                color: '#fff'
-            }}
-        >
-            + Add New
-        </Button>
-    </div>
-    <Search
-        search={search}
-        setSearch={setSearch}
-        perPage={perPage}
-        setPerPage={setPerPage}
-        setPage={setPage}
-    />
-</div>
-
-                </div>
-            <div className="table-responsive">
-                           <table ref={tableRef} className="table align-middle mb-0">
-                               <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
-                                   <tr>
-                                       <th style={{
-                                           width: "70px", textAlign: "center", backgroundColor: "#2E3A59",
-                                           color: "white",
-                                       }}>S.No</th>
-                                       <th
-                                           onClick={() => handleSort("vendor_name")}
-                                           style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
-                                       >
-                                           Vendor Name {sortField === "vendor_name" && (sortDirection === "asc" ? "▲" : "▼")}
-                                       </th>
-                                       <th
-                                           onClick={() => handleSort("return_date")}
-                                           style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
-                                       >
-                                           Return Date {sortField === "return_date" && (sortDirection === "asc" ? "▲" : "▼")}
-                                       </th>
-                                       <th
-                                           onClick={() => handleSort("invoice_no")}
-                                           style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
-                                       >
-                                           Invoice No {sortField === "invoice_no" && (sortDirection === "asc" ? "▲" : "▼")}
-                                       </th>
-                                       <th style={{
-                                           backgroundColor: "#2E3A59",
-                                           color: "white",
-                                       }}>Action</th>
-                                   </tr>
-                               </thead>
-                               <tbody>
-                                   {loading ? (
-                                       <tr>
-                                           <td colSpan="5" className="text-center py-4">
-                                               <Spinner animation="border" />
-                                           </td>
-                                       </tr>
-                                   ) : paginatedSpareparts.length === 0 ? (
-                                       <tr>
-                                           <td colSpan="5" className="text-center py-4 text-muted">
-                                               <img
-                                                   src="/empty-box.png"
-                                                   alt="No Returns found"
-                                                   style={{ width: "80px", height: "100px", opacity: 0.6 }}
-                                               />
-                                           </td>
-                                       </tr>
-                                   ) : (
-                                       paginatedSpareparts.map((returnedItem, index) => (
-                                           <tr key={returnedItem.id}>
-                                               <td className="text-center">
-                                                   {(page - 1) * perPage + index + 1}
-                                               </td>
-                                               <td>{getVendorNameById(returnedItem.vendor_id)}</td>
-                                               <td>{new Date(returnedItem.return_date).toLocaleDateString("en-GB")}</td>
-                                               <td>{returnedItem.invoice_no}</td>
-                                               <td>
-                                                   <Button
-                                                       variant=""
-                                                       size="sm"
-                                                       className="me-1"
-                                                       onClick={() => handleShowForm(returnedItem)}
-                                                       style={{
-                                                           borderColor: '#2E3A59',
-                                                           color: '#2E3A59'
-                                                       }}
-                                                   >
-                                                       <i className="bi bi-pencil-square"></i>
-                                                   </Button>
-                                                   <Button
-                                                       variant="outline-primary"
-                                                       size="sm"
-                                                       onClick={() => handleDelete(returnedItem.id)}
-                                                       style={{
-                                                           borderColor: '#2E3A59',
-                                                           color: '#2E3A59',
-                                                           backgroundColor: 'transparent'
-                                                       }}
-                                                   >
-                                                       <i className="bi bi-trash"></i>
-                                                   </Button>
-                                               </td>
-                                           </tr>
-                                       ))
-                                   )}
-                               </tbody>
-                           </table>
-                       </div>
-<Pagination
-    page={page}
-    setPage={setPage}
-    perPage={perPage}
-    totalEntries={filteredSpareparts.length}
-/>
-</Card>
+        </div>
+        <div className="table-responsive">
+          <table ref={tableRef} className="table  custom-table align-middle mb-0">
+            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+              <tr>
+                <th style={{
+                  width: "70px", textAlign: "center", backgroundColor: "#2E3A59",
+                  color: "white",
+                }}>S.No</th>
+                <th
+                  onClick={() => handleSort("vendor_name")}
+                  style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
+                >
+                  Vendor Name {sortField === "vendor_name" && (sortDirection === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  onClick={() => handleSort("return_date")}
+                  style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
+                >
+                  Return Date {sortField === "return_date" && (sortDirection === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  onClick={() => handleSort("invoice_no")}
+                  style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
+                >
+                  Invoice No {sortField === "invoice_no" && (sortDirection === "asc" ? "▲" : "▼")}
+                </th>
+                <th style={{
+                  backgroundColor: "#2E3A59",
+                  color: "white",
+                }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="text-center py-4">
+                    <Spinner animation="border" />
+                  </td>
+                </tr>
+              ) : paginatedSpareparts.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center py-4 text-muted">
+                    <img
+                      src="/empty-box.png"
+                      alt="No Returns found"
+                      style={{ width: "80px", height: "100px", opacity: 0.6 }}
+                    />
+                  </td>
+                </tr>
+              ) : (
+                paginatedSpareparts.map((returnedItem, index) => (
+                  <tr key={returnedItem.id}>
+                    <td className="text-center">
+                      {(page - 1) * perPage + index + 1}
+                    </td>
+                    <td>{getVendorNameById(returnedItem.vendor_id)}</td>
+                    <td>{new Date(returnedItem.return_date).toLocaleDateString("en-GB")}</td>
+                    <td>{returnedItem.invoice_no}</td>
+                    <td>
+                      <Button
+                        variant=""
+                        size="sm"
+                        className="me-1"
+                        onClick={() => handleShowForm(returnedItem)}
+                        style={{
+                          borderColor: '#2E3A59',
+                          color: '#2E3A59'
+                        }}
+                      >
+                        <i className="bi bi-pencil-square"></i>
+                      </Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleDelete(returnedItem.id)}
+                        style={{
+                          borderColor: '#2E3A59',
+                          color: '#2E3A59',
+                          backgroundColor: 'transparent'
+                        }}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        <Pagination
+          page={page}
+          setPage={setPage}
+          perPage={perPage}
+          totalEntries={filteredSpareparts.length}
+        />
+      </Card>
       <div
         className={`position-fixed bg-white shadow-lg return-form-slide`}
         style={{
@@ -621,7 +624,7 @@ setReturns(updatedReturns);
           top: "58px",
           right: showForm ? "0" : "-800px",
           transition: "right 0.4s ease-in-out",
-          overflowY: "auto", 
+          overflowY: "auto",
           overflowX: "hidden",
           opacity: 1,
           fontFamily: "Product Sans, sans-serif",
@@ -732,7 +735,7 @@ setReturns(updatedReturns);
               <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
                 Return Date <span className="text-danger">*</span>
               </Form.Label>
- 
+
               <div
                 className="form-control d-flex align-items-center justify-content-between"
                 style={{
@@ -762,13 +765,13 @@ setReturns(updatedReturns);
                   }}
                 />
               </div>
- 
+
               {formErrors.return_date && (
                 <div className="invalid-feedback d-block">
                   {formErrors.return_date}
                 </div>
               )}
- 
+
               {showReturnCalendar && (
                 <div style={{ position: "absolute", zIndex: 10 }}>
                   <MiniCalendar
@@ -837,7 +840,7 @@ setReturns(updatedReturns);
                 + Add Row
               </button>
             </div>
- 
+
             <div
               style={{
                 border: "1px solid #D3DBD5",
@@ -895,13 +898,13 @@ setReturns(updatedReturns);
                         const selectedIds = sparePartsRows
                           .filter((_, i) => i !== index)
                           .map((r) => String(r.sparepart_id));
- 
+
                         const availableOptions = invoiceSpareparts.filter(
                           (sp) =>
                             String(row.sparepart_id) === String(sp.id) || // keep current selection
                             !selectedIds.includes(String(sp.id)) // exclude others already selected
                         );
- 
+
                         return (
                           <tr key={index}>
                             <td style={{ padding: "12px" }}>
@@ -995,7 +998,7 @@ setReturns(updatedReturns);
                 </table>
               </div>
             </div>
- 
+
             {!!formErrors.items && (
               <div className="invalid-feedback d-block mt-1">
                 {formErrors.items}
@@ -1023,7 +1026,7 @@ setReturns(updatedReturns);
           </div>
         </Form>
       </div>
- 
+
       <style>
         {`
         .add-row-btn {
@@ -1039,4 +1042,3 @@ setReturns(updatedReturns);
     </div>
   );
 }
- 
