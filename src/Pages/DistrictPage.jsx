@@ -254,7 +254,7 @@ export default function DistrictPage() {
   const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 ">
       <Breadcrumb title="Districts" />
 
       <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
@@ -278,8 +278,8 @@ export default function DistrictPage() {
             </Form.Select>
           </div>
 
-          <div className="col-md-6 text-md-end">
-            <div className="mt-2 d-inline-block mb-2">
+          <div className="col-md-6 text-md-end"  style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2"  style={{ fontSize: '0.8rem' }}>
               <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchDistricts}>
                 <i className="bi bi-arrow-clockwise"></i>
               </Button>

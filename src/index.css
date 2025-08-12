@@ -164,6 +164,17 @@ body,
   border-radius: 0;               /* No top rounding so it fits perfectly */
   padding-bottom: 10px;
 }
+.table th,
+.table td {
+  padding: 0.75rem;       /* consistent space inside cells */
+  font-size: 14px;        /* same text size everywhere */
+  vertical-align: middle; /* aligns text to middle vertically */
+  white-space: nowrap;    /* prevents wrapping */
+}
+
+.table th {
+  font-weight: 600;
+}
 
 
 
