@@ -33,7 +33,11 @@ const DataTable = ({ data, columns }) => {
                         id="scrollVertical"
                         className="table truncate m-0 align-middle"
                       >
-                        <thead>
+                        <thead tyle={{
+                          backgroundColor: "#2E3A59", color: "white", fontSize: "0.82rem", height: "40px",           // Increased height
+
+                          verticalAlign: "middle",
+                        }}>
                           <tr >
                             <th>ID</th>
                             <th>Doctor Name</th>

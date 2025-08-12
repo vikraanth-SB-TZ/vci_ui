@@ -177,9 +177,9 @@ export default function CountryPage() {
               <Button
                 variant="outline-secondary"
                 size="sm"
-                className="me-2 p-1"
+                className="me-2"
                 onClick={fetchCountries}
-                
+
               >
                 <i className="bi bi-arrow-clockwise"></i>
               </Button>

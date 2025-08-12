@@ -211,9 +211,9 @@ export default function StatePage() {
               <Button
                 variant="outline-secondary"
                 size="sm"
-                className="me-2 p-1"  // reduce padding
+                className="me-2 "  // reduce padding
                 onClick={fetchStates}
-               
+
               >
                 <i className="bi bi-arrow-clockwise"></i>
               </Button>

@@ -50,20 +50,20 @@ export default function DistrictPage() {
       setModalStates([]);
       return;
     }
-  
+
     try {
       const res = await axios.get(`${API_BASE_URL}/states/country/${countryId}`);
       setModalStates(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Error fetching states:", error);
-  
-      
+
+
       if (showModal) {
         toast.error("Failed to fetch states!");
       }
     }
   };
-  
+
 
   const fetchDistricts = async () => {
     setLoading(true);
@@ -82,7 +82,7 @@ export default function DistrictPage() {
       setLoading(false);
     }
   };
-  
+
 
   const handleAddNewClick = () => {
     setEditId(null);
@@ -118,7 +118,7 @@ export default function DistrictPage() {
       toast.warning("All fields are required!");
       return;
     }
-  
+
     const duplicate = districts.some(
       (d) =>
         d.district.toLowerCase() === newDistrictName.trim().toLowerCase() &&
@@ -129,49 +129,49 @@ export default function DistrictPage() {
       toast.error("District already exists in this state!");
       return;
     }
-  
+
     const payload = {
       district: newDistrictName.trim(),
       state_id: parseInt(modalStateId),
     };
-  
+
     try {
       if (editId) {
         await axios.put(`${API_BASE_URL}/districts/${editId}`, payload);
-  
-        
+
+
         const updatedState = modalStates.find((s) => s.id === parseInt(modalStateId));
         const updatedCountry = countries.find((c) => c.id === parseInt(modalCountryId));
-  
+
         setDistricts((prev) =>
           prev.map((d) =>
             d.id === editId
               ? {
-                  ...d,
-                  ...payload,
-                  state: {
-                    ...d.state,
-                    id: updatedState?.id || d.state?.id,
-                    state: updatedState?.state || d.state?.state,
-                    country: {
-                      ...d.state?.country,
-                      id: updatedCountry?.id || d.state?.country?.id,
-                      country: updatedCountry?.country || d.state?.country?.country,
-                    },
+                ...d,
+                ...payload,
+                state: {
+                  ...d.state,
+                  id: updatedState?.id || d.state?.id,
+                  state: updatedState?.state || d.state?.state,
+                  country: {
+                    ...d.state?.country,
+                    id: updatedCountry?.id || d.state?.country?.id,
+                    country: updatedCountry?.country || d.state?.country?.country,
                   },
-                }
+                },
+              }
               : d
           )
         );
-  
+
         toast.success("District updated successfully!");
       } else {
         const res = await axios.post(`${API_BASE_URL}/districts`, payload);
-  
-        
+
+
         const newState = modalStates.find((s) => s.id === parseInt(modalStateId));
         const newCountry = countries.find((c) => c.id === parseInt(modalCountryId));
-  
+
         const newDistrict = {
           ...res.data,
           state: {
@@ -183,17 +183,17 @@ export default function DistrictPage() {
             },
           },
         };
-  
+
         setDistricts((prev) => [...prev, newDistrict]);
         toast.success("District added successfully!");
       }
-  
+
       handleModalClose();
     } catch (error) {
       toast.error("Failed to save district!");
     }
   };
-  
+
 
   const handleDelete = async (id) => {
     const result = await MySwal.fire({
@@ -238,14 +238,14 @@ export default function DistrictPage() {
       sortField === "country"
         ? a.state?.country?.country
         : sortField === "state"
-        ? a.state?.state
-        : a[sortField];
+          ? a.state?.state
+          : a[sortField];
     const valB =
       sortField === "country"
         ? b.state?.country?.country
         : sortField === "state"
-        ? b.state?.state
-        : b[sortField];
+          ? b.state?.state
+          : b[sortField];
     if (valA < valB) return sortDirection === "asc" ? -1 : 1;
     if (valA > valB) return sortDirection === "asc" ? 1 : -1;
     return 0;
@@ -254,11 +254,11 @@ export default function DistrictPage() {
   const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="px-4 ">
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Districts" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -278,15 +278,23 @@ export default function DistrictPage() {
             </Form.Select>
           </div>
 
-          <div className="col-md-6 text-md-end"  style={{ fontSize: '0.8rem' }}>
-            <div className="mt-2 d-inline-block mb-2"  style={{ fontSize: '0.8rem' }}>
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
               <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchDistricts}>
                 <i className="bi bi-arrow-clockwise"></i>
               </Button>
               <Button
                 size="sm"
                 onClick={handleAddNewClick}
-                style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
+                style={{
+                  backgroundColor: '#2FA64F',
+                  borderColor: '#2FA64F',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem',
+                  minWidth: '90px',
+                  height: '28px',
+                }}
               >
                 + Add District
               </Button>
@@ -302,20 +310,24 @@ export default function DistrictPage() {
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle mb-0">
-            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+          <table className="table table-sm align-middle mb-0" style={{ fontSize: "0.85rem" }}>
+            <thead style={{
+              backgroundColor: "#2E3A59", color: "white", fontSize: "0.82rem", height: "40px",           // Increased height
+
+              verticalAlign: "middle",
+            }}>
               <tr>
-                <th style={{ width: "70px", textAlign: "center",backgroundColor: "#2E3A59", color: "white" }}>S.No</th>
-                <th onClick={() => handleSort("country")} style={{ cursor: "pointer", width: "70px", textAlign: "center",backgroundColor: "#2E3A59", color: "white" }}>
+                <th style={{ width: "70px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>S.No</th>
+                <th onClick={() => handleSort("country")} style={{ cursor: "pointer", width: "70px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>
                   Country {sortField === "country" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
-                <th onClick={() => handleSort("state")} style={{ cursor: "pointer", width: "70px", textAlign: "center",backgroundColor: "#2E3A59", color: "white" }}>
+                <th onClick={() => handleSort("state")} style={{ cursor: "pointer", width: "70px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>
                   State {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
-                <th onClick={() => handleSort("district")} style={{ cursor: "pointer" , width: "70px", textAlign: "center",backgroundColor: "#2E3A59", color: "white"}}>
+                <th onClick={() => handleSort("district")} style={{ cursor: "pointer", width: "70px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>
                   District {sortField === "district" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
-                <th style={{ width: "130px", textAlign: "center",backgroundColor: "#2E3A59", color: "white" }}>Action</th>
+                <th style={{ width: "130px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -333,39 +345,39 @@ export default function DistrictPage() {
                 </tr>
               ) : (
                 paginated.map((d, i) => (
-<tr key={d.id}>
-  <td className="text-center" style={{ width: "70px" }}>
-    {(page - 1) * perPage + i + 1}
-  </td>
-  <td style={{ width: "150px", textAlign: "center" }}>
-    {d.state?.country?.country || "—"}
-  </td>
-  <td style={{ width: "150px", textAlign: "center" }}>
-    {d.state?.state || "—"}
-  </td>
-  <td style={{ width: "150px", textAlign: "center" }}>
-    {d.district}
-  </td>
-  <td style={{ width: "130px", textAlign: "center" }}>
-    <Button
-      variant=""
-      size="sm"
-      className="me-1"
-      onClick={() => handleEdit(d)}
-      style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-    >
-      <i className="bi bi-pencil-square"></i>
-    </Button>
-    <Button
-      variant=""
-      size="sm"
-      onClick={() => handleDelete(d.id)}
-      style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-    >
-      <i className="bi bi-trash"></i>
-    </Button>
-  </td>
-</tr>
+                  <tr key={d.id}>
+                    <td className="text-center" style={{ width: "70px" }}>
+                      {(page - 1) * perPage + i + 1}
+                    </td>
+                    <td style={{ width: "150px", textAlign: "center" }}>
+                      {d.state?.country?.country || "—"}
+                    </td>
+                    <td style={{ width: "150px", textAlign: "center" }}>
+                      {d.state?.state || "—"}
+                    </td>
+                    <td style={{ width: "150px", textAlign: "center" }}>
+                      {d.district}
+                    </td>
+                    <td style={{ width: "130px", textAlign: "center" }}>
+                      <Button
+                        variant=""
+                        size="sm"
+                        className="me-1"
+                        onClick={() => handleEdit(d)}
+                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                      >
+                        <i className="bi bi-pencil-square"></i>
+                      </Button>
+                      <Button
+                        variant=""
+                        size="sm"
+                        onClick={() => handleDelete(d.id)}
+                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </Button>
+                    </td>
+                  </tr>
 
                 ))
               )}
