@@ -40,11 +40,11 @@ export default function VciCustomer() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({
-            city: "",
-            state: "",
-            district: "",
-            pincode: "",
-        });
+        city: "",
+        state: "",
+        district: "",
+        pincode: "",
+    });
     const [cityMenuIsOpen, setCityMenuIsOpen] = useState(false);
     const [cityOptions, setCityOptions] = useState([]);
 
@@ -54,45 +54,45 @@ export default function VciCustomer() {
     const [districtsForForm, setDistrictsForForm] = useState([]);
     const [errors, setErrors] = useState({});
     const [showCalendar, setShowCalendar] = useState(false);
-    const toastIdRef = useRef(null); 
-  const [search, setSearch] = useState("");
-  const [sortField, setSortField] = useState(null);
-  const [sortDirection, setSortDirection] = useState("asc");
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+    const toastIdRef = useRef(null);
+    const [search, setSearch] = useState("");
+    const [sortField, setSortField] = useState(null);
+    const [sortDirection, setSortDirection] = useState("asc");
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(10);
 
     const tableRef = useRef(null);
 
 
-const loadInitialData = async () => {
-    setLoading(true);
-    try {
-        const statesRes = await axios.get(`${API_BASE_URL}/states`);
-        setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
+    const loadInitialData = async () => {
+        setLoading(true);
+        try {
+            const statesRes = await axios.get(`${API_BASE_URL}/states`);
+            setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
 
-        const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
-        setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
+            const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
+            setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
 
-        const customersRes = await axios.get(`${API_BASE_URL}/customers`);
-        setCustomers(Array.isArray(customersRes.data.data) ? customersRes.data.data : customersRes.data);
-        toast.success("Customers loaded successfully!", { toastId: 'customers-loaded', autoClose: 1500 });
-    } catch (err) {
-        console.error("Failed to load initial data:", err);
-        toast.error("Failed to load data.", { autoClose: 1500 });
-    } finally {
-        setLoading(false);
-    }
-};
+            const customersRes = await axios.get(`${API_BASE_URL}/customers`);
+            setCustomers(Array.isArray(customersRes.data.data) ? customersRes.data.data : customersRes.data);
+            toast.success("Customers loaded successfully!", { toastId: 'customers-loaded', autoClose: 1500 });
+        } catch (err) {
+            console.error("Failed to load initial data:", err);
+            toast.error("Failed to load data.", { autoClose: 1500 });
+        } finally {
+            setLoading(false);
+        }
+    };
 
-// Then your effect just calls it
-useEffect(() => {
-    loadInitialData();
-}, []);
+    // Then your effect just calls it
+    useEffect(() => {
+        loadInitialData();
+    }, []);
 
     useEffect(() => {
         if (!loading && customers.length > 0) {
             $(tableRef.current).DataTable({
-                destroy: true, 
+                destroy: true,
                 ordering: true,
                 paging: true,
                 searching: true,
@@ -111,7 +111,7 @@ useEffect(() => {
         if (formData.state) {
             fetchDistrictsForForm(formData.state);
         } else {
-            setDistrictsForForm([]); 
+            setDistrictsForForm([]);
         }
     }, [formData.state]);
 
@@ -152,13 +152,13 @@ useEffect(() => {
 
             if ((name === "mobile")) {
                 if (!/^\d*$/.test(value)) {
-                    return;  
+                    return;
                 }
 
                 if (value.length > 10) {
                     return;
                 }
-                
+
 
 
                 setFormData(prev => ({ ...prev, [name]: value }));
@@ -170,7 +170,7 @@ useEffect(() => {
             }
             if (name === "altMobile") {
                 if (!/^\d*$/.test(value)) {
-                    return;  
+                    return;
                 }
                 if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
                     setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
@@ -189,37 +189,37 @@ useEffect(() => {
                     setErrors(prev => ({ ...prev, [name]: "" }));
 
                     fetch(`https://api.postalpincode.in/pincode/${value}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
-                        const cities = data[0].PostOffice.map(po => ({
-                            label: po.Name,
-                            value: po.Name,
-                        }));
-                        setCityOptions(cities);
-                        setCityMenuIsOpen(true);  
-                        setFormData(prev => ({
-                            ...prev,
-                            state: data[0].PostOffice[0]?.State || "",
-                            district: data[0].PostOffice[0]?.District || "",
-                        }));
-                        setErrors(prev => ({ ...prev, pincode: "", city: "" }));
-                        } else {
-                        setCityOptions([]);
-                        setFormData(prev => ({ ...prev, city: "", state: "", district: "" }));
-                        setCityMenuIsOpen(false);
-                        setErrors(prev => ({ ...prev, pincode: "Invalid pincode" }));
-                        }
-                    })
-                    .catch(() => {
-                        setCityOptions([]);
-                        setCityMenuIsOpen(false);
-                        setErrors(prev => ({ ...prev, pincode: "Error fetching pincode data" }));
-                    });
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
+                                const cities = data[0].PostOffice.map(po => ({
+                                    label: po.Name,
+                                    value: po.Name,
+                                }));
+                                setCityOptions(cities);
+                                setCityMenuIsOpen(true);
+                                setFormData(prev => ({
+                                    ...prev,
+                                    state: data[0].PostOffice[0]?.State || "",
+                                    district: data[0].PostOffice[0]?.District || "",
+                                }));
+                                setErrors(prev => ({ ...prev, pincode: "", city: "" }));
+                            } else {
+                                setCityOptions([]);
+                                setFormData(prev => ({ ...prev, city: "", state: "", district: "" }));
+                                setCityMenuIsOpen(false);
+                                setErrors(prev => ({ ...prev, pincode: "Invalid pincode" }));
+                            }
+                        })
+                        .catch(() => {
+                            setCityOptions([]);
+                            setCityMenuIsOpen(false);
+                            setErrors(prev => ({ ...prev, pincode: "Error fetching pincode data" }));
+                        });
                 }
                 return;
             }
-     
+
             if (name === "gst_no") {
                 if (value.trim() === "") {
                     setErrors(prev => ({ ...prev, gst_no: "" }));
@@ -228,7 +228,7 @@ useEffect(() => {
                 } else {
                     setErrors(prev => ({ ...prev, gst_no: "" }));
                 }
-                if(value.length > 15){
+                if (value.length > 15) {
                     return;
                 }
             }
@@ -256,7 +256,7 @@ useEffect(() => {
             }
             return;
         }
-       if (name === "email") {
+        if (name === "email") {
             const emailRegex = /^[^\s@]+@[^\s@]+\.(com)$/i;
             if (!emailRegex.test(value)) {
                 setErrors(prev => ({ ...prev, email: "Enter a valid email address." }));
@@ -272,13 +272,13 @@ useEffect(() => {
                 setErrors(prev => ({ ...prev, [name]: "" }));
             }
         }
-if (name === "altMobile") {
-    if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
-        setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
-    } else {
-        setErrors(prev => ({ ...prev, altMobile: "" }));
-    }
-}
+        if (name === "altMobile") {
+            if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
+                setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
+            } else {
+                setErrors(prev => ({ ...prev, altMobile: "" }));
+            }
+        }
 
         if (name === "pincode") {
             if (!/^\d{6}$/.test(value)) {
@@ -298,32 +298,32 @@ if (name === "altMobile") {
     };
 
     const handlePincodeChange = async (e) => {
-    const value = e.target.value;
-    setPincode(value);
+        const value = e.target.value;
+        setPincode(value);
 
-    // Require 6 digits before making API call
-    if (value.length === 6) {
-        try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
-        const data = await res.json();
+        // Require 6 digits before making API call
+        if (value.length === 6) {
+            try {
+                const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+                const data = await res.json();
 
-        if (data[0].Status === "Success") {
-            const cities = [
-            ...new Set(data[0].PostOffice.map((po) => po.Name)),
-            ].map((city) => ({ label: city, value: city }));
+                if (data[0].Status === "Success") {
+                    const cities = [
+                        ...new Set(data[0].PostOffice.map((po) => po.Name)),
+                    ].map((city) => ({ label: city, value: city }));
 
-            setCityOptions(cities);
-            toast.success("Pincode matched! Please select city.");
+                    setCityOptions(cities);
+                    toast.success("Pincode matched! Please select city.");
+                } else {
+                    toast.error("Invalid Pincode");
+                    setCityOptions([]);
+                }
+            } catch (err) {
+                toast.error("Error fetching pincode data");
+            }
         } else {
-            toast.error("Invalid Pincode");
             setCityOptions([]);
         }
-        } catch (err) {
-        toast.error("Error fetching pincode data");
-        }
-    } else {
-        setCityOptions([]);
-    }
     };
 
     const handleSelectBlur = (fieldName) => {
@@ -337,49 +337,49 @@ if (name === "altMobile") {
 
 
 
-const validateForm = () => {
-    const newErrors = {};
+    const validateForm = () => {
+        const newErrors = {};
 
-    if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
-    if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
-    if (!formData.email.trim()) newErrors.email = "Email is required.";
-    else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
+        if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
+        if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
+        if (!formData.email.trim()) newErrors.email = "Email is required.";
+        else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
 
-    if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
-    else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
+        if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
+        else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
 
-    if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) {
-        newErrors.altMobile = "Alternative mobile number must be 10 digits.";
-    }
+        if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) {
+            newErrors.altMobile = "Alternative mobile number must be 10 digits.";
+        }
 
-    if (
-        formData.mobile &&
-        formData.altMobile &&
-        formData.mobile === formData.altMobile
-    ) {
-        newErrors.altMobile = "Mobile and alternative mobile numbers should not be the same.";
-    }
+        if (
+            formData.mobile &&
+            formData.altMobile &&
+            formData.mobile === formData.altMobile
+        ) {
+            newErrors.altMobile = "Mobile and alternative mobile numbers should not be the same.";
+        }
 
-    if (!formData.gender) newErrors.gender = "Gender is required.";
+        if (!formData.gender) newErrors.gender = "Gender is required.";
 
-    const today = new Date().toISOString().slice(0, 10);
-    if (!formData.dob) newErrors.dob = "Date of Birth is required.";
-    else if (formData.dob > today) newErrors.dob = "Date of Birth cannot be in the future.";
+        const today = new Date().toISOString().slice(0, 10);
+        if (!formData.dob) newErrors.dob = "Date of Birth is required.";
+        else if (formData.dob > today) newErrors.dob = "Date of Birth cannot be in the future.";
 
-    if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
-    if (!formData.address.trim()) newErrors.address = "Address is required.";
-    if (!formData.city.trim()) newErrors.city = "City or Town is required.";
+        if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
+        if (!formData.address.trim()) newErrors.address = "Address is required.";
+        if (!formData.city.trim()) newErrors.city = "City or Town is required.";
 
-if (!formData.gst_no.trim()) newErrors.gst_no = "GST No is required.";
-if (!formData.state) newErrors.state = "State is required.";
-if (!formData.district) newErrors.district = "District is required.";
+        if (!formData.gst_no.trim()) newErrors.gst_no = "GST No is required.";
+        if (!formData.state) newErrors.state = "State is required.";
+        if (!formData.district) newErrors.district = "District is required.";
 
-    if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
-    else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
+        if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
+        else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-};
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
 
     const handleSubmit = (e) => {
@@ -401,7 +401,7 @@ if (!formData.district) newErrors.district = "District is required.";
             state: formData.state || "",
             district: formData.district || "",
             pincode: formData.pincode,
-gst_no: formData.gst_no,
+            gst_no: formData.gst_no,
             date_of_birth: formData.dob,
         };
 
@@ -605,267 +605,278 @@ gst_no: formData.gst_no,
         const district = districtsForTable.find(d => String(d.id) === String(districtId));
         return district ? district.district : '';
     };
-const handleDownloadPdf = async () => {
-    try {
-        toast.info("Generating PDF, please wait...", { autoClose: false, toastId: "pdf-download-progress" });
+    const handleDownloadPdf = async () => {
+        try {
+            toast.info("Generating PDF, please wait...", { autoClose: false, toastId: "pdf-download-progress" });
 
-        const response = await axios.get(`${API_BASE_URL}/pdf`, {
-            responseType: 'blob',
-        });
+            const response = await axios.get(`${API_BASE_URL}/pdf`, {
+                responseType: 'blob',
+            });
 
-        // Create a blob URL
-        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+            // Create a blob URL
+            const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
 
-        // Create a temporary anchor and trigger download
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', 'customers.pdf'); // Set the desired filename
-        document.body.appendChild(link);
-        link.click();
+            // Create a temporary anchor and trigger download
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'customers.pdf'); // Set the desired filename
+            document.body.appendChild(link);
+            link.click();
 
-        // Clean up
-        link.remove();
-        window.URL.revokeObjectURL(url);
+            // Clean up
+            link.remove();
+            window.URL.revokeObjectURL(url);
 
-        toast.dismiss("pdf-download-progress");
-        toast.success("PDF downloaded successfully!", { autoClose: 1500 });
-    } catch (error) {
-        toast.dismiss("pdf-download-progress");
-        console.error("Error downloading PDF:", error);
-        toast.error("Failed to download PDF. Please try again.", { autoClose: 3000 });
-    }
-};
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
+            toast.dismiss("pdf-download-progress");
+            toast.success("PDF downloaded successfully!", { autoClose: 1500 });
+        } catch (error) {
+            toast.dismiss("pdf-download-progress");
+            console.error("Error downloading PDF:", error);
+            toast.error("Failed to download PDF. Please try again.", { autoClose: 3000 });
+        }
+    };
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
     const filtered = customers.filter((c) =>
-    `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
-    (c.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
-    (c.email || "").toLowerCase().includes(search.toLowerCase()) ||
-    (c.gender || "").toLowerCase().includes(search.toLowerCase()) ||
-    (c.company_name || "").toLowerCase().includes(search.toLowerCase()) ||
-    (c.address || "").toLowerCase().includes(search.toLowerCase()) ||
-    (c.state || "").toLowerCase().includes(search.toLowerCase()) ||
-    (c.district || "").toLowerCase().includes(search.toLowerCase())
+        `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
+        (c.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.email || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.gender || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.company_name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.address || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.state || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.district || "").toLowerCase().includes(search.toLowerCase())
     );
 
     const sorted = [...filtered].sort((a, b) => {
-    if (!sortField) return 0;
+        if (!sortField) return 0;
 
-    let valA, valB;
+        let valA, valB;
 
-    switch (sortField) {
-        case "name":
-        valA = `${a.first_name || ""} ${a.last_name || ""}`;
-        valB = `${b.first_name || ""} ${b.last_name || ""}`;
-        break;
-        default:
-        valA = a[sortField];
-        valB = b[sortField];
-    }
+        switch (sortField) {
+            case "name":
+                valA = `${a.first_name || ""} ${a.last_name || ""}`;
+                valB = `${b.first_name || ""} ${b.last_name || ""}`;
+                break;
+            default:
+                valA = a[sortField];
+                valB = b[sortField];
+        }
 
-    valA = (valA || "").toString().toLowerCase();
-    valB = (valB || "").toString().toLowerCase();
+        valA = (valA || "").toString().toLowerCase();
+        valB = (valB || "").toString().toLowerCase();
 
-    if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-    if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-    return 0;
+        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+        return 0;
     });
 
-// Paginate results
-const paginated = sorted.slice((page - 1) * perPage, page * perPage);
+    // Paginate results
+    const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
     return (
-   <div className="px-4 py-2">
-      <Breadcrumb title="Customers" />
+ <div className="px-4 " style={{ fontSize: "0.75rem" }}>
+            <Breadcrumb title="Customers" />
 
-  <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-    <div className="row mb-3">
-      <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
-        <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
-        <Form.Select
-          size="sm"
-          style={{ width: "100px" }}
-          value={perPage}
-          onChange={(e) => {
-            setPerPage(Number(e.target.value));
-            setPage(1);
-          }}
-        >
-          {[5, 10, 25, 50].map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </Form.Select>
-      </div>
+            <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+                           <div className="row mb-2">
+                               <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+                                   <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+                                   <Form.Select
+                                       size="sm"
+                                       style={{ width: "100px" }}
+                                       value={perPage}
+                                       onChange={(e) => {
+                                           setPerPage(Number(e.target.value));
+                                           setPage(1);
+                                       }}
+                                   >
+                                       {[5, 10, 25, 50].map((n) => (
+                                           <option key={n} value={n}>
+                                               {n}
+                                           </option>
+                                       ))}
+                                   </Form.Select>
+                               </div>
+                               <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+                                   <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                className="me-2"
+                                
+                                onClick={loadInitialData}
+                            >
+                                <i className="bi bi-arrow-clockwise"></i>
+                            </Button>
+                            <Button
+                                variant="outline-primary"
+                                size="sm"
+                                 style={{
+                                   
+                                    padding: '0.25rem 0.5rem',
+                                    fontSize: '0.8rem',
+                                    minWidth: '90px',
+                                    height: '28px',
+                                }}
+                                className="me-2"
+                                onClick={handleDownloadPdf}
+                            >
+                                <i className="bi bi-download me-1"></i> Download PDF
+                            </Button>
 
-      <div className="col-md-6 text-md-end">
-        <div className="mt-2 d-inline-block mb-2">
-              <Button
-              variant="outline-secondary"
-              size="sm"
-              className="me-2"
-              onClick={loadInitialData}
-          >
-              <i className="bi bi-arrow-clockwise"></i>
-          </Button>
-          <Button
-            variant="outline-primary"
-            size="sm"
-            className="me-2"
-            onClick={handleDownloadPdf}
-          >
-            <i className="bi bi-download me-1"></i> Download PDF
-          </Button>
-        
-          
-          <Button
-            size="sm"
-            style={{
-              backgroundColor: "#2FA64F",
-              borderColor: "#2FA64F",
-              color: "#fff",
-            }}
-            onClick={openForm}
-          >
-            + Add New
-          </Button>
-        </div>
-        <Search
-          search={search}
-          setSearch={setSearch}
-          perPage={perPage}
-          setPerPage={setPerPage}
-          setPage={setPage}
-        />
-      </div>
-    </div>
 
-  <div className="table-responsive">
-    <table className="table align-middle mb-0">
-      <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
-        <tr>
-          <th
-            style={{
-              width: "70px",
-              textAlign: "center",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            S.No
-          </th>
-          <th
-            onClick={() => handleSort("name")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-          <th
-            onClick={() => handleSort("mobile")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Mobile {sortField === "mobile" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-          <th
-            onClick={() => handleSort("email")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Email {sortField === "email" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Gender</th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Company</th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Address</th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>State</th>
-          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>District</th>
-          <th
-            style={{
-              width: "130px",
-              textAlign: "center",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Action
-          </th>
-        </tr>
-      </thead>
-<tbody>
-  {loading ? (
-    <tr>
-      <td colSpan="10" className="text-center py-4">
-        <Spinner animation="border" />
-      </td>
-    </tr>
-  ) : paginated.length === 0 ? (
-    <tr>
-      <td colSpan="10" className="text-center py-4 text-muted">
-        <img
-          src="/empty-box.png"
-          alt="No data"
-          style={{ width: 80, height: 100, opacity: 0.6 }}
-        />
-      </td>
-    </tr>
-  ) : (
-    paginated.map((customer, i) => (
-      <tr key={customer.id}>
-        <td className="text-center" style={{ width: "70px" }}>
-          {(page - 1) * perPage + i + 1}
-        </td>
-        <td>{`${customer.first_name || ""} ${customer.last_name || ""}`}</td>
-        <td>{customer.mobile}</td>
-        <td>{customer.email}</td>
-        <td>{customer.gender}</td>
-        <td>{customer.company_name}</td>
-        <td>{customer.address}</td>
-        <td>{customer.state}</td>
-        <td>{customer.district}</td>
-        <td style={{ textAlign: "center" }}>
-          <Button
-            variant=""
-            size="sm"
-            className="me-1"
-            onClick={() => handleEdit(customer)}
-            style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-          >
-            <i className="bi bi-pencil-square"></i>
-          </Button>
+                            <Button
+                                size="sm"
+                               style={{
+                                    backgroundColor: '#2FA64F',
+                                    borderColor: '#2FA64F',
+                                    color: '#fff',
+                                    padding: '0.25rem 0.5rem',
+                                    fontSize: '0.8rem',
+                                    minWidth: '90px',
+                                    height: '28px',
+                                }}
+                                onClick={openForm}
+                            >
+                                + Add New
+                            </Button>
+                        </div>
+                        <Search
+                            search={search}
+                            setSearch={setSearch}
+                            perPage={perPage}
+                            setPerPage={setPerPage}
+                            setPage={setPage}
+                        />
+                    </div>
+                </div>
 
-        </td>
-      </tr>
-    ))
-  )}
-</tbody>
-    </table>
-  </div>
+                <div className="table-responsive">
+                    <table className="table custom-table align-middle table-sm  mb-0"  style={{ fontSize: "0.8rem" }}>
+                        <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+                            <tr>
+                                <th
+                                    style={{
+                                        width: "70px",
+                                        textAlign: "center",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                    }}
+                                >
+                                    S.No
+                                </th>
+                                <th
+                                    onClick={() => handleSort("name")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                    }}
+                                >
+                                    Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("mobile")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                    }}
+                                >
+                                    Mobile {sortField === "mobile" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("email")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                    }}
+                                >
+                                    Email {sortField === "email" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th onClick={() => handleSort("gender")} style={{ backgroundColor: "#2E3A59", color: "white" }}>Gender  {sortField === "gender" && (sortDirection === "asc" ? "▲" : "▼")}</th>
+                                <th onClick={() => handleSort("company_name")} style={{ backgroundColor: "#2E3A59", color: "white" }}>Company  {sortField === "company_name" && (sortDirection === "asc" ? "▲" : "▼")}</th>
+                                <th onClick={() => handleSort("address")} style={{ backgroundColor: "#2E3A59", color: "white" }}>Address  {sortField === "address" && (sortDirection === "asc" ? "▲" : "▼")}</th>
+                                <th onClick={() => handleSort("state")} style={{ backgroundColor: "#2E3A59", color: "white" }}>State  {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}</th>
+                                <th onClick={() => handleSort("district")} style={{ backgroundColor: "#2E3A59", color: "white" }}>District  {sortField === "district" && (sortDirection === "asc" ? "▲" : "▼")}</th>
+                                <th
+                                    style={{
+                                        width: "130px",
+                                        textAlign: "center",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                    }}
+                                >
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="10" className="text-center py-4">
+                                        <Spinner animation="border" />
+                                    </td>
+                                </tr>
+                            ) : paginated.length === 0 ? (
+                                <tr>
+                                    <td colSpan="10" className="text-center py-4 text-muted">
+                                        <img
+                                            src="/empty-box.png"
+                                            alt="No data"
+                                            style={{ width: 80, height: 100, opacity: 0.6 }}
+                                        />
+                                    </td>
+                                </tr>
+                            ) : (
+                                paginated.map((customer, i) => (
+                                    <tr key={customer.id}>
+                                        <td className="text-center" style={{ width: "70px" }}>
+                                            {(page - 1) * perPage + i + 1}
+                                        </td>
+                                        <td>{`${customer.first_name || ""} ${customer.last_name || ""}`}</td>
+                                        <td>{customer.mobile}</td>
+                                        <td>{customer.email}</td>
+                                        <td>{customer.gender}</td>
+                                        <td>{customer.company_name}</td>
+                                        <td>{customer.address}</td>
+                                        <td>{customer.state}</td>
+                                        <td>{customer.district}</td>
+                                        <td style={{ textAlign: "center" }}>
+                                            <Button
+                                                variant=""
+                                                size="sm"
+                                                className="me-1"
+                                                onClick={() => handleEdit(customer)}
+                                                style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                                            >
+                                                <i className="bi bi-pencil-square"></i>
+                                            </Button>
 
-  <Pagination
-    page={page}
-    setPage={setPage}
-    perPage={perPage}
-    totalEntries={filtered.length}
-  />
-</Card>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                <Pagination
+                    page={page}
+                    setPage={setPage}
+                    perPage={perPage}
+                    totalEntries={filtered.length}
+                />
+            </Card>
 
             <div
                 className={`position-fixed bg-white shadow-lg px-3 pt-2 pb-2 customer-form-slide`}
@@ -1185,21 +1196,21 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
                             </Form.Control.Feedback>
                         </div>
                         <div className="col-6 mb-2">
-                        <Form.Label className="mb-1" style={labelStyle}>
-                            City / Town
-                        </Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="city"
-                            // value={formData.city}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            size="sm"
-                            style={getInputStyle && getInputStyle("city")}
-                            isInvalid={!!errors.city}
-                            placeholder="Enter city or town name"
-                        />
-                        {errors.city && <div style={errorStyle}>{errors.city}</div>}
+                            <Form.Label className="mb-1" style={labelStyle}>
+                                City / Town
+                            </Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="city"
+                                // value={formData.city}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                size="sm"
+                                style={getInputStyle && getInputStyle("city")}
+                                isInvalid={!!errors.city}
+                                placeholder="Enter city or town name"
+                            />
+                            {errors.city && <div style={errorStyle}>{errors.city}</div>}
                         </div>
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={labelStyle}>Pincode</Form.Label>
@@ -1217,37 +1228,37 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
                                 {errors.pincode}
                             </Form.Control.Feedback>
                         </div>
-                        {formData.pincode && formData.pincode.length === 6 && !errors.pincode &&  (
-                        <>
-                            <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>State</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="state"
-                                value={formData.state}
-                                readOnly
-                                size="sm"
-                                style={getInputStyle && getInputStyle("state")}
-                                isInvalid={!!errors.state}
-                            />
-                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
-                            </div>
+                        {formData.pincode && formData.pincode.length === 6 && !errors.pincode && (
+                            <>
+                                <div className="col-6 mb-2">
+                                    <Form.Label className="mb-1" style={labelStyle}>State</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="state"
+                                        value={formData.state}
+                                        readOnly
+                                        size="sm"
+                                        style={getInputStyle && getInputStyle("state")}
+                                        isInvalid={!!errors.state}
+                                    />
+                                    {errors.state && <div style={errorStyle}>{errors.state}</div>}
+                                </div>
 
-                            <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>District</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="district"
-                                value={formData.district}
-                                readOnly
-                                size="sm"
-                                style={getInputStyle && getInputStyle("district")}
-                                isInvalid={!!errors.district}
-                            />
-                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
-                            </div>
-                        </>
-                        )}  
+                                <div className="col-6 mb-2">
+                                    <Form.Label className="mb-1" style={labelStyle}>District</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="district"
+                                        value={formData.district}
+                                        readOnly
+                                        size="sm"
+                                        style={getInputStyle && getInputStyle("district")}
+                                        isInvalid={!!errors.district}
+                                    />
+                                    {errors.district && <div style={errorStyle}>{errors.district}</div>}
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     <div className="d-flex justify-content-end py-3 px-2">
