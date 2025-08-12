@@ -108,11 +108,11 @@ export default function PcbPurchaseReturn() {
   };
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Purchase Return" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -131,9 +131,8 @@ export default function PcbPurchaseReturn() {
               ))}
             </Form.Select>
           </div>
-
-          <div className="col-md-6 text-md-end">
-            <div className="mt-2 d-inline-block mb-2">
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
               <Button
                 variant="outline-secondary"
                 size="sm"
@@ -146,9 +145,13 @@ export default function PcbPurchaseReturn() {
                 size="sm"
                 onClick={() => navigate("/pcb-purchase-return/add")}
                 style={{
-                  backgroundColor: "#2FA64F",
-                  borderColor: "#2FA64F",
-                  color: "#fff",
+                  backgroundColor: '#2FA64F',
+                  borderColor: '#2FA64F',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem',
+                  minWidth: '90px',
+                  height: '28px',
                 }}
                 className="btn-success text-white"
               >
@@ -166,37 +169,47 @@ export default function PcbPurchaseReturn() {
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle mb-0">
+          <table className="table  custom-table align-middle mb-0">
             <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
               <tr>
                 <th
-                  style={{ width: "70px", textAlign: "center", cursor: "pointer" , backgroundColor: "#2E3A59", color: "white" }}
+                  style={{ width: "70px", textAlign: "center", cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
                   onClick={() => handleSort("id")}
                 >
                   S.No{renderSortArrow("id")}
                 </th>
-                <th onClick={() => handleSort("vendor_name")} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                    color: "white" }}>
+                <th onClick={() => handleSort("vendor_name")} style={{
+                  cursor: "pointer", backgroundColor: "#2E3A59",
+                  color: "white"
+                }}>
                   Vendor{renderSortArrow("vendor_name")}
                 </th>
                 {/* <th onClick={() => handleSort("batch_name")} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
                     color: "white" }}>
                   Batch{renderSortArrow("batch_name")}
                 </th> */}
-                <th onClick={() => handleSort("category_name")} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                    color: "white" }}>
+                <th onClick={() => handleSort("category_name")} style={{
+                  cursor: "pointer", backgroundColor: "#2E3A59",
+                  color: "white"
+                }}>
                   Category{renderSortArrow("category_name")}
                 </th>
-                <th onClick={() => handleSort("invoice_no")} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                    color: "white" }}>
+                <th onClick={() => handleSort("invoice_no")} style={{
+                  cursor: "pointer", backgroundColor: "#2E3A59",
+                  color: "white"
+                }}>
                   Invoice No{renderSortArrow("invoice_no")}
                 </th>
-                <th onClick={() => handleSort("invoice_date")} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                    color: "white" }}>
+                <th onClick={() => handleSort("invoice_date")} style={{
+                  cursor: "pointer", backgroundColor: "#2E3A59",
+                  color: "white"
+                }}>
                   Invoice Date{renderSortArrow("invoice_date")}
                 </th>
-                <th onClick={() => handleSort("quantity")} style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                    color: "white" }}>
+                <th onClick={() => handleSort("quantity")} style={{
+                  cursor: "pointer", backgroundColor: "#2E3A59",
+                  color: "white"
+                }}>
                   Quantity{renderSortArrow("quantity")}
                 </th>
                 <th style={{ width: "130px", backgroundColor: "#2E3A59", color: "white" }}>Action</th>
