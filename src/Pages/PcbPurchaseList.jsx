@@ -49,9 +49,9 @@ export default function PurchaseListPage() {
     navigate(`/purchase/${item.id}/edit`);
   };
 
-const handleReturn = (invoice_no) => {
-  navigate(`/pcb-purchase-return/add?invoice=${encodeURIComponent(invoice_no)}`);
-};
+  const handleReturn = (invoice_no) => {
+    navigate(`/pcb-purchase-return/add?invoice=${encodeURIComponent(invoice_no)}`);
+  };
 
 
   const handleDelete = (purchaseId) => {
@@ -139,11 +139,11 @@ const handleReturn = (invoice_no) => {
   );
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Purchase Order" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -162,9 +162,8 @@ const handleReturn = (invoice_no) => {
               ))}
             </Form.Select>
           </div>
-
-          <div className="col-md-6 text-md-end">
-            <div className="mt-2 d-inline-block mb-2">
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
               <Button
                 variant="outline-secondary"
                 size="sm"
@@ -176,7 +175,15 @@ const handleReturn = (invoice_no) => {
               <Button
                 size="sm"
                 onClick={() => navigate("/purchase/add")}
-                style={{ backgroundColor: "#2FA64F", borderColor: "#2FA64F", color: "#fff" }}
+                  style={{
+                                    backgroundColor: '#2FA64F',
+                                    borderColor: '#2FA64F',
+                                    color: '#fff',
+                                    padding: '0.25rem 0.5rem',
+                                    fontSize: '0.8rem',
+                                    minWidth: '90px',
+                                    height: '28px',
+                                }}
               >
                 <i className="bi bi-plus-lg me-1"></i> Add Purchase
               </Button>
@@ -192,8 +199,12 @@ const handleReturn = (invoice_no) => {
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle mb-0">
-            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+          <table className="table  table-sm  custom-table align-middle mb-0">
+            <thead style={{  backgroundColor: "#2E3A59",
+                                color: "white",
+                                fontSize: "0.82rem",
+                                height: "40px",
+                                verticalAlign: "middle",  }}>
               <tr>
                 <th
                   style={{
@@ -201,6 +212,7 @@ const handleReturn = (invoice_no) => {
                     textAlign: "center",
                     backgroundColor: "#2E3A59",
                     color: "white",
+                    
                   }}
                 >
                   S.No
@@ -255,7 +267,7 @@ const handleReturn = (invoice_no) => {
                           onPdf={() => handleGenerateInvoice(item.id)}
                           onEdit={() => handleEdit(item)}
                           onDelete={() => handleDelete(item.id)}
-                           onReturn={() => handleReturn(item.invoice_no)}
+                          onReturn={() => handleReturn(item.invoice_no)}
                         />
                       </div>
                     </td>
