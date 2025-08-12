@@ -92,11 +92,11 @@ export default function SalesListPage() {
   const paginatedData = sortedData.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Sales List" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -108,14 +108,15 @@ export default function SalesListPage() {
                 setPage(1);
               }}
             >
-              {[10, 25, 50, 100].map((n) => (
-                <option key={n} value={n}>{n}</option>
+              {[5, 10, 25, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </Form.Select>
           </div>
-
-          <div className="col-md-6 text-md-end">
-            <div className="mt-2 d-inline-block mb-2">
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
               <Button
                 variant="outline-secondary"
                 size="sm"
@@ -127,7 +128,15 @@ export default function SalesListPage() {
               <Button
                 size="sm"
                 onClick={() => navigate("/sales/add")}
-                style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
+                style={{
+                  backgroundColor: '#2FA64F',
+                  borderColor: '#2FA64F',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem',
+                  minWidth: '90px',
+                  height: '28px',
+                }}
               >
                 + Add New
               </Button>
@@ -143,12 +152,14 @@ export default function SalesListPage() {
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle mb-0">
+          <table className="table custom-table align-middle mb-0">
             <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
               <tr>
-                <th style={{ width: "70px", textAlign: "center" ,backgroundColor: "#2E3A59",
-                    color: "white",
-                    cursor: "pointer"}}>S.No</th>
+                <th style={{
+                  width: "70px", textAlign: "center", backgroundColor: "#2E3A59",
+                  color: "white",
+                  cursor: "pointer"
+                }}>S.No</th>
                 {[
                   { label: "Customer", field: "customer_name" },
                   { label: "Invoice No", field: "invoice_no" },
@@ -207,7 +218,7 @@ export default function SalesListPage() {
                         />
                       </div>
                     </td>
-                    <td style={{textAlign: "center"}}>
+                    <td style={{ textAlign: "center" }}>
                       <Button
                         variant=""
                         size="sm"
