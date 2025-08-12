@@ -76,11 +76,11 @@ export default function App() {
   const [formData, setFormData] = useState(initialFormState());
   const [errors, setErrors] = useState({});
   const tableRef = useRef(null);
-const [perPage, setPerPage] = useState(10);
-const [page, setPage] = useState(1);
-const [search, setSearch] = useState("");
-const [sortField, setSortField] = useState("dec"); // default sort field
-const [sortDirection, setSortDirection] = useState("asc"); // default sort direction
+  const [perPage, setPerPage] = useState(10);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [sortField, setSortField] = useState("dec"); // default sort field
+  const [sortDirection, setSortDirection] = useState("asc"); // default sort direction
 
   function initialFormState() {
     return {
@@ -110,21 +110,21 @@ const [sortDirection, setSortDirection] = useState("asc"); // default sort direc
   //     });
   //   }
   // }, [spareparts]);
-useEffect(() => {
-  if ($.fn.DataTable.isDataTable(tableRef.current)) {
-    $(tableRef.current).DataTable().destroy();
-  }
-  if (spareparts.length > 0) {
-    $(tableRef.current).DataTable({
-      ordering: true,
-      paging: false,       // updated
-      searching: false,    // updated
-      lengthChange: false, // updated
-      info: false,         // updated
-      columnDefs: [{ targets: 0, className: "text-center" }],
-    });
-  }
-}, [spareparts]);
+  useEffect(() => {
+    if ($.fn.DataTable.isDataTable(tableRef.current)) {
+      $(tableRef.current).DataTable().destroy();
+    }
+    if (spareparts.length > 0) {
+      $(tableRef.current).DataTable({
+        ordering: true,
+        paging: false,       // updated
+        searching: false,    // updated
+        lengthChange: false, // updated
+        info: false,         // updated
+        columnDefs: [{ targets: 0, className: "text-center" }],
+      });
+    }
+  }, [spareparts]);
 
   const fetchSpareparts = async () => {
     setLoading(true);
@@ -225,21 +225,21 @@ useEffect(() => {
 
       setSpareparts(newData);
 
-    setTimeout(() => {
-  if ($.fn.DataTable.isDataTable(tableRef.current)) {
-    $(tableRef.current).DataTable().destroy();
-  }
-  if (newData.length > 0) {
-    $(tableRef.current).DataTable({
-      ordering: true,
-      paging: false,       // updated
-      searching: false,    // updated
-      lengthChange: false, // updated
-      info: false,         // updated
-      columnDefs: [{ targets: 0, className: "text-center" }],
-    });
-  }
-}, 0);
+      setTimeout(() => {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+          $(tableRef.current).DataTable().destroy();
+        }
+        if (newData.length > 0) {
+          $(tableRef.current).DataTable({
+            ordering: true,
+            paging: false,       // updated
+            searching: false,    // updated
+            lengthChange: false, // updated
+            info: false,         // updated
+            columnDefs: [{ targets: 0, className: "text-center" }],
+          });
+        }
+      }, 0);
 
     } catch (error) {
       console.error("Error saving sparepart:", error);
@@ -289,21 +289,21 @@ useEffect(() => {
       const updatedSpareparts = spareparts.filter(part => part.id !== id);
       setSpareparts(updatedSpareparts);
 
-  setTimeout(() => {
-  if ($.fn.DataTable.isDataTable(tableRef.current)) {
-    $(tableRef.current).DataTable().destroy();
-  }
-  if (newData.length > 0) {
-    $(tableRef.current).DataTable({
-      ordering: true,
-      paging: false,       // updated
-      searching: false,    // updated
-      lengthChange: false, // updated
-      info: false,         // updated
-      columnDefs: [{ targets: 0, className: "text-center" }],
-    });
-  }
-}, 0);
+      setTimeout(() => {
+        if ($.fn.DataTable.isDataTable(tableRef.current)) {
+          $(tableRef.current).DataTable().destroy();
+        }
+        if (newData.length > 0) {
+          $(tableRef.current).DataTable({
+            ordering: true,
+            paging: false,       // updated
+            searching: false,    // updated
+            lengthChange: false, // updated
+            info: false,         // updated
+            columnDefs: [{ targets: 0, className: "text-center" }],
+          });
+        }
+      }, 0);
 
     } catch (error) {
       console.error("Error deleting:", error);
@@ -314,16 +314,16 @@ useEffect(() => {
       }
     }
   };
-const handleSort = (field) => {
-  if (field === sortField) {
-    // Toggle direction
-    setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-  } else {
-    // New sort field
-    setSortField(field);
-    setSortDirection("asc");
-  }
-};
+  const handleSort = (field) => {
+    if (field === sortField) {
+      // Toggle direction
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // New sort field
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   const handleEdit = (part) => {
     setEditingPart(part);
@@ -390,31 +390,31 @@ const handleSort = (field) => {
     { value: "Enable", label: "Enable" },
     { value: "Disable", label: "Disable" },
   ];
-const paginated = spareparts
-  .filter(part => {
-    const searchLower = search.toLowerCase();
+  const paginated = spareparts
+    .filter(part => {
+      const searchLower = search.toLowerCase();
 
-    return (
-      part.name.toLowerCase().includes(searchLower) ||
-      part.is_active.toLowerCase().includes(searchLower) ||
-      part.quantity.toString().includes(searchLower)
-    );
-  })
-  .sort((a, b) => {
-    const valueA = a[sortField] ?? "";
-    const valueB = b[sortField] ?? "";
-    if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
-    if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  })
-  .slice((page - 1) * perPage, page * perPage);
+      return (
+        part.name.toLowerCase().includes(searchLower) ||
+        part.is_active.toLowerCase().includes(searchLower) ||
+        part.quantity.toString().includes(searchLower)
+      );
+    })
+    .sort((a, b) => {
+      const valueA = a[sortField] ?? "";
+      const valueB = b[sortField] ?? "";
+      if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
+      if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    })
+    .slice((page - 1) * perPage, page * perPage);
 
   return (
-   <div className="px-4 py-2">
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Spare Parts" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -434,15 +434,24 @@ const paginated = spareparts
             </Form.Select>
           </div>
 
-          <div className="col-md-6 text-md-end">
-            <div className="mt-2 d-inline-block mb-2">
-<Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchSpareparts}>
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
+              <Button variant="outline-secondary" size="sm" className="me-2" onClick={fetchSpareparts}>
                 <i className="bi bi-arrow-clockwise"></i>
               </Button>
               <Button
                 size="sm"
                 onClick={openForm}
-                style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
+                style={{
+                  backgroundColor: '#2FA64F',
+                  borderColor: '#2FA64F',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem',
+                  minWidth: '90px',
+                  height: '28px',
+                }}
+                className="btn-success text-white"
               >
                 + Add Spare Part
               </Button>
@@ -456,300 +465,304 @@ const paginated = spareparts
             />
           </div>
         </div>
-<div className="table-responsive">
-  <table className="table align-middle mb-0">
-<thead>
-  <tr>
-    <th style={{ width: "70px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>S.No</th>
-    <th
-      onClick={() => handleSort("name")}
-      style={{ cursor: "pointer", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
-    >
-      Spare Part Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
-    </th>
-    <th
-      onClick={() => handleSort("quantity")}
-      style={{ cursor: "pointer", width: "150px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
-    >
-      Current Qty {sortField === "quantity" && (sortDirection === "asc" ? "▲" : "▼")}
-    </th>
-    <th
-      onClick={() => handleSort("quantity_per_vci")}
-      style={{ cursor: "pointer", width: "170px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
-    >
-      Quantity per VCI {sortField === "quantity_per_vci" && (sortDirection === "asc" ? "▲" : "▼")}
-    </th>
-    <th 
-      onClick={() => handleSort("notes")}
-    style={{ width: "250px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>
-      Notes {sortField === "notes" && (sortDirection === "asc" ? "▲" : "▼")}
-    </th>
-    <th
-      onClick={() => handleSort("is_active")}
-      style={{ cursor: "pointer", width: "120px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
-    >
-      Status {sortField === "is_active" && (sortDirection === "asc" ? "▲" : "▼")}
-    </th>
-    <th style={{ width: "130px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>
-      Action
-    </th>
-  </tr>
-</thead>
-<tbody>
-  {loading ? (
-    <tr>
-      <td colSpan="7" className="text-center py-4">
-        <Spinner animation="border" />
-      </td>
-    </tr>
-  ) : paginated.length === 0 ? (
-    <tr>
-      <td colSpan="7" className="text-center py-4 text-muted">
-        <img
-          src="/empty-box.png"
-          alt="No data"
-          style={{ width: 80, height: 100, opacity: 0.6 }}
-        />
-      </td>
-    </tr>
-  ) : (
-    paginated.map((part, index) => (
-      <tr key={part.id}>
-        <td className="text-center" style={{ width: "70px" }}>
-          {(page - 1) * perPage + index + 1}
-        </td>
-        <td className="text-center" style={{ wordBreak: "break-word" }}>
-          {part.name}
-        </td>
-        <td className="text-center" style={{ width: "150px" }}>
-          {part.quantity}
-        </td>
-        <td className="text-center" style={{ width: "150px" }}>
-          {part.quantity_per_vci}
-        </td>
-        <td className="text-center" style={{ width: "250px" }}>
-          {part.notes || "—"}
-        </td>
-        <td className="text-center" style={{ width: "120px" }}>
-          <span className={`badge ${part.is_active === "Enable" ? "bg-success" : "bg-danger"}`}>
-            {part.is_active}
-          </span>
-        </td>
-        <td className="text-center" style={{ width: "130px" }}>
-          <Button
-            variant=""
-            size="sm"
-            className="me-1"
-            onClick={() => handleEdit(part)}
-            style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-          >
-            <i className="bi bi-pencil-square"></i>
-          </Button>
-          <Button
-            variant="outline-primary"
-            size="sm"
-            onClick={() => handleDelete(part.id)}
-            style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-          >
-            <i className="bi bi-trash"></i>
-          </Button>
-        </td>
-      </tr>
-    ))
-  )}
-</tbody>
+        <div className="table-responsive">
+          <table className="table align-middle mb-0">
+            <thead style={{
+              backgroundColor: "#2E3A59", color: "white", fontSize: "0.82rem", height: "40px",           // Increased height
+
+              verticalAlign: "middle",
+            }}>
+              <tr>
+                <th style={{ width: "70px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>S.No</th>
+                <th
+                  onClick={() => handleSort("name")}
+                  style={{ cursor: "pointer", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
+                >
+                  Spare Part Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  onClick={() => handleSort("quantity")}
+                  style={{ cursor: "pointer", width: "150px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
+                >
+                  Current Qty {sortField === "quantity" && (sortDirection === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  onClick={() => handleSort("quantity_per_vci")}
+                  style={{ cursor: "pointer", width: "170px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
+                >
+                  Quantity per VCI {sortField === "quantity_per_vci" && (sortDirection === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  onClick={() => handleSort("notes")}
+                  style={{ width: "250px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>
+                  Notes {sortField === "notes" && (sortDirection === "asc" ? "▲" : "▼")}
+                </th>
+                <th
+                  onClick={() => handleSort("is_active")}
+                  style={{ cursor: "pointer", width: "120px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}
+                >
+                  Status {sortField === "is_active" && (sortDirection === "asc" ? "▲" : "▼")}
+                </th>
+                <th style={{ width: "130px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-4">
+                    <Spinner animation="border" />
+                  </td>
+                </tr>
+              ) : paginated.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center py-4 text-muted">
+                    <img
+                      src="/empty-box.png"
+                      alt="No data"
+                      style={{ width: 80, height: 100, opacity: 0.6 }}
+                    />
+                  </td>
+                </tr>
+              ) : (
+                paginated.map((part, index) => (
+                  <tr key={part.id}>
+                    <td className="text-center" style={{ width: "70px" }}>
+                      {(page - 1) * perPage + index + 1}
+                    </td>
+                    <td className="text-center" style={{ wordBreak: "break-word" }}>
+                      {part.name}
+                    </td>
+                    <td className="text-center" style={{ width: "150px" }}>
+                      {part.quantity}
+                    </td>
+                    <td className="text-center" style={{ width: "150px" }}>
+                      {part.quantity_per_vci}
+                    </td>
+                    <td className="text-center" style={{ width: "250px" }}>
+                      {part.notes || "—"}
+                    </td>
+                    <td className="text-center" style={{ width: "120px" }}>
+                      <span className={`badge ${part.is_active === "Enable" ? "bg-success" : "bg-danger"}`}>
+                        {part.is_active}
+                      </span>
+                    </td>
+                    <td className="text-center" style={{ width: "130px" }}>
+                      <Button
+                        variant=""
+                        size="sm"
+                        className="me-1"
+                        onClick={() => handleEdit(part)}
+                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                      >
+                        <i className="bi bi-pencil-square"></i>
+                      </Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleDelete(part.id)}
+                        style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
 
 
-  </table>
-</div>
+          </table>
+        </div>
 
 
-<Pagination page={page} setPage={setPage} perPage={perPage} totalEntries={spareparts.length} />
+        <Pagination page={page} setPage={setPage} perPage={perPage} totalEntries={spareparts.length} />
       </Card>
 
-        {showForm && (
-          <div className={drawerClass} style={{
+      {showForm && (
+        <div className={drawerClass} style={{
 
-            position: "fixed",
-            top: "63px",
-            right: showForm ? "0" : "-600px", // triggers slide
-            opacity: showForm ? 1 : 0,         // fade in/out
-            visibility: showForm ? "visible" : "hidden", // optional: prevent tabbing
-            pointerEvents: showForm ? "auto" : "none",   // prevent clicks when hidden
-            width: "600px",
-            height: "100vh",
-            backgroundColor: "#fff",
-            boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
-            zIndex: 2000,
-            padding: "30px",
-            overflowY: "auto",
-            borderLeft: "1px solid #dee2e6",
-            transition: "right 3s ease-in-out, opacity 2s ease-in-out", // smooth slow
-          }}>
-            <div className="d-flex justify-content-between align-items-start mb-4">
-              <h5 className="fw-bold mb-0">{editingPart ? "Edit Spare Part" : "Add New Spare Part"}</h5>
-              <Button
-                variant="light"
-                onClick={closeForm}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  backgroundColor: "#DBDBDB73",
-                  border: "none",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  lineHeight: "1",
-                  padding: 0
-                }}
-                tabIndex={0}
-              >
-                &times;
-              </Button>
-            </div>
-            <form onSubmit={handleFormSubmit}>
+          position: "fixed",
+          top: "63px",
+          right: showForm ? "0" : "-600px", // triggers slide
+          opacity: showForm ? 1 : 0,         // fade in/out
+          visibility: showForm ? "visible" : "hidden", // optional: prevent tabbing
+          pointerEvents: showForm ? "auto" : "none",   // prevent clicks when hidden
+          width: "600px",
+          height: "100vh",
+          backgroundColor: "#fff",
+          boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
+          zIndex: 2000,
+          padding: "30px",
+          overflowY: "auto",
+          borderLeft: "1px solid #dee2e6",
+          transition: "right 3s ease-in-out, opacity 2s ease-in-out", // smooth slow
+        }}>
+          <div className="d-flex justify-content-between align-items-start mb-4">
+            <h5 className="fw-bold mb-0">{editingPart ? "Edit Spare Part" : "Add New Spare Part"}</h5>
+            <Button
+              variant="light"
+              onClick={closeForm}
+              style={{
+                width: "40px",
+                height: "40px",
+                backgroundColor: "#DBDBDB73",
+                border: "none",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "24px",
+                fontWeight: "bold",
+                cursor: "pointer",
+                lineHeight: "1",
+                padding: 0
+              }}
+              tabIndex={0}
+            >
+              &times;
+            </Button>
+          </div>
+          <form onSubmit={handleFormSubmit}>
+            <div className="row">
+              <div className="mb-3 col-6">
+                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Spare Part Name</Form.Label>
+                <span style={{ color: "red", marginLeft: "5px" }}>*</span>
+
+                <Form.Control
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="custom-placeholder"
+                  placeholder="Enter Name"
+                  isInvalid={!!errors.name}
+                  style={getInputStyle("name")}
+                />
+                <Form.Control.Feedback type="invalid" style={errorStyle}>
+                  {errors.name}
+                </Form.Control.Feedback>
+              </div>
+              <div className="mb-3 col-6">
+                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Quantity per VCI</Form.Label>
+                <Form.Control
+                  type="number"
+                  name="quantity_per_vci"
+                  value={formData.quantity_per_vci}
+                  onChange={handleChange}
+                  className="custom-placeholder"
+                  placeholder="Enter quantity per VCI"
+                  isInvalid={!!errors.quantity_per_vci}
+                  style={getInputStyle("quantity_per_vci")}
+                />
+                <Form.Control.Feedback type="invalid" style={errorStyle}>
+                  {errors.quantity_per_vci}
+                </Form.Control.Feedback>
+              </div>
+              <div className="mb-3 col-12">
+                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Notes</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  className="custom-placeholder"
+                  rows="4"
+                  placeholder="Enter any notes"
+                  isInvalid={!!errors.notes}
+                  style={getTextAreaStyle("notes")}
+                />
+                <Form.Control.Feedback type="invalid" style={errorStyle}>
+                  {errors.notes}
+                </Form.Control.Feedback>
+              </div>
               <div className="row">
                 <div className="mb-3 col-6">
-                  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Spare Part Name</Form.Label>
-                  <span style={{ color: "red", marginLeft: "5px" }}>*</span>
+                  {editingPart ? (
+                    <>
+                      <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
+                        <span style={{ color: "red", marginLeft: "5px" }}>*</span>
 
-                  <Form.Control
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="custom-placeholder"
-                    placeholder="Enter Name"
-                    isInvalid={!!errors.name}
-                    style={getInputStyle("name")}
-                  />
-                  <Form.Control.Feedback type="invalid" style={errorStyle}>
-                    {errors.name}
-                  </Form.Control.Feedback>
+                        Current Stock
+                      </Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={editingPart.quantity}
+                        readOnly
+                        style={{
+                          ...getInputStyle("quantity"),
+                          backgroundColor: "#e9ecef",
+                          cursor: "not-allowed"
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
+                        Opening Stock<span style={{ color: "red", marginLeft: "5px" }}>*</span>
+
+
+                      </Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="quantity"
+                        value={formData.quantity}
+                        onChange={handleChange}
+                        className="custom-placeholder"
+                        placeholder="Enter Opening Quantity"
+                        isInvalid={!!errors.quantity}
+                        style={getInputStyle("quantity")}
+                      />
+                      <Form.Control.Feedback type="invalid" style={errorStyle}>
+                        {errors.quantity}
+                      </Form.Control.Feedback>
+                    </>
+                  )}
                 </div>
+
                 <div className="mb-3 col-6">
-                  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Quantity per VCI</Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="quantity_per_vci"
-                    value={formData.quantity_per_vci}
+                  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
+                    Status<span style={{ color: "red", marginLeft: "5px" }}>*</span>
+                  </Form.Label>
+                  <CustomDropdown
+                    name="is_active"
+                    value={formData.is_active}
                     onChange={handleChange}
-                    className="custom-placeholder"
-                    placeholder="Enter quantity per VCI"
-                    isInvalid={!!errors.quantity_per_vci}
-                    style={getInputStyle("quantity_per_vci")}
+                    options={statusOptions}
+                    isInvalid={!!errors.is_active}
+                    error={errors.is_active}
                   />
-                  <Form.Control.Feedback type="invalid" style={errorStyle}>
-                    {errors.quantity_per_vci}
-                  </Form.Control.Feedback>
-                </div>
-                <div className="mb-3 col-12">
-                  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Notes</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleChange}
-                    className="custom-placeholder"
-                    rows="4"
-                    placeholder="Enter any notes"
-                    isInvalid={!!errors.notes}
-                    style={getTextAreaStyle("notes")}
-                  />
-                  <Form.Control.Feedback type="invalid" style={errorStyle}>
-                    {errors.notes}
-                  </Form.Control.Feedback>
-                </div>
-                <div className="row">
-                  <div className="mb-3 col-6">
-                    {editingPart ? (
-                      <>
-                        <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                          <span style={{ color: "red", marginLeft: "5px" }}>*</span>
-
-                          Current Stock
-                        </Form.Label>
-                        <Form.Control
-                          type="text"
-                          value={editingPart.quantity}
-                          readOnly
-                          style={{
-                            ...getInputStyle("quantity"),
-                            backgroundColor: "#e9ecef",
-                            cursor: "not-allowed"
-                          }}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                          Opening Stock<span style={{ color: "red", marginLeft: "5px" }}>*</span>
-
-
-                        </Form.Label>
-                        <Form.Control
-                          type="number"
-                          name="quantity"
-                          value={formData.quantity}
-                          onChange={handleChange}
-                          className="custom-placeholder"
-                          placeholder="Enter Opening Quantity"
-                          isInvalid={!!errors.quantity}
-                          style={getInputStyle("quantity")}
-                        />
-                        <Form.Control.Feedback type="invalid" style={errorStyle}>
-                          {errors.quantity}
-                        </Form.Control.Feedback>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="mb-3 col-6">
-                    <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                      Status<span style={{ color: "red", marginLeft: "5px" }}>*</span>
-                    </Form.Label>
-                    <CustomDropdown
-                      name="is_active"
-                      value={formData.is_active}
-                      onChange={handleChange}
-                      options={statusOptions}
-                      isInvalid={!!errors.is_active}
-                      error={errors.is_active}
-                    />
-                  </div>
                 </div>
               </div>
-              <div
-                className="save-button-footer d-flex justify-content-end"
+            </div>
+            <div
+              className="save-button-footer d-flex justify-content-end"
+              style={{
+                position: "sticky",
+                bottom: "0",
+                backgroundColor: "#fff",
+                padding: "20px 30px",
+                borderTop: "1px solid #F2F2F2",
+              }}
+            >
+              <Button
+                type="submit"
+                variant="success"
                 style={{
-                  position: "sticky",
-                  bottom: "0",
-                  backgroundColor: "#fff",
-                  padding: "20px 30px",
-                  borderTop: "1px solid #F2F2F2",
+                  width: "auto",
+                  height: "50px",
+                  borderRadius: "6px",
+                  minWidth: "120px",
                 }}
               >
-                <Button
-                  type="submit"
-                  variant="success"
-                  style={{
-                    width: "auto",
-                    height: "50px",
-                    borderRadius: "6px",
-                    minWidth: "120px",
-                  }}
-                >
-                  {editingPart ? "Update" : "Save"}
-                </Button>
-              </div>
-            </form>
-          </div>
-        )}
-        <style>{`
+                {editingPart ? "Update" : "Save"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
+      <style>{`
           .slide-in {
             position: fixed;
             top: 0;
@@ -895,6 +908,6 @@ const paginated = spareparts
   visibility: visible;
 }
         `}</style>
-       </div>
+    </div>
   );
 }
