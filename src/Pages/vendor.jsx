@@ -53,48 +53,48 @@ export default function vendor() {
     const [districtsForForm, setDistrictsForForm] = useState([]);
     const [errors, setErrors] = useState({});
     const [showCalendar, setShowCalendar] = useState(false);
-    const toastIdRef = useRef(null); 
-  const [search, setSearch] = useState("");
-  const [sortField, setSortField] = useState(null);
-  const [sortDirection, setSortDirection] = useState("asc");
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+    const toastIdRef = useRef(null);
+    const [search, setSearch] = useState("");
+    const [sortField, setSortField] = useState(null);
+    const [sortDirection, setSortDirection] = useState("asc");
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(10);
 
     const tableRef = useRef(null);
 
     // const apiBase = "http://127.0.0.1:8000/api";
 
-// Put this ABOVE your useEffect
-const loadInitialData = async () => {
-    setLoading(true);
-    try {
-        const statesRes = await axios.get(`${API_BASE_URL}/states`);
-        setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
+    // Put this ABOVE your useEffect
+    const loadInitialData = async () => {
+        setLoading(true);
+        try {
+            const statesRes = await axios.get(`${API_BASE_URL}/states`);
+            setStates(Array.isArray(statesRes.data) ? statesRes.data : []);
 
-        const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
-        setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
+            const districtsRes = await axios.get(`${API_BASE_URL}/districts`);
+            setDistrictsForTable(Array.isArray(districtsRes.data) ? districtsRes.data : []);
 
-        const vendorsRes = await axios.get(`${API_BASE_URL}/vendors`);
-        setVendors(Array.isArray(vendorsRes.data.data) ? vendorsRes.data.data : vendorsRes.data);
-        toast.success("Vendors loaded successfully!", { toastId: 'vendors-loaded', autoClose: 1500 });
-    } catch (err) {
-        console.error("Failed to load initial data:", err);
-        toast.error("Failed to load data.", { autoClose: 1500 });
-    } finally {
-        setLoading(false);
-    }
-};
+            const vendorsRes = await axios.get(`${API_BASE_URL}/vendors`);
+            setVendors(Array.isArray(vendorsRes.data.data) ? vendorsRes.data.data : vendorsRes.data);
+            toast.success("Vendors loaded successfully!", { toastId: 'vendors-loaded', autoClose: 1500 });
+        } catch (err) {
+            console.error("Failed to load initial data:", err);
+            toast.error("Failed to load data.", { autoClose: 1500 });
+        } finally {
+            setLoading(false);
+        }
+    };
 
-// Then your effect just calls it
-useEffect(() => {
-    loadInitialData();
-}, []);
+    // Then your effect just calls it
+    useEffect(() => {
+        loadInitialData();
+    }, []);
 
 
     useEffect(() => {
         if (!loading && vendors.length > 0) {
             $(tableRef.current).DataTable({
-                destroy: true, 
+                destroy: true,
                 ordering: true,
                 paging: true,
                 searching: true,
@@ -113,7 +113,7 @@ useEffect(() => {
         if (formData.state) {
             fetchDistrictsForForm(formData.state);
         } else {
-            setDistrictsForForm([]); 
+            setDistrictsForForm([]);
         }
     }, [formData.state]);
 
@@ -132,7 +132,7 @@ useEffect(() => {
                 setDistrictsForForm([]);
             });
     };
-  
+
 
 
     const handleChange = (e, selectName = null) => {
@@ -156,13 +156,13 @@ useEffect(() => {
 
             if ((name === "mobile")) {
                 if (!/^\d*$/.test(value)) {
-                    return;  
+                    return;
                 }
 
                 if (value.length > 10) {
                     return;
                 }
-                
+
 
 
                 setFormData(prev => ({ ...prev, [name]: value }));
@@ -174,7 +174,7 @@ useEffect(() => {
             }
             if (name === "altMobile") {
                 if (!/^\d*$/.test(value)) {
-                    return;  
+                    return;
                 }
                 if (value.trim() !== "" && !/^\d{10}$/.test(value)) {
                     setErrors(prev => ({ ...prev, altMobile: "Alternative mobile number must be 10 digits." }));
@@ -186,12 +186,12 @@ useEffect(() => {
             if (name === "pincode") {
                 if (!/^\d*$/.test(value)) return;
                 if (value.length > 6) return;
-            
+
                 setFormData(prev => ({ ...prev, [name]: value }));
-            
+
                 if (value.length === 6) {
                     setErrors(prev => ({ ...prev, [name]: "" }));
-            
+
                     fetch(`https://api.postalpincode.in/pincode/${value}`)
                         .then(res => res.json())
                         .then(data => {
@@ -232,18 +232,18 @@ useEffect(() => {
                 return;
             }
 
-          if (name === "gst") {
-    if (value.trim() === "") {
-        setErrors(prev => ({ ...prev, gst: "" }));  // No error if empty
-    } else if (!/^[0-9A-Z]{15}$/.test(value)) {
-        setErrors(prev => ({ ...prev, gst: "GST No. must be 15 alphanumeric characters." }));
-    } else {
-        setErrors(prev => ({ ...prev, gst: "" }));
-    }
-    if(value.length > 15){
-        return;
-    }
-}
+            if (name === "gst") {
+                if (value.trim() === "") {
+                    setErrors(prev => ({ ...prev, gst: "" }));  // No error if empty
+                } else if (!/^[0-9A-Z]{15}$/.test(value)) {
+                    setErrors(prev => ({ ...prev, gst: "GST No. must be 15 alphanumeric characters." }));
+                } else {
+                    setErrors(prev => ({ ...prev, gst: "" }));
+                }
+                if (value.length > 15) {
+                    return;
+                }
+            }
 
 
         }
@@ -270,7 +270,7 @@ useEffect(() => {
             return;
         }
 
-       if (name === "email") {
+        if (name === "email") {
             const emailRegex = /^[^\s@]+@[^\s@]+\.(com)$/i;
             if (!emailRegex.test(value)) {
                 setErrors(prev => ({ ...prev, email: "Enter a valid email address." }));
@@ -315,30 +315,30 @@ useEffect(() => {
     const handlePincodeChange = async (e) => {
         const value = e.target.value;
         setPincode(value);
-    
+
         if (value.length === 6) {
             try {
-            const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
-            const data = await res.json();
-    
-            if (data[0].Status === "Success") {
-                const cities = [
-                ...new Set(data[0].PostOffice.map((po) => po.Name)),
-                ].map((city) => ({ label: city, value: city }));
-    
-                setCityOptions(cities);
-                toast.success("Pincode matched! Please select city.");
-            } else {
-                toast.error("Invalid Pincode");
-                setCityOptions([]);
-            }
+                const res = await fetch(`https://api.postalpincode.in/pincode/${value}`);
+                const data = await res.json();
+
+                if (data[0].Status === "Success") {
+                    const cities = [
+                        ...new Set(data[0].PostOffice.map((po) => po.Name)),
+                    ].map((city) => ({ label: city, value: city }));
+
+                    setCityOptions(cities);
+                    toast.success("Pincode matched! Please select city.");
+                } else {
+                    toast.error("Invalid Pincode");
+                    setCityOptions([]);
+                }
             } catch (err) {
-            toast.error("Error fetching pincode data");
+                toast.error("Error fetching pincode data");
             }
         } else {
             setCityOptions([]);
         }
-        };
+    };
 
     const handleSelectBlur = (fieldName) => {
         const value = formData[fieldName];
@@ -353,19 +353,19 @@ useEffect(() => {
 
     const validateForm = () => {
         const newErrors = {};
-    
+
         if (!formData.first_name.trim()) newErrors.first_name = "First name is required.";
         if (!formData.last_name.trim()) newErrors.last_name = "Last name is required.";
         if (!formData.email.trim()) newErrors.email = "Email is required.";
         else if (!/^[^\s@]+@[^\s@]+\.(com)$/i.test(formData.email)) newErrors.email = "Email is invalid";
-    
+
         if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required.";
         else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile number must be 10 digits.";
-    
+
         if (formData.altMobile.trim() && !/^\d{10}$/.test(formData.altMobile)) {
             newErrors.altMobile = "Alternative mobile number must be 10 digits.";
         }
-    
+
         if (
             formData.mobile &&
             formData.altMobile &&
@@ -373,25 +373,25 @@ useEffect(() => {
         ) {
             newErrors.altMobile = "Mobile and alternative mobile numbers should not be the same.";
         }
-    
+
         if (!formData.gender) newErrors.gender = "Gender is required.";
-    
+
         const today = new Date().toISOString().slice(0, 10);
         if (!formData.dob) newErrors.dob = "Date of Birth is required.";
         else if (formData.dob > today) newErrors.dob = "Date of Birth cannot be in the future.";
-    
+
         if (!formData.company_name.trim()) newErrors.company_name = "Company name is required.";
         if (!formData.address.trim()) newErrors.address = "Address is required.";
         if (!formData.city.trim()) newErrors.city = "City or Town is required.";
         if (!formData.state.trim()) newErrors.state = "State is required.";
         if (!formData.district.trim()) newErrors.district = "District is required.";
-    
+
         if (!formData.gst.trim()) newErrors.gst = "GST No. is required.";
         else if (!/^[0-9A-Z]{15}$/.test(formData.gst)) newErrors.gst = "GST No. must be 15 alphanumeric characters.";
-    
+
         if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required.";
         else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits.";
-    
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -478,7 +478,7 @@ useEffect(() => {
             last_name: vendor.last_name || "",
             gender: vendor.gender || "",
             mobile: vendor.mobile || "",
-            altMobile: vendor.alter_mobile || "", 
+            altMobile: vendor.alter_mobile || "",
             email: vendor.email || "",
             company_name: vendor.company_name || "",
             address: vendor.address || "",
@@ -621,284 +621,423 @@ useEffect(() => {
         return district ? district.district : '';
     };
 
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortDirection("asc");
+        }
+    };
 
-// Filter vendors based on search input
-const filtered = vendors.filter((c) =>
-  `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
-  (c.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
-  (c.email || "").toLowerCase().includes(search.toLowerCase()) ||
-  (c.gender || "").toLowerCase().includes(search.toLowerCase()) ||
-  (c.company_name || "").toLowerCase().includes(search.toLowerCase()) ||
-  (c.address || "").toLowerCase().includes(search.toLowerCase()) ||
-  (c.state || "").toLowerCase().includes(search.toLowerCase()) ||
-    (c.district || "").toLowerCase().includes(search.toLowerCase())
-);
+    // Filter vendors based on search input
+    const filtered = vendors.filter((c) =>
+        `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
+        (c.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.email || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.gender || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.company_name || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.address || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.state || "").toLowerCase().includes(search.toLowerCase()) ||
+        (c.district || "").toLowerCase().includes(search.toLowerCase())
+    );
 
-// Sort customers by selected field
-const sorted = [...filtered].sort((a, b) => {
-  if (!sortField) return 0;
+    // Sort customers by selected field
+    const sorted = [...filtered].sort((a, b) => {
+        if (!sortField) return 0;
 
-  let valA, valB;
+        let valA, valB;
 
-  switch (sortField) {
-    case "name":
-      valA = `${a.first_name || ""} ${a.last_name || ""}`;
-      valB = `${b.first_name || ""} ${b.last_name || ""}`;
-      break;
-    case "state":
-      valA = (a.state);
-      valB = (b.state);
-      break;
-    case "district":
-      valA = (a.district);
-      valB = (b.district);
-      break;
-    default:
-      valA = a[sortField];
-      valB = b[sortField];
-  }
+        switch (sortField) {
+            case "name":
+                valA = `${a.first_name || ""} ${a.last_name || ""}`;
+                valB = `${b.first_name || ""} ${b.last_name || ""}`;
+                break;
+            case "state":
+                valA = (a.state);
+                valB = (b.state);
+                break;
+            case "district":
+                valA = (a.district);
+                valB = (b.district);
+                break;
+            default:
+                valA = a[sortField];
+                valB = b[sortField];
+        }
 
-  valA = (valA || "").toString().toLowerCase();
-  valB = (valB || "").toString().toLowerCase();
+        valA = (valA || "").toString().toLowerCase();
+        valB = (valB || "").toString().toLowerCase();
 
-  if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-  if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-  return 0;
-});
+        if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+        if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+    });
 
-// Paginate results
-const paginated = sorted.slice((page - 1) * perPage, page * perPage);
+    // Paginate results
+    const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
     return (
-   <div className="px-4 py-2">
-      <Breadcrumb title="Vendors" />
+        <div className="px-4" style={{ fontSize: "0.75rem" }}>
+            <Breadcrumb title="Vendors" />
 
-  <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-    <div className="row mb-3">
-      <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
-        <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
-        <Form.Select
-          size="sm"
-          style={{ width: "100px" }}
-          value={perPage}
-          onChange={(e) => {
-            setPerPage(Number(e.target.value));
-            setPage(1);
-          }}
-        >
-          {[5, 10, 25, 50].map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
-        </Form.Select>
-      </div>
+            <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+                <div className="row mb-2">
+                    <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+                        <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+                        <Form.Select
+                            size="sm"
+                            style={{ width: "100px" }}
+                            value={perPage}
+                            onChange={(e) => {
+                                setPerPage(Number(e.target.value));
+                                setPage(1);
+                            }}
+                        >
+                            {[5, 10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n}
+                                </option>
+                            ))}
+                        </Form.Select>
+                    </div>
+                    <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+                        <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                className="me-2"
+                                onClick={loadInitialData}
+                            >
+                                <i className="bi bi-arrow-clockwise"></i>
+                            </Button>
 
-      <div className="col-md-6 text-md-end">
-        <div className="mt-2 d-inline-block mb-2">
-<Button
-    variant="outline-secondary"
-    size="sm"
-    className="me-2"
-    onClick={loadInitialData}
->
-    <i className="bi bi-arrow-clockwise"></i>
-</Button>
 
+                            <Button
+                                size="sm"
+                                style={{
+                                    backgroundColor: '#2FA64F',
+                                    borderColor: '#2FA64F',
+                                    color: '#fff',
+                                    padding: '0.25rem 0.5rem',
+                                    fontSize: '0.8rem',
+                                    minWidth: '90px',
+                                    height: '28px',
+                                }}
+                                onClick={openForm}
+                            >
+                                + Add New
+                            </Button>
+                        </div>
+                        <Search
+                            search={search}
+                            setSearch={setSearch}
+                            perPage={perPage}
+                            setPerPage={setPerPage}
+                            setPage={setPage}
+                        />
+                    </div>
+                </div>
 
-          <Button
-            size="sm"
-            style={{
-              backgroundColor: "#2FA64F",
-              borderColor: "#2FA64F",
-              color: "#fff",
-            }}
-            onClick={openForm}
-          >
-            + Add New
-          </Button>
-        </div>
-        <Search
-          search={search}
-          setSearch={setSearch}
-          perPage={perPage}
-          setPerPage={setPerPage}
-          setPage={setPage}
-        />
-      </div>
-    </div>
+                <div className="table-responsive">
+                    <table
+                        className="table table-sm custom-table align-middle mb-0"
+                        style={{ fontSize: "0.8rem" }}
+                    >
+                        <thead
+                            style={{
+                                backgroundColor: "#2E3A59",
+                                color: "white",
+                                fontSize: "0.82rem",
+                                height: "40px",
+                                verticalAlign: "middle",
+                            }}
+                        >
+                            <tr>
+                                <th
+                                    style={{
+                                        width: "70px",
+                                        textAlign: "center",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    S.No
+                                </th>
+                                <th
+                                    onClick={() => handleSort("name")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "150px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title="Name"
+                                >
+                                    Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("mobile")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "120px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title="Mobile"
+                                >
+                                    Mobile {sortField === "mobile" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("email")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "180px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title="Email"
+                                >
+                                    Email {sortField === "email" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("gender")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "90px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title="Gender"
+                                >
+                                    Gender {sortField === "gender" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("company")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "150px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title="Company"
+                                >
+                                    Company {sortField === "company" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("address")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "200px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title="Address"
+                                >
+                                    Address {sortField === "address" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("state")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "120px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title="State"
+                                >
+                                    State {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    onClick={() => handleSort("district")}
+                                    style={{
+                                        cursor: "pointer",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "120px",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                    }}
+                                    title="District"
+                                >
+                                    District {sortField === "district" && (sortDirection === "asc" ? "▲" : "▼")}
+                                </th>
+                                <th
+                                    style={{
+                                        width: "130px",
+                                        textAlign: "center",
+                                        backgroundColor: "#2E3A59",
+                                        color: "white",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr>
+                                    <td colSpan="10" className="text-center py-4">
+                                        <Spinner animation="border" />
+                                    </td>
+                                </tr>
+                            ) : paginated.length === 0 ? (
+                                <tr>
+                                    <td colSpan="10" className="text-center py-4 text-muted">
+                                        <img
+                                            src="/empty-box.png"
+                                            alt="No data"
+                                            style={{ width: 70, height: 90, opacity: 0.6 }}
+                                        />
+                                    </td>
+                                </tr>
+                            ) : (
+                                paginated.map((vendor, i) => (
+                                    <tr key={vendor.id} style={{ fontSize: "0.8rem" }}>
+                                        <td
+                                            className="text-center"
+                                            style={{ width: "70px", whiteSpace: "nowrap" }}
+                                        >
+                                            {(page - 1) * perPage + i + 1}
+                                        </td>
+                                        <td
+                                            style={{
+                                                maxWidth: "150px",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                            }}
+                                            title={`${vendor.first_name || ""} ${vendor.last_name || ""}`}
+                                        >
+                                            {`${vendor.first_name || ""} ${vendor.last_name || ""}`}
+                                        </td>
+                                        <td
+                                            style={{
+                                                maxWidth: "120px",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                            }}
+                                            title={vendor.mobile}
+                                        >
+                                            {vendor.mobile}
+                                        </td>
+                                        <td
+                                            style={{
+                                                maxWidth: "180px",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                            }}
+                                            title={vendor.email}
+                                        >
+                                            {vendor.email}
+                                        </td>
+                                        <td
+                                            style={{
+                                                maxWidth: "90px",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                            }}
+                                            title={vendor.gender}
+                                        >
+                                            {vendor.gender}
+                                        </td>
+                                        <td
+                                            style={{
+                                                maxWidth: "150px",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                            }}
+                                            title={vendor.company_name}
+                                        >
+                                            {vendor.company_name}
+                                        </td>
+                                        <td
+                                            style={{
+                                                maxWidth: "200px",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                            }}
+                                            title={vendor.address}
+                                        >
+                                            {vendor.address}
+                                        </td>
+                                        <td
+                                            style={{
+                                                maxWidth: "120px",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                            }}
+                                            title={vendor.state}
+                                        >
+                                            {vendor.state}
+                                        </td>
+                                        <td
+                                            style={{
+                                                maxWidth: "120px",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                            }}
+                                            title={vendor.district}
+                                        >
+                                            {vendor.district}
+                                        </td>
+                                        <td style={{ textAlign: "center", whiteSpace: "nowrap" }}>
+                                            <Button
+                                                variant=""
+                                                size="sm"
+                                                className="me-1"
+                                                onClick={() => handleEdit(vendor)}
+                                                style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
+                                            >
+                                                <i className="bi bi-pencil-square"></i>
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
 
-  <div className="table-responsive">
-    <table className="table align-middle mb-0">
-      <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
-        <tr>
-          <th
-            style={{
-              width: "70px",
-              textAlign: "center",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            S.No
-          </th>
-          <th
-            onClick={() => handleSort("name")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Name {sortField === "name" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-          <th
-            onClick={() => handleSort("mobile")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Mobile {sortField === "mobile" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-          <th
-            onClick={() => handleSort("email")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Email {sortField === "email" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-    <th
-            onClick={() => handleSort("gender")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            gender {sortField === "gender" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-    <th
-            onClick={() => handleSort("company")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Company {sortField === "company" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-    <th
-            onClick={() => handleSort("address")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Address {sortField === "address" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-    <th
-            onClick={() => handleSort("state")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-           State {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-    <th
-            onClick={() => handleSort("district")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            District {sortField === "district" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-          <th
-            style={{
-              width: "130px",
-              textAlign: "center",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Action
-          </th>
-        </tr>
-      </thead>
-<tbody>
-  {loading ? (
-    <tr>
-      <td colSpan="10" className="text-center py-4">
-        <Spinner animation="border" />
-      </td>
-    </tr>
-  ) : paginated.length === 0 ? (
-    <tr>
-      <td colSpan="10" className="text-center py-4 text-muted">
-        <img
-          src="/empty-box.png"
-          alt="No data"
-          style={{ width: 80, height: 100, opacity: 0.6 }}
-        />
-      </td>
-    </tr>
-  ) : (
-    paginated.map((vendor, i) => (
-      <tr key={vendor.id}>
-        <td className="text-center" style={{ width: "70px" }}>
-          {(page - 1) * perPage + i + 1}
-        </td>
-        <td>{`${vendor.first_name || ""} ${vendor.last_name || ""}`}</td>
-        <td>{vendor.mobile}</td>
-        <td>{vendor.email}</td>
-        <td>{vendor.gender}</td>
-        <td>{vendor.company_name}</td>
-        <td>{vendor.address}</td>
-        <td>{(vendor.state)}</td>
-        <td>{(vendor.district)}</td>
-        <td style={{ textAlign: "center" }}>
-          <Button
-            variant=""
-            size="sm"
-            className="me-1"
-            onClick={() => handleEdit(vendor)}
-            style={{ borderColor: "#2E3A59", color: "#2E3A59" }}
-          >
-            <i className="bi bi-pencil-square"></i>
-          </Button>
+                </div>
 
-        </td>
-      </tr>
-    ))
-  )}
-</tbody>
-    </table>
-  </div>
-
-  <Pagination
-    page={page}
-    setPage={setPage}
-    perPage={perPage}
-    totalEntries={filtered.length}
-  />
-</Card>
+                <Pagination
+                    page={page}
+                    setPage={setPage}
+                    perPage={perPage}
+                    totalEntries={filtered.length}
+                />
+            </Card>
 
             <div
                 className={`position-fixed bg-white shadow-lg px-3 pt-2 pb-2 vendor-form-slide`}
@@ -1218,21 +1357,21 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
                             </Form.Control.Feedback>
                         </div>
                         <div className="col-6 mb-2">
-                        <Form.Label className="mb-1" style={labelStyle}>
-                            City / Town
-                        </Form.Label>
-                        <Form.Control
-                            type="text"
-                            name="city"
-                            value={formData.city || ""}
-                            onChange={handleChange}
-                            onBlur={handleBlur}
-                            size="sm"
-                            style={getInputStyle && getInputStyle("city")}
-                            isInvalid={!!errors.city}
-                            placeholder="Enter city or town name"
-                        />
-                        {errors.city && <div style={errorStyle}>{errors.city}</div>}
+                            <Form.Label className="mb-1" style={labelStyle}>
+                                City / Town
+                            </Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="city"
+                                value={formData.city || ""}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                size="sm"
+                                style={getInputStyle && getInputStyle("city")}
+                                isInvalid={!!errors.city}
+                                placeholder="Enter city or town name"
+                            />
+                            {errors.city && <div style={errorStyle}>{errors.city}</div>}
                         </div>
                         <div className="col-6 mb-2">
                             <Form.Label className="mb-1" style={labelStyle}>Pincode</Form.Label>
@@ -1250,38 +1389,38 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
                                 {errors.pincode}
                             </Form.Control.Feedback>
                         </div>
-                        {formData.pincode && formData.pincode.length === 6 && !errors.pincode &&  (
-                        <>
-                            <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>State</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="state"
-                                value={formData.state || ""}
-                                readOnly
-                                size="sm"
-                                style={getInputStyle && getInputStyle("state")}
-                                isInvalid={!!errors.state}
-                            />
-                            {errors.state && <div style={errorStyle}>{errors.state}</div>}
-                        </div>
+                        {formData.pincode && formData.pincode.length === 6 && !errors.pincode && (
+                            <>
+                                <div className="col-6 mb-2">
+                                    <Form.Label className="mb-1" style={labelStyle}>State</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="state"
+                                        value={formData.state || ""}
+                                        readOnly
+                                        size="sm"
+                                        style={getInputStyle && getInputStyle("state")}
+                                        isInvalid={!!errors.state}
+                                    />
+                                    {errors.state && <div style={errorStyle}>{errors.state}</div>}
+                                </div>
 
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>District</Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="district"
-                                value={formData.district || ""}
-                                readOnly
-                                size="sm"
-                                style={getInputStyle && getInputStyle("district")}
-                                isInvalid={!!errors.district}
-                            />
-                            {errors.district && <div style={errorStyle}>{errors.district}</div>}
-                        </div>
-                        
-                        </>
-                        )}  
+                                <div className="col-6 mb-2">
+                                    <Form.Label className="mb-1" style={labelStyle}>District</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="district"
+                                        value={formData.district || ""}
+                                        readOnly
+                                        size="sm"
+                                        style={getInputStyle && getInputStyle("district")}
+                                        isInvalid={!!errors.district}
+                                    />
+                                    {errors.district && <div style={errorStyle}>{errors.district}</div>}
+                                </div>
+
+                            </>
+                        )}
                     </div>
 
                     <div className="d-flex justify-content-end py-3 px-2">
