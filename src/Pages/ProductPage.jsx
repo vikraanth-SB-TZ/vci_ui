@@ -18,7 +18,7 @@ import Search from "./Components/Search";
 export default function ProductPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [batches, setBatches] = useState([]);
+  // const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -31,12 +31,12 @@ export default function ProductPage() {
   const [productData, setProductData] = useState({
     id: null,
     category_id: "",
-    batch_id: "",
+    // batch_id: "",
     serial_no: "",
     manufacture_no: "",
     firmware_version: "",
     hsn_code: "",
-    sale_status: "",
+    // sale_status: "",
     test: "",
   });
 
@@ -52,11 +52,11 @@ export default function ProductPage() {
       const [pRes, cRes, bRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/products`),
         axios.get(`${API_BASE_URL}/categories`),
-        axios.get(`${API_BASE_URL}/batches`),
+        // axios.get(`${API_BASE_URL}/batches`),
       ]);
       setProducts(pRes.data || []);
       setCategories(cRes.data || []);
-      setBatches(bRes.data || []);
+      // setBatches(bRes.data || []);
     } catch {
       toast.error("Failed to fetch data!");
     } finally {
@@ -69,12 +69,12 @@ export default function ProductPage() {
     setProductData({
       id: null,
       category_id: "",
-      batch_id: "",
+      // batch_id: "",
       serial_no: "",
       manufacture_no: "",
       firmware_version: "",
       hsn_code: "",
-      sale_status: "",
+      // sale_status: "",
       test: "",
     });
     setShowModal(true);
@@ -87,45 +87,45 @@ export default function ProductPage() {
   };
 
   const handleDelete = async (id) => {
-  const result = await MySwal.fire({
-    title: "Are you sure?",
-    text: "Do you really want to delete this product?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Yes, delete it!",
-    didOpen: (popup) => {
-      const title = popup.querySelector(".swal2-title");
-      const content = popup.querySelector(".swal2-html-container");
-      const confirmBtn = popup.querySelector(".swal2-confirm");
-      const cancelBtn = popup.querySelector(".swal2-cancel");
-      const container = popup.querySelector(".swal2-popup");
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete this product?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+      didOpen: (popup) => {
+        const title = popup.querySelector(".swal2-title");
+        const content = popup.querySelector(".swal2-html-container");
+        const confirmBtn = popup.querySelector(".swal2-confirm");
+        const cancelBtn = popup.querySelector(".swal2-cancel");
+        const container = popup.querySelector(".swal2-popup");
 
-      if (title) title.style.fontSize = "0.9rem";
-      if (content) content.style.fontSize = "0.8rem";
-      if (confirmBtn) confirmBtn.style.fontSize = "0.85rem";
-      if (cancelBtn) cancelBtn.style.fontSize = "0.85rem";
+        if (title) title.style.fontSize = "0.9rem";
+        if (content) content.style.fontSize = "0.8rem";
+        if (confirmBtn) confirmBtn.style.fontSize = "0.85rem";
+        if (cancelBtn) cancelBtn.style.fontSize = "0.85rem";
 
-      if (container) {
-        container.style.width = "150px";       // Set modal width
-        container.style.height = "100px";      // Set modal height
-        container.style.maxHeight = "90vh";    // Optional max height for responsiveness
-        container.style.padding = "0.5rem 0.5rem"; // Adjust padding for compactness
-      }
-    },
-  });
+        if (container) {
+          container.style.width = "150px";       // Set modal width
+          container.style.height = "100px";      // Set modal height
+          container.style.maxHeight = "90vh";    // Optional max height for responsiveness
+          container.style.padding = "0.5rem 0.5rem"; // Adjust padding for compactness
+        }
+      },
+    });
 
-  if (!result.isConfirmed) return;
+    if (!result.isConfirmed) return;
 
-  try {
-    await axios.delete(`${API_BASE_URL}/products/${id}`);
-    toast.success("Product deleted!");
-    fetchAllData();
-  } catch {
-    toast.error("Failed to delete product!");
-  }
-};
+    try {
+      await axios.delete(`${API_BASE_URL}/products/${id}`);
+      toast.success("Product deleted!");
+      fetchAllData();
+    } catch {
+      toast.error("Failed to delete product!");
+    }
+  };
 
 
   const handleChange = (e) => {
@@ -145,14 +145,14 @@ export default function ProductPage() {
 
   const validateForm = () => {
     const requiredFields = [
-      { key: "batch_id", label: "Batch" },
+      // { key: "batch_id", label: "Batch" },
       { key: "category_id", label: "Category" },
-      { key: "serial_no", label: "Serial Number" },
+      // { key: "serial_no", label: "Serial Number" },
       { key: "manufacture_no", label: "Manufacture Number" },
       { key: "firmware_version", label: "Firmware Version" },
       { key: "hsn_code", label: "HSN Code" },
       { key: "test", label: "Test Status" },
-      { key: "sale_status", label: "Sale Status" },
+      // { key: "sale_status", label: "Sale Status" },
     ];
     for (const field of requiredFields) {
       const value = productData[field.key];
@@ -177,8 +177,8 @@ export default function ProductPage() {
 
       setShowModal(false);
       fetchAllData();
-    } catch {
-      toast.error("Failed to save product!");
+    } catch (err) {
+      toast.error(`${err.response.data.message}`);
     }
   };
 
@@ -317,7 +317,7 @@ export default function ProductPage() {
                   S.No
                 </th>
                 {[
-                  { key: "batch", label: "Batch" },
+                  // { key: "batch", label: "Batch" },
                   { key: "category", label: "Category" },
                   { key: "serial_no", label: "Serial No" },
                   { key: "manufacture_no", label: "Manufacture No" },
@@ -374,7 +374,7 @@ export default function ProductPage() {
                     <td className="text-center" style={{ padding: "6px 8px", verticalAlign: "middle" }}>
                       {(page - 1) * perPage + index + 1}
                     </td>
-                    <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.batch?.batch || "—"}</td>
+                    {/* <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.batch?.batch || "—"}</td> */}
                     <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.category?.category || "—"}</td>
                     <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.serial_no}</td>
                     <td style={{ padding: "6px 8px", verticalAlign: "middle" }}>{p.manufacture_no}</td>
@@ -442,7 +442,7 @@ export default function ProductPage() {
         </Offcanvas.Header>
         <Offcanvas.Body>
           <Form className="row g-3">
-            <Form.Group className="col-md-6">
+            {/* <Form.Group className="col-md-6">
               <Form.Label>Batch</Form.Label>
               <Form.Select
                 name="batch_id"
@@ -457,7 +457,7 @@ export default function ProductPage() {
                   </option>
                 ))}
               </Form.Select>
-            </Form.Group>
+            </Form.Group> */}
             <Form.Group className="col-md-6">
               <Form.Label>Category</Form.Label>
               <Form.Select
@@ -475,7 +475,7 @@ export default function ProductPage() {
               </Form.Select>
             </Form.Group>
             <Form.Group className="col-md-6">
-              <Form.Label>Serial No.</Form.Label>
+              <Form.Label>Single Serial No.</Form.Label>
               <Form.Control
                 name="serial_no"
                 value={productData.serial_no}
@@ -483,6 +483,14 @@ export default function ProductPage() {
                 placeholder="Enter Serial No."
                 size="sm"
               />
+            </Form.Group>
+            <Form.Group className="col-md-6">
+              <Form.Label>From Serial Number</Form.Label>
+              <Form.Control name="fromserial_no" value={productData.fromserial_no} onChange={handleChange} placeholder="Enter From Serial No." />
+            </Form.Group>
+            <Form.Group className="col-md-6">
+              <Form.Label>To Serial Number</Form.Label>
+              <Form.Control name="toserial_no" value={productData.toserial_no} onChange={handleChange} placeholder="Enter To Serial No." />
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>Manufacture No.</Form.Label>
@@ -527,7 +535,7 @@ export default function ProductPage() {
                 <option value="Issue">Issue</option>
               </Form.Select>
             </Form.Group>
-            <Form.Group className="col-md-6">
+            {/* <Form.Group className="col-md-6">
               <Form.Label>Sale Status</Form.Label>
               <Form.Select
                 name="sale_status"
@@ -541,7 +549,7 @@ export default function ProductPage() {
                 <option value="Sold">Sold</option>
                 <option value="Reserved">Reserved</option>
               </Form.Select>
-            </Form.Group>
+            </Form.Group> */}
           </Form>
           <div className="d-flex justify-content-end mt-4">
             <Button variant="success" onClick={handleSave} size="sm" style={{ minWidth: "120px" }}>
