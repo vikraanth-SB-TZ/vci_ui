@@ -1,105 +1,136 @@
 import React, { useEffect, useState } from "react";
-import { FaArrowUp, FaArrowDown } from "react-icons/fa";
+import { FaArrowUp, FaArrowDown, FaBell } from "react-icons/fa";
 import axios from "axios";
-import "../../assets/css/Componentstock.css";
 import { API_BASE_URL } from "../../api";
+import "../../assets/css/Componentstock.css";
 
-// Dummy data (fallback)
-const dummyData = [
-  { name: "Nut", qty: 3000, usedVCI: 750, up: true },
-  { name: "Bolt", qty: 200, usedVCI: 50, up: false },
-  { name: "End Panels", qty: 100, usedVCI: 50, up: false },
-  { name: "Tech Pro Pouch", qty: 200, usedVCI: 200, up: false },
-  { name: "Side Sticker", qty: 3000, usedVCI: 1500, up: true },
-  { name: "C Type Cable", qty: 400, usedVCI: 400, up: true },
-  { name: "End Plates", qty: 100, usedVCI: 100, up: false },
-  { name: "OBD", qty: 500, usedVCI: 500, up: true },
-  { name: "Mahle Sticker", qty: 1000, usedVCI: 100, up: true },
-];
-
-function formatName(name) {
-  return name
-    .replace(/[_\-]+/g, " ")
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-function transformData(data) {
-  const grouped = {};
-
-  data.forEach((item) => {
-    const rawName = item?.category?.category || "Unknown";
-    const name = formatName(rawName);
-
-    if (!grouped[name]) {
-      grouped[name] = {
-        name,
-        qty: 0,
-        usedVCI: 0,
-        up: false,
-      };
-    }
-
-    grouped[name].qty += 1;
-    if (item.test === "Ok") grouped[name].usedVCI += 1;
-    if (item.sale_status === "Available") grouped[name].up = true;
-  });
-
-  return Object.values(grouped);
-}
+const SkeletonCard = () => (
+  <div className="five-col mb-3">
+    <div className="d-flex">
+      <div
+        className="bg-light rounded me-2 mt-1"
+        style={{ width: 50, height: 50 }}
+      ></div>
+      <div className="d-flex flex-column justify-content-center" style={{ width: "100px" }}>
+        <div className="bg-light rounded mb-1" style={{ height: "12px", width: "70%" }}></div>
+        <div className="bg-light rounded mb-1" style={{ height: "16px", width: "50%" }}></div>
+        <div className="bg-light rounded" style={{ height: "10px", width: "60%" }}></div>
+      </div>
+    </div>
+  </div>
+);
 
 const ComponentStock = () => {
   const [stockData, setStockData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState(null);
+  const [isAvailable, setIsAvailable] = useState(true);
 
   useEffect(() => {
     axios
-      .get(`${API_BASE_URL}/products`)  
+      .get(`${API_BASE_URL}/vci-capacity`)
       .then((res) => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          const transformed = transformData(res.data);
-          setStockData(transformed);
+        if (res.data?.success && res.data?.data?.spare_parts) {
+          const parts = res.data.data.spare_parts;
+          setStockData(parts);
+
+          const unavailablePart = parts.find((p) => p.status === "Unavailable" || p.boards_possible <= 0);
+          if (unavailablePart) {
+            setIsAvailable(false); 
+            setMessage(`Using available parts, we can make ${res.data.data.available_vci_boards_possible} VCI's`);
+          } else {
+            setIsAvailable(true);
+            setMessage(`Using these spare parts, we can make ${res.data.data.max_vci_boards_possible} VCI's`);
+          }
         } else {
-          setStockData(dummyData);
+          setStockData([]);
+          setMessage(null);
         }
       })
       .catch(() => {
-        setStockData(dummyData);
-      });
+        setStockData([]);
+        setMessage(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
     <div className="card p-3 border-0 shadow-sm">
-      <h5 className="fw-semibold mb-1">Components Stock</h5>
-      <small className="text-muted d-block mb-4">Spare parts</small>
-      <div className="stock-scroll-wrapper">
-        <div className="d-flex flex-wrap scroll-container">
-          {stockData.map((item, index) => (
-            <div key={index} className="five-col mb-3">
-              <div className="d-flex">
-                <div
-                  className="bg-light rounded me-2 mt-1"
-                  style={{ width: 50, height: 50 }}
-                ></div>
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <h5 className="fw-semibold mb-1">Components Stock</h5>
+          <small className="text-muted d-block">Spare parts</small>
+        </div>
+          {message && (
+            <div
+              className="d-flex align-items-center"
+              style={{ maxWidth: "350px", textAlign: "right" }}
+            >
+              <FaBell className={`me-2 ${isAvailable ? "text-success" : "text-success"}`} />
+              <small
+                className={`fw-semibold ${isAvailable ? "text-success" : "text-success"}`}
+                style={{ lineHeight: "1.2" }}
+              >
+                {message}
+              </small>
+            </div>
+          )}
+      </div>
 
-                <div className="d-flex flex-column justify-content-center">
-                  <small className="custom-small-text">{item.name}</small>
-                  <div className="fw-bold fs-5">{item.qty} Qty</div>
-                  <small className="text-muted d-block">
-                    Using {item.usedVCI} VCI's
-                  </small>
-                  <small className={item.up ? "text-success" : "text-danger"}>
-                    {item.up ? (
-                      <FaArrowUp style={{ fontSize: "10px" }} />
-                    ) : (
-                      <FaArrowDown style={{ fontSize: "10px" }} />
-                    )}
-                  </small>
+      <div className="stock-scroll-wrapper mt-3">
+        <div className="d-flex flex-wrap scroll-container">
+          {loading ? (
+            <>
+              {[...Array(6)].map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </>
+          ) : stockData.length > 0 ? (
+            stockData.map((item, index) => (
+              <div key={index} className="five-col mb-3">
+                <div className="d-flex">
+                  <div
+                    className="bg-light rounded me-2 mt-1"
+                    style={{ width: 50, height: 50 }}
+                  ></div>
+
+                  <div className="d-flex flex-column justify-content-center">
+                    <small className="custom-small-text">{item.name}</small>
+                    <div className="fw-bold fs-5">{item.total_quantity} Qty</div>
+                    <small
+                      className={`d-block ${
+                        item.boards_possible > 0 ? "text-muted" : "text-danger fw-semibold"
+                      }`}
+                    >
+                      {item.boards_possible > 0
+                        ? `Stock supports ${item.boards_possible} VCI's`
+                        : "Unavailable"}
+                    </small>
+                    <small
+                      className={
+                        item.boards_possible > 0 ? "text-success" : "text-danger"
+                      }
+                    >
+                      {item.boards_possible > 0 ? (
+                        <FaArrowUp style={{ fontSize: "10px" }} />
+                      ) : (
+                        <FaArrowDown style={{ fontSize: "10px" }} />
+                      )}
+                    </small>
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center w-100 py-4">
+              <img
+                src="/empty-box.png"
+                alt="No stock"
+                style={{ width: "80px", height: "100px", opacity: 0.6 }}
+              />
+              <div className="text-muted mt-2">No component stock left</div>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

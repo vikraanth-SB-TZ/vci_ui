@@ -1,15 +1,57 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Card, Spinner } from "react-bootstrap";
+import { Card } from "react-bootstrap";
 import { FaChevronUp, FaChevronDown } from "react-icons/fa";
 import "../../assets/css/TotalProduct.css";
 import { API_BASE_URL } from "../../api";
+
+const SkeletonRow = () => (
+  <div className="mb-4">
+    <div className="d-flex align-items-center ms-5">
+      <div
+        style={{
+          minWidth: "100px",
+          height: "14px",
+          backgroundColor: "#e9ecef",
+          borderRadius: "4px",
+        }}
+      ></div>
+      <div className="flex-grow-1 mx-3">
+        <div
+          style={{
+            height: "6px",
+            backgroundColor: "#e9ecef",
+            borderRadius: "4px",
+            width: "100%",
+          }}
+        ></div>
+      </div>
+      <div
+        style={{
+          width: "40px",
+          height: "14px",
+          backgroundColor: "#e9ecef",
+          borderRadius: "4px",
+        }}
+      ></div>
+    </div>
+    <div
+      className="ms-5"
+      style={{
+        width: "60px",
+        height: "10px",
+        backgroundColor: "#e9ecef",
+        borderRadius: "4px",
+        marginTop: "4px",
+      }}
+    ></div>
+  </div>
+);
 
 export default function TotalProductPage() {
   const [stockData, setStockData] = useState([]);
   const [totalProducts, setTotalProducts] = useState(0);
   const [loading, setLoading] = useState(true);
-
 
   useEffect(() => {
     fetchStockData();
@@ -44,7 +86,7 @@ export default function TotalProductPage() {
   const displayData = stockData.length > 0 ? stockData : fallbackData;
 
   return (
-    <div className="">
+    <div>
       <Card className="border-0 shadow-sm h-100">
         <Card.Body>
           <h6 className="fw-semibold text-dark">Total Product</h6>
@@ -56,12 +98,16 @@ export default function TotalProductPage() {
           <h6 className="mt-4 mb-3 fw-semibold">Current Product Stock</h6>
 
           {loading ? (
-            <Spinner animation="border" />
+            <div style={{ maxHeight: "278px", overflowY: "hidden" }}>
+              {[...Array(4)].map((_, i) => (
+                <SkeletonRow key={i} />
+              ))}
+            </div>
           ) : (
             <div
               style={{
-                maxHeight: "278px", 
-                overflowY: displayData.length > 4 ? "auto" : "visible",
+                height: "278px",        // fixed height to keep container consistent
+                overflowY: "auto",     // always allow vertical scroll if needed
                 paddingRight: "5px",
               }}
             >
@@ -102,11 +148,7 @@ export default function TotalProductPage() {
                           justifyContent: "flex-end",
                         }}
                       >
-                        {isUp ? (
-                          <FaChevronUp size={12} />
-                        ) : (
-                          <FaChevronDown size={12} />
-                        )}
+                        {isUp ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
                         <span>{Math.abs(item.change)}</span>
                       </div>
                     </div>
