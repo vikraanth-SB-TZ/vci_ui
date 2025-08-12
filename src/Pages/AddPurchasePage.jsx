@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Form, Button, Row, Col } from 'react-bootstrap';
 import Select from 'react-select';
 import axios from 'axios';
+import { API_BASE_URL } from "../api";
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
@@ -30,7 +31,7 @@ export default function AddPurchasePage() {
 
   const fetchDropdownData = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/form-dropdowns');
+      const res = await axios.get(`${API_BASE_URL}/form-dropdowns`);
       const data = res.data.data;
       setDropdowns({
         vendors: data.vendors || [],
@@ -205,7 +206,7 @@ if (duplicateSerials.length > 0) {
 
   try {
    
-    const res = await axios.post('http://localhost:8000/api/check-serials', {
+    const res = await axios.post(`${API_BASE_URL}/check-serials`, {
       serials: parsedSerials
     });
 
@@ -233,7 +234,7 @@ if (duplicateSerials.length > 0) {
 
 
     try {
-      await axios.post('http://localhost:8000/api/pcbstore', payload);
+      await axios.post(`${API_BASE_URL}/pcbstore`, payload);
       toast.success('Purchase added successfully!');
       // navigate('/purchaseOrder');
       setTimeout(() => navigate('/purchaseOrder'), 1000);
