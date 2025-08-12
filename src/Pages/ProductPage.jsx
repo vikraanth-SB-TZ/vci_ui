@@ -554,11 +554,11 @@ export default function ProductPage() {
                 </Form.Group> */}
                 <Form.Group className="col-md-6">
               <Form.Label>From Serial Number</Form.Label>
-              <Form.Control name="fromserial_no" value={productData.fromserial_no} onChange={handleChange} placeholder="Enter From Serial No." />
+              <Form.Control size="sm" name="fromserial_no" value={productData.fromserial_no} onChange={handleChange} placeholder="Enter From Serial No." />
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>To Serial Number</Form.Label>
-              <Form.Control name="toserial_no" value={productData.toserial_no} onChange={handleChange} placeholder="Enter To Serial No." />
+              <Form.Control size="sm" name="toserial_no" value={productData.toserial_no} onChange={handleChange} placeholder="Enter To Serial No." />
             </Form.Group>
               </>
             }
