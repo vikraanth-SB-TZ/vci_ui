@@ -179,7 +179,7 @@ export default function CountryPage() {
                 size="sm"
                 className="me-2 p-1"
                 onClick={fetchCountries}
-                style={{ fontSize: "0.8rem", minWidth: "32px", height: "28px" }}
+                
               >
                 <i className="bi bi-arrow-clockwise"></i>
               </Button>

@@ -213,7 +213,7 @@ export default function StatePage() {
                 size="sm"
                 className="me-2 p-1"  // reduce padding
                 onClick={fetchStates}
-                style={{ fontSize: '0.8rem', minWidth: '32px', height: '28px' }}
+               
               >
                 <i className="bi bi-arrow-clockwise"></i>
               </Button>

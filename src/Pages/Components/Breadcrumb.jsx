@@ -12,7 +12,7 @@ const Breadcrumb = ({ title, subtitle }) => {
       </h4>
 
       {/* Breadcrumb */}
-      <div className="ms-auto d-lg-flex d-none flex-row" style={{ fontSize: "0.85rem" }}>
+      <div className="ms-auto d-lg-flex d-none flex-row" style={{ fontSize: "0.75rem" }}>
         <ol className="breadcrumb mb-0" style={{ padding: 0, margin: 0 }}>
           <li className="breadcrumb-item mt-1">
             <Link to="/overview">
