@@ -200,7 +200,6 @@ useEffect(() => {
                         setCityMenuIsOpen(true);  
                         setFormData(prev => ({
                             ...prev,
-                            city: cities[0]?.value || "",
                             state: data[0].PostOffice[0]?.State || "",
                             district: data[0].PostOffice[0]?.District || "",
                         }));
@@ -399,8 +398,8 @@ if (!formData.district) newErrors.district = "District is required.";
             company_name: formData.company_name,
             address: formData.address,
             city: formData.city,
-            state_id: formData.state ? parseInt(formData.state, 10) : null,
-            district_id: formData.district ? parseInt(formData.district, 10) : null,
+            state: formData.state || "",
+            district: formData.district || "",
             pincode: formData.pincode,
 gst_no: formData.gst_no,
             date_of_birth: formData.dob,
@@ -464,13 +463,13 @@ gst_no: formData.gst_no,
             last_name: customer.last_name || "",
             gender: customer.gender || "",
             mobile: customer.mobile || "",
-        altMobile: customer.alt_mobile || "", // FIXED
+            altMobile: customer.alt_mobile || "",
             email: customer.email || "",
             company_name: customer.company_name || "",
             address: customer.address || "",
             city: customer.city || "",
-            state: customer.state_id ? String(customer.state_id) : "",
-            district: customer.district_id ? String(customer.district_id) : "",
+            state: customer.state || "",
+            district: customer.district || "",
             pincode: customer.pincode || "",
             gst_no: customer.gst_no || "",
             dob: customer.date_of_birth || "",
@@ -645,49 +644,39 @@ const handleDownloadPdf = async () => {
     }
   };
 
-// Filter customers based on search input
-const filtered = customers.filter((c) =>
-  `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
-  (c.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
-  (c.email || "").toLowerCase().includes(search.toLowerCase()) ||
-  (c.gender || "").toLowerCase().includes(search.toLowerCase()) ||
-  (c.company_name || "").toLowerCase().includes(search.toLowerCase()) ||
-  (c.address || "").toLowerCase().includes(search.toLowerCase()) ||
-  (getStateNameById(c.state_id) || "").toLowerCase().includes(search.toLowerCase()) ||
-  (getDistrictNameById(c.district_id) || "").toLowerCase().includes(search.toLowerCase())
-);
+    const filtered = customers.filter((c) =>
+    `${c.first_name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
+    (c.mobile || "").toLowerCase().includes(search.toLowerCase()) ||
+    (c.email || "").toLowerCase().includes(search.toLowerCase()) ||
+    (c.gender || "").toLowerCase().includes(search.toLowerCase()) ||
+    (c.company_name || "").toLowerCase().includes(search.toLowerCase()) ||
+    (c.address || "").toLowerCase().includes(search.toLowerCase()) ||
+    (c.state || "").toLowerCase().includes(search.toLowerCase()) ||
+    (c.district || "").toLowerCase().includes(search.toLowerCase())
+    );
 
-// Sort customers by selected field
-const sorted = [...filtered].sort((a, b) => {
-  if (!sortField) return 0;
+    const sorted = [...filtered].sort((a, b) => {
+    if (!sortField) return 0;
 
-  let valA, valB;
+    let valA, valB;
 
-  switch (sortField) {
-    case "name":
-      valA = `${a.first_name || ""} ${a.last_name || ""}`;
-      valB = `${b.first_name || ""} ${b.last_name || ""}`;
-      break;
-    case "state":
-      valA = getStateNameById(a.state_id);
-      valB = getStateNameById(b.state_id);
-      break;
-    case "district":
-      valA = getDistrictNameById(a.district_id);
-      valB = getDistrictNameById(b.district_id);
-      break;
-    default:
-      valA = a[sortField];
-      valB = b[sortField];
-  }
+    switch (sortField) {
+        case "name":
+        valA = `${a.first_name || ""} ${a.last_name || ""}`;
+        valB = `${b.first_name || ""} ${b.last_name || ""}`;
+        break;
+        default:
+        valA = a[sortField];
+        valB = b[sortField];
+    }
 
-  valA = (valA || "").toString().toLowerCase();
-  valB = (valB || "").toString().toLowerCase();
+    valA = (valA || "").toString().toLowerCase();
+    valB = (valB || "").toString().toLowerCase();
 
-  if (valA < valB) return sortDirection === "asc" ? -1 : 1;
-  if (valA > valB) return sortDirection === "asc" ? 1 : -1;
-  return 0;
-});
+    if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+    if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+    });
 
 // Paginate results
 const paginated = sorted.slice((page - 1) * perPage, page * perPage);
@@ -803,57 +792,11 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
           >
             Email {sortField === "email" && (sortDirection === "asc" ? "▲" : "▼")}
           </th>
-             <th
-            onClick={() => handleSort("gender")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            Gender {sortField === "gender" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>
-    <th
-            onClick={() => handleSort("company")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            company {sortField === "company" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>         
-    <th
-            onClick={() => handleSort("address")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            address {sortField === "address" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>         
-  <th
-            onClick={() => handleSort("state")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            state {sortField === "state" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>                   
-  <th
-            onClick={() => handleSort("district")}
-            style={{
-              cursor: "pointer",
-              backgroundColor: "#2E3A59",
-              color: "white",
-            }}
-          >
-            district {sortField === "district" && (sortDirection === "asc" ? "▲" : "▼")}
-          </th>                   
-
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Gender</th>
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Company</th>
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>Address</th>
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>State</th>
+          <th style={{ backgroundColor: "#2E3A59", color: "white" }}>District</th>
           <th
             style={{
               width: "130px",
@@ -895,8 +838,8 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
         <td>{customer.gender}</td>
         <td>{customer.company_name}</td>
         <td>{customer.address}</td>
-        <td>{getStateNameById(customer.state_id)}</td>
-        <td>{getDistrictNameById(customer.district_id)}</td>
+        <td>{customer.state}</td>
+        <td>{customer.district}</td>
         <td style={{ textAlign: "center" }}>
           <Button
             variant=""
@@ -1320,4 +1263,3 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
         </div>
     );
 }
-
