@@ -36,7 +36,7 @@ export default function AppLayout({ onLogout }) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          width: isCollapsed ? '80px' : '280px',
+          width: isCollapsed ? '80px' : '260px',
           flexShrink: 0,
           transition: 'width 0.3s',
         }}

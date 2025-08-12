@@ -42,17 +42,18 @@ export default function Sidebar({ collapsed }) {
     <aside
       className="d-flex flex-column sidebar-container"
       style={{
-        width: collapsed ? "80px" : "280px",
+        width: collapsed ? "80px" : "260px",
         height: "100vh",
         backgroundColor: "#2E3A59",
         fontFamily: "Product Sans, sans-serif",
         overflow: "hidden",
         transition: "width 0.3s",
+         fontSize: "15px",
       }}
     >
       {/* Logo */}
       <div
-        className="d-flex justify-content-center pt-3 pb-4 mb-1"
+        className="d-flex justify-content-center pt-3 pb-4 "
         style={{ flexShrink: 0 }}
       >
         <img
@@ -111,7 +112,7 @@ export default function Sidebar({ collapsed }) {
                 style={{
                   color: isActive("overview") ? "#28a745" : "#ffffff",
                   marginLeft: "12px",
-                  fontSize: "14px",
+                  fontSize: "15px",
                   fontWeight: 500,
                   whiteSpace: "nowrap",
                   transition: "color 0.2s",
