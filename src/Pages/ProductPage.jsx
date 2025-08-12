@@ -225,15 +225,13 @@ export default function ProductPage() {
     <div className="px-4" style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Products" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-2 bg-white">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
         <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
-            <label className="me-2 fw-semibold mb-0" style={{ fontSize: "0.8rem" }}>
-              Records Per Page:
-            </label>
+            <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
               size="sm"
-              style={{ width: "90px", fontSize: "0.8rem", padding: "4px 8px" }}
+              style={{ width: "100px" }}
               value={perPage}
               onChange={(e) => {
                 setPerPage(Number(e.target.value));
@@ -247,12 +245,12 @@ export default function ProductPage() {
               ))}
             </Form.Select>
           </div>
-          <div className="col-md-6 text-md-end" style={{ fontSize: "0.8rem" }}>
-            <div className="mt-2 d-inline-block mb-2">
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
               <Button
                 variant="outline-secondary"
                 size="sm"
-                className="me-2 p-1"
+                className="me-2"
                 onClick={fetchAllData}
                 style={{ fontSize: "0.8rem", minWidth: "32px", height: "28px" }}
               >
@@ -262,37 +260,31 @@ export default function ProductPage() {
                 size="sm"
                 onClick={handleAddNewClick}
                 style={{
-                  backgroundColor: "#2FA64F",
-                  borderColor: "#2FA64F",
-                  color: "#fff",
-                  padding: "0.25rem 0.5rem",
-                  fontSize: "0.8rem",
-                  minWidth: "90px",
-                  height: "28px",
+                  backgroundColor: '#2FA64F',
+                  borderColor: '#2FA64F',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem',
+                  minWidth: '90px',
+                  height: '28px',
                 }}
                 className="btn-success text-white"
               >
                 + Add Product
               </Button>
             </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
-              <div style={{ maxWidth: "220px", marginTop: "0.25rem", marginRight: "0.5rem" }}>
-                {/* Empty div for spacing if needed */}
-              </div>
-              <Search
-                search={search}
-                setSearch={setSearch}
-                perPage={perPage}
-                setPerPage={setPerPage}
-                setPage={setPage}
-                style={{ fontSize: "0.8rem" }}
-              />
-            </div>
+            <Search
+              search={search}
+              setSearch={setSearch}
+              perPage={perPage}
+              setPerPage={setPerPage}
+              setPage={setPage}
+            />
           </div>
         </div>
 
         <div className="table-responsive">
-          <table className="table table-sm align-middle mb-0" style={{ fontSize: "0.85rem" }}>
+          <table className="table  custom-table table-sm align-middle mb-0" style={{ fontSize: "0.85rem" }}>
             <thead
               style={{
                 backgroundColor: "#2E3A59",

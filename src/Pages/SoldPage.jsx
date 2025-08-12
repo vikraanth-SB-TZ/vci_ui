@@ -76,11 +76,11 @@ export default function SoldPage() {
   );
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Sold Products" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -100,8 +100,8 @@ export default function SoldPage() {
             </Form.Select>
           </div>
 
-          <div className="col-md-6 text-md-end">
-            <div className="mt-2 d-inline-block mb-2">
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
               <Button
                 variant="outline-secondary"
                 size="sm"
@@ -122,57 +122,73 @@ export default function SoldPage() {
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle mb-0">
+          <table className="table custom-table align-middle mb-0">
             <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
               <tr>
-                <th style={{ width: "70px", textAlign: "center", backgroundColor: "#2E3A59",
-                  color: "white", }}>S.No</th>
+                <th style={{
+                  width: "70px", textAlign: "center", backgroundColor: "#2E3A59",
+                  color: "white",
+                }}>S.No</th>
                 <th
                   onClick={() => handleSort("category")}
-                  style={{ cursor: "pointer" , backgroundColor: "#2E3A59",
-                  color: "white",}}
+                  style={{
+                    cursor: "pointer", backgroundColor: "#2E3A59",
+                    color: "white",
+                  }}
                 >
                   Category {sortField === "category" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
                 <th
                   onClick={() => handleSort("batch")}
-                  style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                  color: "white" }}
+                  style={{
+                    cursor: "pointer", backgroundColor: "#2E3A59",
+                    color: "white"
+                  }}
                 >
                   Batch {sortField === "batch" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
                 <th
                   onClick={() => handleSort("serial_no")}
-                  style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                  color: "white" }}
+                  style={{
+                    cursor: "pointer", backgroundColor: "#2E3A59",
+                    color: "white"
+                  }}
                 >
                   Serial No. {sortField === "serial_no" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
                 <th
                   onClick={() => handleSort("manufacture_no")}
-                  style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                  color: "white" }}
+                  style={{
+                    cursor: "pointer", backgroundColor: "#2E3A59",
+                    color: "white"
+                  }}
                 >
                   Manufacture No. {sortField === "manufacture_no" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
                 <th
                   onClick={() => handleSort("firmware_version")}
-                  style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                  color: "white" }}
+                  style={{
+                    cursor: "pointer", backgroundColor: "#2E3A59",
+                    color: "white"
+                  }}
                 >
                   Firmware Version {sortField === "firmware_version" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
                 <th
                   onClick={() => handleSort("hsn_code")}
-                  style={{ cursor: "pointer", backgroundColor: "#2E3A59",
-                  color: "white" }}
+                  style={{
+                    cursor: "pointer", backgroundColor: "#2E3A59",
+                    color: "white"
+                  }}
                 >
                   HSN Code {sortField === "hsn_code" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
                 <th
                   onClick={() => handleSort("test")}
-                  style={{ cursor: "pointer" , backgroundColor: "#2E3A59",
-                  color: "white"}}
+                  style={{
+                    cursor: "pointer", backgroundColor: "#2E3A59",
+                    color: "white"
+                  }}
                 >
                   Test {sortField === "test" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
