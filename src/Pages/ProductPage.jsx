@@ -14,11 +14,11 @@ import { API_BASE_URL } from "../api";
 import Breadcrumb from "./Components/Breadcrumb";
 import Pagination from "./Components/Pagination";
 import Search from "./Components/Search";
+import Select from "react-select";
 
 export default function ProductPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  // const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -27,16 +27,15 @@ export default function ProductPage() {
   const [perPage, setPerPage] = useState(10);
   const [sortField, setSortField] = useState("");
   const [sortDirection, setSortDirection] = useState("asc");
+  const [pcbSerialOptions, setPcbSerialOptions] = useState([]);
 
   const [productData, setProductData] = useState({
     id: null,
     category_id: "",
-    // batch_id: "",
     serial_no: "",
     manufacture_no: "",
     firmware_version: "",
     hsn_code: "",
-    // sale_status: "",
     test: "",
   });
 
@@ -52,15 +51,34 @@ export default function ProductPage() {
       const [pRes, cRes, bRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/products`),
         axios.get(`${API_BASE_URL}/categories`),
-        // axios.get(`${API_BASE_URL}/batches`),
       ]);
       setProducts(pRes.data || []);
       setCategories(cRes.data || []);
-      // setBatches(bRes.data || []);
     } catch {
       toast.error("Failed to fetch data!");
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPcbSerialNumbers();
+  }, []);
+
+  const fetchPcbSerialNumbers = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/pcb-board-purchase-items`, {
+        params: { exclude_status: "Reserved" } // optional filter
+      });
+
+      const formattedOptions = res.data.map(item => ({
+        value: item.serial_no,
+        label: item.serial_no
+      }));
+
+      setPcbSerialOptions(formattedOptions);
+    } catch (err) {
+      toast.error("Failed to fetch PCB serial numbers!");
     }
   };
 
@@ -69,12 +87,10 @@ export default function ProductPage() {
     setProductData({
       id: null,
       category_id: "",
-      // batch_id: "",
       serial_no: "",
       manufacture_no: "",
       firmware_version: "",
       hsn_code: "",
-      // sale_status: "",
       test: "",
     });
     setShowModal(true);
@@ -145,14 +161,11 @@ export default function ProductPage() {
 
   const validateForm = () => {
     const requiredFields = [
-      // { key: "batch_id", label: "Batch" },
       { key: "category_id", label: "Category" },
-      // { key: "serial_no", label: "Serial Number" },
       { key: "manufacture_no", label: "Manufacture Number" },
       { key: "firmware_version", label: "Firmware Version" },
       { key: "hsn_code", label: "HSN Code" },
       { key: "test", label: "Test Status" },
-      // { key: "sale_status", label: "Sale Status" },
     ];
     for (const field of requiredFields) {
       const value = productData[field.key];
@@ -284,7 +297,7 @@ export default function ProductPage() {
         </div>
 
         <div className="table-responsive">
-          <table className="table  custom-table table-sm align-middle mb-0" style={{ fontSize: "0.85rem" }}>
+          <table className="table table-sm align-middle mb-0" style={{ fontSize: "0.85rem" }}>
             <thead
               style={{
                 backgroundColor: "#2E3A59",
@@ -309,7 +322,6 @@ export default function ProductPage() {
                   S.No
                 </th>
                 {[
-                  // { key: "batch", label: "Batch" },
                   { key: "category", label: "Category" },
                   { key: "serial_no", label: "Serial No" },
                   { key: "manufacture_no", label: "Manufacture No" },
@@ -434,22 +446,6 @@ export default function ProductPage() {
         </Offcanvas.Header>
         <Offcanvas.Body>
           <Form className="row g-3">
-            {/* <Form.Group className="col-md-6">
-              <Form.Label>Batch</Form.Label>
-              <Form.Select
-                name="batch_id"
-                value={productData.batch_id}
-                onChange={handleChange}
-                size="sm"
-              >
-                <option value="">Select Batch</option>
-                {batches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.batch}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group> */}
             <Form.Group className="col-md-6">
               <Form.Label>Category</Form.Label>
               <Form.Select
@@ -468,22 +464,96 @@ export default function ProductPage() {
             </Form.Group>
             <Form.Group className="col-md-6">
               <Form.Label>Single Serial No.</Form.Label>
-              <Form.Control
-                name="serial_no"
-                value={productData.serial_no}
-                onChange={handleChange}
-                placeholder="Enter Serial No."
-                size="sm"
+              <Select
+                options={pcbSerialOptions}
+                value={
+                  pcbSerialOptions.find(opt => opt.value === productData.serial_no) || null
+                }
+                onChange={(selected) => {
+                  setProductData({
+                    ...productData,
+                    serial_no: selected ? selected.value : ""
+                  });
+                }}
+                isClearable
+                isSearchable
+                placeholder="Select Serial No."
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    minHeight: "31px",
+                    fontSize: "0.8rem"
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    fontSize: "0.8rem"
+                  })
+                }}
               />
             </Form.Group>
-            <Form.Group className="col-md-6">
-              <Form.Label>From Serial Number</Form.Label>
-              <Form.Control name="fromserial_no" value={productData.fromserial_no} onChange={handleChange} placeholder="Enter From Serial No." />
-            </Form.Group>
-            <Form.Group className="col-md-6">
-              <Form.Label>To Serial Number</Form.Label>
-              <Form.Control name="toserial_no" value={productData.toserial_no} onChange={handleChange} placeholder="Enter To Serial No." />
-            </Form.Group>
+            {!isEditing &&
+              <>
+                <Form.Group className="col-md-6">
+                  <Form.Label>From Serial Number</Form.Label>
+                  <Select
+                    options={pcbSerialOptions}
+                    value={
+                      pcbSerialOptions.find(opt => opt.value === productData.from_serial) || null
+                    }
+                    onChange={(selected) => {
+                      setProductData({
+                        ...productData,
+                        from_serial: selected ? selected.value : ""
+                      });
+                    }}
+                    isClearable
+                    isSearchable
+                    placeholder="Select From Serial"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: "31px",
+                        fontSize: "0.8rem"
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        fontSize: "0.8rem"
+                      })
+                    }}
+                  />
+                </Form.Group>
+
+                <Form.Group className="col-md-6">
+                  <Form.Label>To Serial Number</Form.Label>
+                  <Select
+                    options={pcbSerialOptions}
+                    value={
+                      pcbSerialOptions.find(opt => opt.value === productData.to_serial) || null
+                    }
+                    onChange={(selected) => {
+                      setProductData({
+                        ...productData,
+                        to_serial: selected ? selected.value : ""
+                      });
+                    }}
+                    isClearable
+                    isSearchable
+                    placeholder="Select To Serial"
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: "31px",
+                        fontSize: "0.8rem"
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        fontSize: "0.8rem"
+                      })
+                    }}
+                  />
+                </Form.Group>
+              </>
+            }
             <Form.Group className="col-md-6">
               <Form.Label>Manufacture No.</Form.Label>
               <Form.Control
@@ -527,21 +597,6 @@ export default function ProductPage() {
                 <option value="Issue">Issue</option>
               </Form.Select>
             </Form.Group>
-            {/* <Form.Group className="col-md-6">
-              <Form.Label>Sale Status</Form.Label>
-              <Form.Select
-                name="sale_status"
-                value={productData.sale_status}
-                onChange={handleChange}
-                disabled={productData.test === "Issue"}
-                size="sm"
-              >
-                <option value="">Select Sale Status</option>
-                <option value="Available">Available</option>
-                <option value="Sold">Sold</option>
-                <option value="Reserved">Reserved</option>
-              </Form.Select>
-            </Form.Group> */}
           </Form>
           <div className="d-flex justify-content-end mt-4">
             <Button variant="success" onClick={handleSave} size="sm" style={{ minWidth: "120px" }}>
