@@ -97,11 +97,11 @@ export default function ReturnListPage() {
   const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Return List" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -114,13 +114,14 @@ export default function ReturnListPage() {
               }}
             >
               {[5, 10, 25, 50].map((n) => (
-                <option key={n} value={n}>{n}</option>
+                <option key={n} value={n}>
+                  {n}
+                </option>
               ))}
             </Form.Select>
           </div>
-
-          <div className="col-md-6 text-md-end">
-            <div className="d-inline-block mb-2">
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
               <Button
                 variant="outline-secondary"
                 size="sm"
@@ -132,7 +133,15 @@ export default function ReturnListPage() {
               <Button
                 size="sm"
                 onClick={() => navigate("/returns/add")}
-                style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
+                style={{
+                  backgroundColor: '#2FA64F',
+                  borderColor: '#2FA64F',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem',
+                  minWidth: '90px',
+                  height: '28px',
+                }}
               >
                 + Add Return
               </Button>
@@ -148,10 +157,10 @@ export default function ReturnListPage() {
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle mb-0">
-            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+          <table className="table custom-table  table-sm align-middle mb-0">
+            <thead style={{ backgroundColor: "#2E3A59", color: "white", fontSize: "0.8rem" }}>
               <tr>
-                <th style={{ width: "70px", textAlign: "center",backgroundColor: "#2E3A59", color: "white"   }}>S.No</th>
+                <th style={{ width: "70px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>S.No</th>
                 {[
                   { label: "Invoice No", field: "invoice_no" },
                   { label: "Invoice Date", field: "invoice_date" },
@@ -163,12 +172,12 @@ export default function ReturnListPage() {
                   <th
                     key={field}
                     onClick={() => handleSort(field)}
-                    style={{ cursor: "pointer" , backgroundColor: "#2E3A59", color: "white"  }}
+                    style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
                   >
                     {label} {sortField === field && (sortDirection === "asc" ? "▲" : "▼")}
                   </th>
                 ))}
-                <th style={{ width: "130px", backgroundColor: "#2E3A59", color: "white"  }}>Action</th>
+                <th style={{ width: "130px", backgroundColor: "#2E3A59", color: "white" }}>Action</th>
               </tr>
             </thead>
             <tbody>
