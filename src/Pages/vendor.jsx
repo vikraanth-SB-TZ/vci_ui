@@ -413,8 +413,8 @@ useEffect(() => {
             company_name: formData.company_name,
             address: formData.address,
             city: formData.city,
-            state_id: formData.state ? parseInt(formData.state, 10) : null,
-            district_id: formData.district ? parseInt(formData.district, 10) : null,
+            state: formData.state || "",
+            district: formData.district || "",
             pincode: formData.pincode,
             gst_no: formData.gst,
             date_of_birth: formData.dob,
@@ -478,15 +478,15 @@ useEffect(() => {
             last_name: vendor.last_name || "",
             gender: vendor.gender || "",
             mobile: vendor.mobile || "",
-        altMobile: vendor.alter_mobile || "", 
+            altMobile: vendor.alter_mobile || "", 
             email: vendor.email || "",
             company_name: vendor.company_name || "",
             address: vendor.address || "",
             city: vendor.city || "",
-            state: vendor.state_id ? String(vendor.state_id) : "",
-            district: vendor.district_id ? String(vendor.district_id) : "",
+            state: vendor.state || "",
+            district: vendor.district || "",
             pincode: vendor.pincode || "",
-gst: vendor.gst_no || "",
+            gst: vendor.gst_no || "",
             dob: vendor.date_of_birth || "",
         });
 
@@ -638,8 +638,8 @@ const filtered = vendors.filter((c) =>
   (c.gender || "").toLowerCase().includes(search.toLowerCase()) ||
   (c.company_name || "").toLowerCase().includes(search.toLowerCase()) ||
   (c.address || "").toLowerCase().includes(search.toLowerCase()) ||
-  (getStateNameById(c.state_id) || "").toLowerCase().includes(search.toLowerCase()) ||
-  (getDistrictNameById(c.district_id) || "").toLowerCase().includes(search.toLowerCase())
+  (c.state || "").toLowerCase().includes(search.toLowerCase()) ||
+    (c.district || "").toLowerCase().includes(search.toLowerCase())
 );
 
 // Sort customers by selected field
@@ -654,12 +654,12 @@ const sorted = [...filtered].sort((a, b) => {
       valB = `${b.first_name || ""} ${b.last_name || ""}`;
       break;
     case "state":
-      valA = getStateNameById(a.state_id);
-      valB = getStateNameById(b.state_id);
+      valA = (a.state);
+      valB = (b.state);
       break;
     case "district":
-      valA = getDistrictNameById(a.district_id);
-      valB = getDistrictNameById(b.district_id);
+      valA = (a.district);
+      valB = (b.district);
       break;
     default:
       valA = a[sortField];
@@ -871,8 +871,8 @@ const paginated = sorted.slice((page - 1) * perPage, page * perPage);
         <td>{vendor.gender}</td>
         <td>{vendor.company_name}</td>
         <td>{vendor.address}</td>
-        <td>{getStateNameById(vendor.state_id)}</td>
-        <td>{getDistrictNameById(vendor.district_id)}</td>
+        <td>{(vendor.state)}</td>
+        <td>{(vendor.district)}</td>
         <td style={{ textAlign: "center" }}>
           <Button
             variant=""
