@@ -4,11 +4,12 @@ import { Button, Spinner, Modal, Form, Card } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import "datatables.net-dt/css/dataTables.dataTables.css";
+
+import { API_BASE_URL } from "../api";
 import Breadcrumb from "./Components/Breadcrumb";
 import Pagination from "./Components/Pagination";
 import Search from "./Components/Search";
-import { API_BASE_URL } from "../api";
-import ActionButtons from "./Components/ActionButtons";
 
 export default function CountryPage() {
   const [countries, setCountries] = useState([]);
@@ -35,32 +36,20 @@ export default function CountryPage() {
       if (Array.isArray(res.data)) {
         setCountries(res.data);
       } else {
-        
         setCountries([]);
       }
     } catch (error) {
-      const isServerError =
-        error.response?.status >= 500 || !error.response;
-  
-      if (isServerError) {
-        toast.error("Failed to fetch countries!");
-      }
-  
+      const isServerError = error.response?.status >= 500 || !error.response;
+      if (isServerError) toast.error("Failed to fetch countries!");
       setCountries([]);
     } finally {
       setLoading(false);
     }
   };
-  
+
   const handleAddNewClick = () => {
     setEditingCountryId(null);
     setCountryName("");
-    setShowModal(true);
-  };
-
-  const handleEdit = (country) => {
-    setEditingCountryId(country.id);
-    setCountryName(country.country);
     setShowModal(true);
   };
 
@@ -70,12 +59,18 @@ export default function CountryPage() {
     setEditingCountryId(null);
   };
 
+  const handleEdit = (country) => {
+    setEditingCountryId(country.id);
+    setCountryName(country.country);
+    setShowModal(true);
+  };
+
   const handleSave = async () => {
     if (!countryName.trim()) {
       toast.warning("Country name is required!");
       return;
     }
-  
+
     const duplicate = countries.some(
       (c) =>
         c.country.toLowerCase() === countryName.trim().toLowerCase() &&
@@ -85,60 +80,45 @@ export default function CountryPage() {
       toast.error("Country already exists!");
       return;
     }
-  
+
     const payload = { country: countryName.trim() };
-  
+
     try {
       if (editingCountryId) {
-        
         await axios.put(`${API_BASE_URL}/countries/${editingCountryId}`, payload);
-        
-        
-        setCountries((prev) =>
-          prev.map((c) =>
-            c.id === editingCountryId ? { ...c, ...payload } : c
-          )
-        );
-  
         toast.success("Country updated successfully!");
       } else {
-        
-        const res = await axios.post(`${API_BASE_URL}/countries`, payload);
-  
-        
-        setCountries((prev) => [...prev, res.data]);
+        await axios.post(`${API_BASE_URL}/countries`, payload);
         toast.success("Country added successfully!");
       }
-  
+      await fetchCountries();
       handleModalClose();
-    } catch (error) {
+    } catch {
       toast.error("Failed to save country!");
     }
   };
-  
 
- const handleDelete = async (id) => {
-  try {
-    const confirmed = await Swal.fire({
-      title: "Are you sure?",
-      text: "This will delete the country.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, delete it!",
-    });
+  const handleDelete = async (id) => {
+    try {
+      const confirmed = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you really want to delete this country?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+      });
 
-    if (confirmed.isConfirmed) {
-      await axios.delete(`${API_BASE_URL}/countries/${id}`);
-      toast.success("Country deleted successfully");
-      await fetchCountries(); 
+      if (confirmed.isConfirmed) {
+        await axios.delete(`${API_BASE_URL}/countries/${id}`);
+        toast.success("Country deleted!");
+        await fetchCountries();
+      }
+    } catch {
+      toast.error("Failed to delete country!");
     }
-  } catch (error) {
-    toast.error("Failed to delete country");
-  }
-};
-
+  };
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -168,11 +148,11 @@ export default function CountryPage() {
   );
 
   return (
-    <div className="px-4 py-2">
+    <div className="px-4" style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Country" />
 
-      <Card className="border-0 shadow-sm rounded-3 p-3 mt-3 bg-white">
-        <div className="row mb-3">
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
           <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
             <Form.Select
@@ -192,71 +172,67 @@ export default function CountryPage() {
             </Form.Select>
           </div>
 
-          <div className="col-md-6 text-md-end">
+          <div className="col-md-6 text-md-end" style={{ fontSize: "0.8rem" }}>
             <div className="mt-2 d-inline-block mb-2">
               <Button
                 variant="outline-secondary"
                 size="sm"
-                className="me-2"
+                className="me-2 p-1"
                 onClick={fetchCountries}
+                style={{ fontSize: "0.8rem", minWidth: "32px", height: "28px" }}
               >
                 <i className="bi bi-arrow-clockwise"></i>
               </Button>
               <Button
                 size="sm"
                 onClick={handleAddNewClick}
-                style={{ backgroundColor: '#2FA64F', borderColor: '#2FA64F', color: '#fff' }}
+                style={{
+                  backgroundColor: "#2FA64F",
+                  borderColor: "#2FA64F",
+                  color: "#fff",
+                  padding: "0.25rem 0.5rem",
+                  fontSize: "0.8rem",
+                  minWidth: "90px",
+                  height: "28px",
+                }}
               >
                 + Add Country
               </Button>
             </div>
-            <Search
-              search={search}
-              setSearch={setSearch}
-              perPage={perPage}
-              setPerPage={setPerPage}
-              setPage={setPage}
-            />
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+              <Search
+                search={search}
+                setSearch={setSearch}
+                perPage={perPage}
+                setPerPage={setPerPage}
+                setPage={setPage}
+                style={{ fontSize: "0.8rem" }}
+              />
+            </div>
           </div>
         </div>
 
         <div className="table-responsive">
-          <table className="table align-middle mb-0">
-            <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
+          <table className="table table-sm align-middle mb-0" style={{ fontSize: "0.85rem" }}>
+            <thead
+              style={{
+                backgroundColor: "#2E3A59",
+                color: "white",
+                fontSize: "0.82rem",
+                height: "40px",
+                verticalAlign: "middle",
+              }}
+            >
               <tr>
-                <th
-                  style={{
-                    width: "70px",
-                    textAlign: "center",
-                    backgroundColor: "#2E3A59",
-                    color: "white",
-                  }}
-                >
-                  S.No
-                </th>
+                <th style={{ width: "70px", textAlign: "center", cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}>S.No</th>
                 <th
                   onClick={() => handleSort("country")}
-                  style={{
-                    textAlign: "center",
-                    cursor: "pointer",
-                    backgroundColor: "#2E3A59",
-                    color: "white",
-                  }}
+                  style={{ cursor: "pointer", backgroundColor: "#2E3A59", color: "white" }}
                 >
                   Country {sortField === "country" && (sortDirection === "asc" ? "▲" : "▼")}
                 </th>
-                <th
-                  style={{
-                    width: "130px",
-                    textAlign: "center",
-                    backgroundColor: "#2E3A59",
-                    color: "white",
-                  }}
-                >
-                  Action
-                </th>
+                <th style={{ width: "130px", textAlign: "center", backgroundColor: "#2E3A59", color: "white" }}>Action</th>
               </tr>
-
             </thead>
             <tbody>
               {loading ? (
@@ -281,15 +257,32 @@ export default function CountryPage() {
                     <td className="text-center">
                       {(page - 1) * perPage + index + 1}
                     </td>
-                    <td className="text-center">{country.country}</td>
-                    <td className="text-center" style={{ width: "130px" }}>
-                      <div className="d-flex justify-content-center">
-                        <ActionButtons
-                          // onPdf={() => handlePdf(item.id)}
-                          onEdit={() => handleEdit(country)}
-                          onDelete={() => handleDelete(country.id)}
-                        />
-                      </div>
+                    <td>{country.country}</td>
+                    <td className="text-center">
+                      <Button
+                        variant=""
+                        size="sm"
+                        className="me-1"
+                        onClick={() => handleEdit(country)}
+                        style={{
+                          borderColor: "#2E3A59",
+                          color: "#2E3A59",
+                        }}
+                      >
+                        <i className="bi bi-pencil-square"></i>
+                      </Button>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleDelete(country.id)}
+                        style={{
+                          borderColor: "#2E3A59",
+                          color: "#2E3A59",
+                          backgroundColor: "transparent",
+                        }}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -321,6 +314,7 @@ export default function CountryPage() {
               <i className="bi bi-x-lg fs-6"></i>
             </Button>
           </div>
+
           <Form.Group className="mb-3">
             <Form.Label className="fw-medium">Country Name</Form.Label>
             <Form.Control
@@ -330,6 +324,7 @@ export default function CountryPage() {
               onChange={(e) => setCountryName(e.target.value)}
             />
           </Form.Group>
+
           <div className="d-flex justify-content-end gap-2 mt-3">
             <Button variant="light" onClick={handleModalClose}>
               Cancel
