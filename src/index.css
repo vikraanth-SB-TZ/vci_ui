@@ -208,7 +208,7 @@ body,
 .custom-offcanvas .form-label {
   font-size: 13px;
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 1px;
   color: #393C3AE5;
 }
 
@@ -249,3 +249,10 @@ body,
 }
 
 
+/* Make dropdowns smaller inside custom-offcanvas */
+.custom-offcanvas .form-select {
+  font-size: 13px;
+  padding: 2px 20px 2px 8px; /* top/right/bottom/left — leave space for arrow */
+  height: 28px; /* slightly smaller than inputs */
+  line-height: 1.2; 
+}

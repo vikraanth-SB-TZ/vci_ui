@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Form, Spinner, Card } from "react-bootstrap";
+import { Button, Form, Spinner, Card, Offcanvas } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Select from 'react-select';
@@ -1039,400 +1039,401 @@ export default function vendor() {
                 />
             </Card>
 
-            <div
-                className={`position-fixed bg-white shadow-lg px-3 pt-2 pb-2 vendor-form-slide`}
+<Offcanvas
+  show={showForm}
+  onHide={closeForm}
+  placement="end"
+  backdrop="static"
+  className="custom-offcanvas"
+  style={{
+    width: "600px",
+    fontFamily: "Product Sans, sans-serif",
+    fontWeight: 400,
+    overflowY: "auto",
+    overflowX: "hidden",
+    height: "calc(100vh - 58px)",
+    top: "61px",
+    zIndex: 1050,
+  }}
+>
+  <Offcanvas.Header closeButton style={{ padding: "16px 24px" }}>
+    <Offcanvas.Title
+      style={{
+        fontSize: "25px",
+        fontWeight: 700,
+        lineHeight: 1,
+        letterSpacing: 0,
+      }}
+    >
+      {isEditing ? "Edit Vendor" : "Add New Vendor"}
+    </Offcanvas.Title>
+  </Offcanvas.Header>
+
+  <Offcanvas.Body className="px-3 pt-2 pb-2">
+    {/* Personal Information Section */}
+    <h6
+      style={{
+        fontSize: "20px",
+        fontWeight: 700,
+        marginBottom: "6px",
+      }}
+    >
+      Personal Information
+    </h6>
+    <hr className="mt-1 mb-2" />
+
+    <Form onSubmit={handleSubmit}>
+      <div className="row gx-4 personal-form">
+        {/* First Name */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            First Name
+          </Form.Label>
+          <Form.Control
+            className="custom-placeholder"
+            name="first_name"
+            value={formData.first_name}
+            onChange={handleChange}
+            placeholder="Enter Vendor First Name"
+            size="sm"
+            isInvalid={!!errors.first_name}
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+          />
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {errors.first_name}
+          </Form.Control.Feedback>
+        </div>
+
+        {/* Last Name */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            Last Name
+          </Form.Label>
+          <Form.Control
+            className="custom-placeholder"
+            name="last_name"
+            value={formData.last_name}
+            onChange={handleChange}
+            placeholder="Enter Vendor Last Name"
+            size="sm"
+            isInvalid={!!errors.last_name}
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+          />
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {errors.last_name}
+          </Form.Control.Feedback>
+        </div>
+
+        {/* Gender */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            Gender
+          </Form.Label>
+          <Select
+            name="gender"
+            value={genderOptions.find((o) => o.value === formData.gender) || null}
+            onChange={(selectedOption) => handleChange(selectedOption, "gender")}
+            onBlur={() => handleSelectBlur("gender")}
+            options={genderOptions}
+            placeholder="Select Gender"
+            isClearable
+            styles={{
+              ...customSelectStyles,
+              control: (provided) => ({ ...provided, minHeight: "32px", height: "32px", fontSize: "14px" }),
+              valueContainer: (provided) => ({ ...provided, padding: "0 6px" }),
+            }}
+            components={{ Option: SimpleOption }}
+            classNamePrefix="react-select"
+          />
+          {errors.gender && <div style={{ fontSize: "12px", color: "red" }}>{errors.gender}</div>}
+        </div>
+
+        {/* Date of Birth */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            Date of Birth
+          </Form.Label>
+          <div style={{ position: "relative" }}>
+            <input
+              type="text"
+              readOnly
+              className={`form-control custom-placeholder ${errors.dob ? "is-invalid" : ""}`}
+              value={
+                formData.dob
+                  ? new Date(formData.dob + "T00:00:00").toLocaleDateString("en-GB")
+                  : ""
+              }
+              placeholder="Select Date of Birth"
+              onClick={() => setShowCalendar((prev) => !prev)}
+              style={{ cursor: "pointer", height: "32px", fontSize: "14px", padding: "4px 8px" }}
+            />
+            <img
+              src="/Calendar.png"
+              alt="calendar icon"
+              style={{
+                position: "absolute",
+                right: "8px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "28px",
+                height: "28px",
+                pointerEvents: "none",
+              }}
+            />
+            {errors.dob && <div style={{ fontSize: "12px", color: "red" }}>{errors.dob}</div>}
+            {showCalendar && (
+              <div
                 style={{
-                    width: "600px",
-                    height: "calc(100vh - 58px)",
-                    top: "61px",
-                    right: showForm ? "0" : "-800px",
-                    transition: "right 0.4s ease-in-out",
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                    opacity: 1,
-                    fontFamily: "Product Sans, sans-serif",
-                    fontWeight: 400,
-                    zIndex: 1050,
+                  position: "absolute",
+                  zIndex: 2000,
+                  top: "100%",
+                  left: 0,
+                  background: "white",
+                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                  marginTop: "4px",
+                  borderRadius: "6px",
                 }}
-            >
-                <div
-                    className="d-flex justify-content-between align-items-center"
-                    style={{ marginBottom: "30px" }}
-                >
-                    <h5
-                        className="mb-0 fw-bold"
-                        style={{
-                            fontFamily: "Product Sans, sans-serif",
-                            fontWeight: 700,
-                            fontSize: "25px",
-                            color: "#212529",
-                            lineHeight: "1",
-                            letterSpacing: "0",
-                        }}
-                    >
-                        {isEditing ? "Edit Vendor" : "Add New Vendor"}
-                    </h5>
-                    <button
-                        onClick={closeForm}
-                        style={{
-                            width: "33px",
-                            height: "33px",
-                            backgroundColor: "#F0F0F0",
-                            border: "none",
-                            borderRadius: "50%",
-                            fontSize: "20px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            padding: 0,
-                        }}
-                        aria-label="Close"
-                    >
-                        &times;
-                    </button>
-                </div>
+              >
+                <MiniCalendar
+                  selectedDate={formData.dob ? new Date(formData.dob) : null}
+                  onDateChange={(date) => {
+                    if (!date) return;
+                    const today = new Date();
+                    if (date > today) {
+                      toast.error("Date of Birth cannot be in the future.", { autoClose: 1500 });
+                      return;
+                    }
+                    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                    const localDateStr = localDate.toISOString().split("T")[0];
+                    setFormData((prev) => ({ ...prev, dob: localDateStr }));
+                    setErrors((prev) => ({ ...prev, dob: "" }));
+                    setShowCalendar(false);
+                  }}
+                  onCancel={() => setShowCalendar(false)}
+                  allowFuture={false}
+                  maxDate={new Date()}
+                />
+              </div>
+            )}
+          </div>
+        </div>
 
-                <h6
-                    className="mb-1"
-                    style={{
-                        fontFamily: "Product Sans, sans-serif",
-                        fontWeight: 700,
-                        fontSize: "20px",
-                        color: "#141414",
-                        lineHeight: "1",
-                        letterSpacing: "0",
-                    }}
-                >
-                    Personal Information
-                </h6>
-                <hr className="mt-1 mb-2" />
-                <form onSubmit={handleSubmit}>
-                    <div className="row gx-4 personal-form">
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>First Name</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="first_name"
-                                value={formData.first_name}
-                                onChange={handleChange}
-                                placeholder="Enter Vendor First Name"
-                                size="sm"
-                                isInvalid={!!errors.first_name}
-                                style={getInputStyle("first_name")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.first_name}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>Last Name</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="last_name"
-                                value={formData.last_name}
-                                onChange={handleChange}
-                                placeholder="Enter Vendor Last Name"
-                                size="sm"
-                                isInvalid={!!errors.last_name}
-                                style={getInputStyle("last_name")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.last_name}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>Gender</Form.Label>
-                            <Select
-                                name="gender"
-                                value={genderOptions.find(option => option.value === formData.gender) || null}
-                                onChange={(selectedOption) => handleChange(selectedOption, "gender")}
-                                onBlur={() => handleSelectBlur("gender")}
-                                options={genderOptions}
-                                placeholder="Select Gender"
-                                isClearable={true}
-                                styles={customSelectStyles}
-                                components={{ Option: SimpleOption }}
-                                classNamePrefix="react-select"
-                                errors={errors}
-                            />
-                            {errors.gender && <div style={errorStyle}>{errors.gender}</div>}
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label
-                                className="mb-1"
-                                style={labelStyle}
-                            >
-                                Date of Birth
-                            </Form.Label>
-                            <div style={{ position: "relative" }}>
-                                <input
-                                    type="text"
-                                    readOnly
-                                    className={`form-control custom-placeholder ${errors.dob ? "is-invalid" : ""
-                                        }`}
-                                    value={
-                                        formData.dob
-                                            ? new Date(formData.dob + "T00:00:00").toLocaleDateString("en-GB")
-                                            : ""
-                                    }
-                                    placeholder="Select Date of Birth"
-                                    onClick={() => setShowCalendar((prev) => !prev)}
-                                    style={{ cursor: "pointer", ...getInputStyle("dob") }}
-                                />
+        {/* Mobile */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            Mobile No.
+          </Form.Label>
+          <Form.Control
+            className="custom-placeholder"
+            name="mobile"
+            value={formData.mobile}
+            onChange={handleChange}
+            placeholder="Enter Mobile No."
+            size="sm"
+            isInvalid={!!errors.mobile}
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+          />
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {errors.mobile}
+          </Form.Control.Feedback>
+        </div>
 
-                                <img
-                                    src="/Calendar.png"
-                                    alt="calendar icon"
-                                    style={{
-                                        position: "absolute",
-                                        right: "20px",
-                                        top: "50%",
-                                        transform: "translateY(-50%)",
-                                        width: "30px",
-                                        height: "30px",
-                                        pointerEvents: "none",
-                                    }}
-                                />
+        {/* Alternative Mobile */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            Alternative Mobile
+          </Form.Label>
+          <Form.Control
+            className="custom-placeholder"
+            name="altMobile"
+            value={formData.altMobile}
+            onChange={handleChange}
+            placeholder="Enter Alternative Mobile No."
+            size="sm"
+            isInvalid={!!errors.altMobile}
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+          />
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {errors.altMobile}
+          </Form.Control.Feedback>
+        </div>
 
-                                {errors.dob && <div style={errorStyle}>{errors.dob}</div>}
+        {/* Email */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            Email
+          </Form.Label>
+          <Form.Control
+            className="custom-placeholder"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            placeholder="Enter Email"
+            size="sm"
+            isInvalid={!!errors.email}
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+          />
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {errors.email}
+          </Form.Control.Feedback>
+        </div>
 
-                                {showCalendar && (
-                                    <div
-                                        style={{
-                                            position: "absolute",
-                                            zIndex: 2000,
-                                            top: "100%",
-                                            left: 0,
-                                            background: "white",
-                                            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-                                            marginTop: "4px",
-                                            borderRadius: "6px",
-                                        }}
-                                    >
-                                        <MiniCalendar
-                                            selectedDate={formData.dob ? new Date(formData.dob) : null}
-                                            onDateChange={(date) => {
-                                                if (!date) return;
-                                                const today = new Date();
-                                                if (date > today) {
-                                                    toast.error("Date of Birth cannot be in the future.", { autoClose: 1500 });
-                                                    return;
-                                                }
+        {/* GST */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            GST No.
+          </Form.Label>
+          <Form.Control
+            className="custom-placeholder"
+            name="gst"
+            value={formData.gst}
+            onChange={handleChange}
+            placeholder="Enter GST No."
+            size="sm"
+            isInvalid={!!errors.gst}
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+          />
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {errors.gst}
+          </Form.Control.Feedback>
+        </div>
+      </div>
 
-                                                // Fix timezone issue
-                                                const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-                                                const localDateStr = localDate.toISOString().split("T")[0];
+      {/* Company Address Section */}
+      <h6
+        className="mt-4 mb-1"
+        style={{ fontSize: "20px", fontWeight: 700 }}
+      >
+        Company Address
+      </h6>
+      <hr className="mt-1 mb-2" />
 
-                                                setFormData((prev) => ({
-                                                    ...prev,
-                                                    dob: localDateStr,
-                                                }));
-                                                setErrors((prev) => ({ ...prev, dob: "" }));
-                                                setShowCalendar(false);
-                                            }}
-                                            onCancel={() => setShowCalendar(false)}
-                                            allowFuture={false}
-                                            maxDate={new Date()}
-                                        />
+      <div className="row gx-4 address-form">
+        {/* Company Name */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            Company Name
+          </Form.Label>
+          <Form.Control
+            className="custom-placeholder"
+            name="company_name"
+            value={formData.company_name}
+            onChange={handleChange}
+            placeholder="Enter Company Name"
+            size="sm"
+            isInvalid={!!errors.company_name}
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+          />
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {errors.company_name}
+          </Form.Control.Feedback>
+        </div>
 
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>Mobile No.</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="mobile"
-                                value={formData.mobile}
-                                onChange={handleChange}
-                                placeholder="Enter Mobile No."
-                                size="sm"
-                                isInvalid={!!errors.mobile}
-                                style={getInputStyle("mobile")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.mobile}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>Alternative Mobile</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="altMobile"
-                                value={formData.altMobile}
-                                onChange={handleChange}
-                                placeholder="Enter Alternative Mobile No."
-                                size="sm"
-                                isInvalid={!!errors.altMobile}
-                                style={getInputStyle("altMobile")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.altMobile}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>Email</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                placeholder="Enter Email"
-                                size="sm"
-                                isInvalid={!!errors.email}
-                                style={getInputStyle("email")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.email}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>GST No.</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="gst"
-                                value={formData.gst}
-                                onChange={handleChange}
-                                placeholder="Enter GST No."
-                                size="sm"
-                                isInvalid={!!errors.gst}
-                                style={getInputStyle("gst")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.gst}
-                            </Form.Control.Feedback>
-                        </div>
-                    </div>
+        {/* Address */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            Address
+          </Form.Label>
+          <Form.Control
+            className="custom-placeholder"
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            placeholder="Enter Address"
+            size="sm"
+            isInvalid={!!errors.address}
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+          />
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {errors.address}
+          </Form.Control.Feedback>
+        </div>
 
-                    <h6
-                        className="mb-1 mt-4"
-                        style={{
-                            fontFamily: "Product Sans, sans-serif",
-                            fontWeight: 700,
-                            fontSize: "20px",
-                            color: "#141414",
-                            lineHeight: "1",
-                            letterSpacing: "0",
-                        }}
-                    >
-                        Company Address
-                    </h6>
-                    <hr className="mt-1 mb-2" />
-                    <div className="row gx-4 address-form">
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>Company Name</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="company_name"
-                                value={formData.company_name}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                placeholder="Enter Company Name"
-                                size="sm"
-                                isInvalid={!!errors.company_name}
-                                style={getInputStyle("company_name")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.company_name}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>Address</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                placeholder="Enter Address"
-                                size="sm"
-                                isInvalid={!!errors.address}
-                                style={getInputStyle("address")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.address}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>
-                                City / Town
-                            </Form.Label>
-                            <Form.Control
-                                type="text"
-                                name="city"
-                                value={formData.city || ""}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                size="sm"
-                                style={getInputStyle && getInputStyle("city")}
-                                isInvalid={!!errors.city}
-                                placeholder="Enter city or town name"
-                            />
-                            {errors.city && <div style={errorStyle}>{errors.city}</div>}
-                        </div>
-                        <div className="col-6 mb-2">
-                            <Form.Label className="mb-1" style={labelStyle}>Pincode</Form.Label>
-                            <Form.Control
-                                className="custom-placeholder"
-                                name="pincode"
-                                value={formData.pincode}
-                                onChange={handleChange}
-                                placeholder="Enter Pincode"
-                                size="sm"
-                                isInvalid={!!errors.pincode}
-                                style={getInputStyle("pincode")}
-                            />
-                            <Form.Control.Feedback type="invalid" style={errorStyle}>
-                                {errors.pincode}
-                            </Form.Control.Feedback>
-                        </div>
-                        {formData.pincode && formData.pincode.length === 6 && !errors.pincode && (
-                            <>
-                                <div className="col-6 mb-2">
-                                    <Form.Label className="mb-1" style={labelStyle}>State</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        name="state"
-                                        value={formData.state || ""}
-                                        readOnly
-                                        size="sm"
-                                        style={getInputStyle && getInputStyle("state")}
-                                        isInvalid={!!errors.state}
-                                    />
-                                    {errors.state && <div style={errorStyle}>{errors.state}</div>}
-                                </div>
+        {/* City */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            City / Town
+          </Form.Label>
+          <Form.Control
+            type="text"
+            name="city"
+            value={formData.city || ""}
+            onChange={handleChange}
+            placeholder="Enter city or town name"
+            size="sm"
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+            isInvalid={!!errors.city}
+          />
+          {errors.city && <div style={{ fontSize: "12px", color: "red" }}>{errors.city}</div>}
+        </div>
 
-                                <div className="col-6 mb-2">
-                                    <Form.Label className="mb-1" style={labelStyle}>District</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        name="district"
-                                        value={formData.district || ""}
-                                        readOnly
-                                        size="sm"
-                                        style={getInputStyle && getInputStyle("district")}
-                                        isInvalid={!!errors.district}
-                                    />
-                                    {errors.district && <div style={errorStyle}>{errors.district}</div>}
-                                </div>
+        {/* Pincode */}
+        <div className="col-6 mb-2">
+          <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+            Pincode
+          </Form.Label>
+          <Form.Control
+            className="custom-placeholder"
+            name="pincode"
+            value={formData.pincode}
+            onChange={handleChange}
+            placeholder="Enter Pincode"
+            size="sm"
+            isInvalid={!!errors.pincode}
+            style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+          />
+          <Form.Control.Feedback type="invalid" style={{ fontSize: "12px" }}>
+            {errors.pincode}
+          </Form.Control.Feedback>
+        </div>
 
-                            </>
-                        )}
-                    </div>
-
-                    <div className="d-flex justify-content-end py-3 px-2">
-                        <Button variant="secondary" className="me-2" onClick={closeForm}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" variant="success" className="me-2">
-                            {isEditing ? "Update Vendor" : "Add Vendor"}
-                        </Button>
-                    </div>
-                </form>
+        {formData.pincode && formData.pincode.length === 6 && !errors.pincode && (
+          <>
+            {/* State */}
+            <div className="col-6 mb-2">
+              <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+                State
+              </Form.Label>
+              <Form.Control
+                type="text"
+                name="state"
+                value={formData.state || ""}
+                readOnly
+                size="sm"
+                style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+              />
             </div>
+
+            {/* District */}
+            <div className="col-6 mb-2">
+              <Form.Label style={{ fontSize: "14px", fontWeight: 500, marginBottom: "4px" }}>
+                District
+              </Form.Label>
+              <Form.Control
+                type="text"
+                name="district"
+                value={formData.district || ""}
+                readOnly
+                size="sm"
+                style={{ height: "32px", fontSize: "14px", padding: "4px 8px" }}
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="d-flex justify-content-end py-3 px-2">
+        <Button variant="secondary" className="me-2" onClick={closeForm}>
+          Cancel
+        </Button>
+        <Button type="submit" variant="success">
+          {isEditing ? "Update Vendor" : "Add Vendor"}
+        </Button>
+      </div>
+    </Form>
+  </Offcanvas.Body>
+</Offcanvas>
+
         </div>
     );
 }

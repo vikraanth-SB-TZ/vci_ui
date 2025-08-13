@@ -706,19 +706,30 @@ export default function App() {
                 </div>
 
                 <div className="mb-2 col-6">
-                  <Form.Label className="mb-1" style={{ fontSize: "13px", fontWeight: 500 }}>
+                  <Form.Label
+                    className="mb-1"
+                    style={{ fontSize: "13px", fontWeight: 500 }}
+                  >
                     Status <span style={{ color: "red" }}>*</span>
                   </Form.Label>
-                  <CustomDropdown
+                  <CustomDropdown className="small-dropdown"
                     name="is_active"
                     value={formData.is_active}
                     onChange={handleChange}
                     options={statusOptions}
                     isInvalid={!!errors.is_active}
                     error={errors.is_active}
-                      style={{ height: "32px", fontSize: "13px" }} 
+                    style={{
+                      height: "2px",        // reduced height
+                      fontSize: "13px",      // smaller text
+                      padding: "2px",    // less padding inside
+                      lineHeight: "24px"     // align text vertically
+                    }}
                   />
                 </div>
+
+
+
               </div>
 
               <div
