@@ -107,45 +107,30 @@ export default function ProductPage() {
   };
 
   const handleDelete = async (id) => {
-    const result = await MySwal.fire({
-      title: "Are you sure?",
-      text: "Do you really want to delete this product?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-      didOpen: (popup) => {
-        const title = popup.querySelector(".swal2-title");
-        const content = popup.querySelector(".swal2-html-container");
-        const confirmBtn = popup.querySelector(".swal2-confirm");
-        const cancelBtn = popup.querySelector(".swal2-cancel");
-        const container = popup.querySelector(".swal2-popup");
-
-        if (title) title.style.fontSize = "0.9rem";
-        if (content) content.style.fontSize = "0.8rem";
-        if (confirmBtn) confirmBtn.style.fontSize = "0.85rem";
-        if (cancelBtn) cancelBtn.style.fontSize = "0.85rem";
-
-        if (container) {
-          container.style.width = "150px";       // Set modal width
-          container.style.height = "100px";      // Set modal height
-          container.style.maxHeight = "90vh";    // Optional max height for responsiveness
-          container.style.padding = "0.5rem 0.5rem"; // Adjust padding for compactness
-        }
-      },
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await axios.delete(`${API_BASE_URL}/products/${id}`);
-      toast.success("Product deleted!");
-      fetchAllData();
-    } catch {
-      toast.error("Failed to delete product!");
+  const result = await MySwal.fire({
+    title: "Are you sure?",
+    text: "Do you really want to delete this product?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+    customClass: {
+      popup: "custom-compact" // ✅ only once
     }
-  };
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    await axios.delete(`${API_BASE_URL}/products/${id}`);
+    toast.success("Product deleted!");
+    fetchAllData();
+  } catch {
+    toast.error("Failed to delete product!");
+  }
+};
+
 
 
   const handleChange = (e) => {
