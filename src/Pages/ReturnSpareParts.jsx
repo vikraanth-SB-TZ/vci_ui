@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { Button, Spinner, Form, Card } from "react-bootstrap";
+import { Button, Spinner, Form, Card, Offcanvas } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { toast } from "react-toastify";
@@ -460,31 +460,31 @@ export default function ReturnSparePartsPage() {
 
 
   return (
- <div className="px-4 " style={{ fontSize: "0.75rem" }}>
+    <div className="px-4 " style={{ fontSize: "0.75rem" }}>
       <Breadcrumb title="Return Spare Parts" />
 
-       <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
-                     <div className="row mb-2">
-                         <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
-                             <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
-                             <Form.Select
-                                 size="sm"
-                                 style={{ width: "100px" }}
-                                 value={perPage}
-                                 onChange={(e) => {
-                                     setPerPage(Number(e.target.value));
-                                     setPage(1);
-                                 }}
-                             >
-                                 {[5, 10, 25, 50].map((n) => (
-                                     <option key={n} value={n}>
-                                         {n}
-                                     </option>
-                                 ))}
-                             </Form.Select>
-                         </div>
-                         <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
-                             <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
+      <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
+        <div className="row mb-2">
+          <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+            <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+            <Form.Select
+              size="sm"
+              style={{ width: "100px" }}
+              value={perPage}
+              onChange={(e) => {
+                setPerPage(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              {[5, 10, 25, 50].map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </Form.Select>
+          </div>
+          <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+            <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
               <Button
                 variant="outline-secondary"
                 size="sm"
@@ -496,15 +496,15 @@ export default function ReturnSparePartsPage() {
               <Button
                 size="sm"
                 onClick={() => handleShowForm()}
-                 style={{
-                                    backgroundColor: '#2FA64F',
-                                    borderColor: '#2FA64F',
-                                    color: '#fff',
-                                    padding: '0.25rem 0.5rem',
-                                    fontSize: '0.8rem',
-                                    minWidth: '90px',
-                                    height: '28px',
-                                }}
+                style={{
+                  backgroundColor: '#2FA64F',
+                  borderColor: '#2FA64F',
+                  color: '#fff',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.8rem',
+                  minWidth: '90px',
+                  height: '28px',
+                }}
               >
                 + Add New
               </Button>
@@ -616,295 +616,221 @@ export default function ReturnSparePartsPage() {
           totalEntries={filteredSpareparts.length}
         />
       </Card>
-      <div
-        className={`position-fixed bg-white shadow-lg return-form-slide`}
+      <Offcanvas
+        show={showForm}
+        onHide={() => {
+          setShowForm(false);
+          setEditingReturn(null);
+          setFormErrors({});
+          setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+          setReturnDate(new Date().toISOString().split("T")[0]);
+          setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", return_date: "", notes: "" });
+        }}
+        placement="end"
+        backdrop="static"
+        className="custom-offcanvas"
         style={{
           width: "600px",
-          height: "calc(100vh - 58px)", // Adjust height to account for the header
-          top: "58px",
-          right: showForm ? "0" : "-800px",
-          transition: "right 0.4s ease-in-out",
-          overflowY: "auto",
-          overflowX: "hidden",
-          opacity: 1,
           fontFamily: "Product Sans, sans-serif",
           fontWeight: 400,
+          overflowY: "auto",
+          overflowX: "hidden",
+          height: "calc(100vh - 58px)",
+          top: "58px",
           zIndex: 1050,
-          padding: "30px",
-          borderLeft: "1px solid #dee2e6"
+
         }}
       >
-        <div className="d-flex justify-content-between align-items-start mb-4">
-          <h5 className="fw-bold mb-0">{editingReturn ? "Edit Spare part Return" : " Spare part Return"}</h5>
-          <button
-            onClick={() => {
-              setShowForm(false);
-              setEditingReturn(null);
-              setFormErrors({});
-              setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-              setReturnDate(new Date().toISOString().split("T")[0]);
-              setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", return_date: "", notes: "" });
-            }}
-            style={{
-              width: "40px",
-              height: "40px",
-              backgroundColor: "#DBDBDB73",
-              border: "none",
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "24px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              lineHeight: "1",
-              padding: 0,
-            }}
-          >
-            &times;
-          </button>
-        </div>
-        <Form onSubmit={handleFormSubmit} noValidate>
-          <div className="row mb-3">
-            <div className="col-6">
-              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Vendor <span className="text-danger">*</span></Form.Label>
-              <Form.Select
-                name="vendor_id"
-                required
-                style={{ ...getBlueBorderStyles(formData.vendor_id, !!formErrors.vendor_id) }}
-                value={formData.vendor_id}
-                onChange={handleInputChange}
-                isInvalid={!!formErrors.vendor_id}
-              >
-                <option value="" disabled>Select Vendor</option>
-                {vendors.map((vendor) => (
-                  <option key={vendor.id} value={vendor.id}>
-                    {vendor.first_name} {vendor.last_name}
-                  </option>
-                ))}
-              </Form.Select>
-              <Form.Control.Feedback type="invalid" className="d-block">
-                {formErrors.vendor_id}
-              </Form.Control.Feedback>
-            </div>
-            <div className="col-6">
-              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Batch No. <span className="text-danger">*</span></Form.Label>
-              <Form.Select
-                name="batch_id"
-                required
-                style={getBlueBorderStyles(formData.batch_id, !!formErrors.batch_id)}
-                value={formData.batch_id}
-                onChange={handleInputChange}
-                isInvalid={!!formErrors.batch_id}
-              >
-                <option value="" disabled>Select Batch</option>
-                {batches.map((batch) => (
-                  <option key={batch.id} value={batch.id}>
-                    {batch.batch}
-                  </option>
-                ))}
-              </Form.Select>
-              <Form.Control.Feedback type="invalid" className="d-block">
-                {formErrors.batch_id}
-              </Form.Control.Feedback>
-            </div>
-          </div>
-          <div className="row mb-3">
-            <div className="col-6">
-              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Purchase Invoice No. <span className="text-danger">*</span></Form.Label>
-              <Form.Select
-                name="invoiceNo"
-                required
-                style={{ ...getBlueBorderStyles(formData.invoiceNo, !!formErrors.invoice_no) }}
-                value={formData.invoiceNo}
-                onChange={handleInputChange}
-                isInvalid={!!formErrors.invoiceNo}
-              >
-                <option value="" disabled>Select Invoice</option>
-                {purchases.map((purchase) => (
-                  <option key={purchase.id} value={purchase.invoice_no}>
-                    {purchase.invoice_no}
-                  </option>
-                ))}
-              </Form.Select>
-              <Form.Control.Feedback type="invalid" className="d-block">
-                {formErrors.invoiceNo}
-              </Form.Control.Feedback>
-            </div>
-            <div className="col-6 position-relative">
-              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                Return Date <span className="text-danger">*</span>
-              </Form.Label>
+        <Offcanvas.Header closeButton style={{ padding: "16px 24px" }}>
+          <Offcanvas.Title style={{ fontSize: "25px", fontWeight: 700 }}>
+            {editingReturn ? "Edit Spare Part Return" : "Spare Part Return"}
+          </Offcanvas.Title>
+        </Offcanvas.Header>
 
-              <div
-                className="form-control d-flex align-items-center justify-content-between"
-                style={{
-                  position: "relative",
-                  cursor: "pointer",
-                  ...getBlueBorderStyles(returnDate, !!formErrors.return_date),
-                  minHeight: "34px",
-                }}
-                onClick={() => setShowReturnCalendar(true)}
-              >
-                <span>
-                  {returnDate
-                    ? new Date(returnDate + "T00:00:00").toLocaleDateString("en-GB")
-                    : "DD/MM/YYYY"}
-                </span>
-                <img
-                  src="/Calendar.png"
-                  alt="calendar icon"
-                  style={{
-                    position: "absolute",
-                    right: "10px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: "24px",
-                    height: "24px",
-                    pointerEvents: "none",
-                  }}
-                />
+        <Offcanvas.Body className="px-3 pt-2 pb-2">
+          <Form onSubmit={handleFormSubmit} noValidate>
+            {/* Vendor & Batch */}
+            <div className="row mb-3">
+              <div className="col-6">
+                <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Vendor <span className="text-danger">*</span></Form.Label>
+                <Form.Select
+                  name="vendor_id"
+                  required
+                  style={{ ...getBlueBorderStyles(formData.vendor_id, !!formErrors.vendor_id) }}
+                  value={formData.vendor_id}
+                  onChange={handleInputChange}
+                  isInvalid={!!formErrors.vendor_id}
+                >
+                  <option value="" disabled>Select Vendor</option>
+                  {vendors.map(vendor => (
+                    <option key={vendor.id} value={vendor.id}>
+                      {vendor.first_name} {vendor.last_name}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Control.Feedback type="invalid" className="d-block">
+                  {formErrors.vendor_id}
+                </Form.Control.Feedback>
               </div>
 
-              {formErrors.return_date && (
-                <div className="invalid-feedback d-block">
-                  {formErrors.return_date}
-                </div>
-              )}
-
-              {showReturnCalendar && (
-                <div style={{ position: "absolute", zIndex: 10 }}>
-                  <MiniCalendar
-                    selectedDate={
-                      returnDate ? new Date(returnDate + "T00:00:00") : null
-                    }
-                    onDateChange={(date) => {
-                      const safeDate = new Date(
-                        date.getFullYear(),
-                        date.getMonth(),
-                        date.getDate()
-                      );
-                      const formatted = `${safeDate.getFullYear()}-${String(
-                        safeDate.getMonth() + 1
-                      ).padStart(2, "0")}-${String(safeDate.getDate()).padStart(2, "0")}`;
-                      setReturnDate(formatted);
-                      setShowReturnCalendar(false);
-                    }}
-                    onCancel={() => setShowReturnCalendar(false)}
-                  // allowFuture={false}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="mb-3">
-            <Form.Label
-              className="fw-semibold mb-1"
-              style={{ color: "#393C3AE5" }}
-            >
-              Notes
-            </Form.Label>
-            <Form.Control
-              as="textarea"
-              name="notes"
-              placeholder="Enter any notes"
-              rows="3"
-              value={formData.notes}
-              onChange={handleInputChange}
-              style={getBlueBorderStyles(formData.notes, false)}
-            ></Form.Control>
-          </div>
-          <div className="mb-3">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 className="fw-semibold mb-0">
-                Add Spare parts <span className="text-danger">*</span>
-              </h6>
-              <button
-                type="button"
-                onClick={handleAddRow}
-                className="add-row-btn"
-                disabled={sparePartsRows.length >= invoiceSpareparts.length}
-                style={{
-                  border: "1px solid #C7E6D1",
-                  backgroundColor: "#F1FCF6",
-                  color: "#1F9254",
-                  padding: "6px 12px",
-                  fontSize: "14px",
-                  borderRadius: "6px",
-                  opacity: sparePartsRows.length >= invoiceSpareparts.length ? 0.6 : 1,
-                  cursor: sparePartsRows.length >= invoiceSpareparts.length ? "not-allowed" : "pointer",
-                  outline: "none",
-                  boxShadow: "none",
-                }}
-              >
-                + Add Row
-              </button>
-            </div>
-
-            <div
-              style={{
-                border: "1px solid #D3DBD5",
-                borderRadius: "8px",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  maxHeight: "200px",
-                  overflowY: "auto",
-                }}
-              >
-                <table
-                  className="custom-table"
-                  style={{
-                    width: "100%",
-                    tableLayout: "fixed",
-                    borderCollapse: "collapse",
-                  }}
+              <div className="col-6">
+                <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Batch No. <span className="text-danger">*</span></Form.Label>
+                <Form.Select
+                  name="batch_id"
+                  required
+                  style={getBlueBorderStyles(formData.batch_id, !!formErrors.batch_id)}
+                  value={formData.batch_id}
+                  onChange={handleInputChange}
+                  isInvalid={!!formErrors.batch_id}
                 >
-                  <thead>
-                    <tr>
-                      <th style={{
-                        textAlign: "left",
-                        padding: "12px",
-                        backgroundColor: "#F3F4F6",
-                        borderBottom: "1px solid #D3DBD5",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                      }}>
-                        Sparepart Name
-                      </th>
-                      <th style={{
-                        textAlign: "left",
-                        padding: "12px",
-                        backgroundColor: "#F3F4F6",
-                        borderBottom: "1px solid #D3DBD5",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                      }}>
-                        Quantity
-                      </th>
-                      <th style={{
-                        width: "40px",
-                        padding: "12px",
-                        backgroundColor: "#F3F4F6",
-                        borderBottom: "1px solid #D3DBD5",
-                      }}></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sparePartsRows.length > 0 ? (
-                      sparePartsRows.map((row, index) => {
-                        const selectedIds = sparePartsRows
-                          .filter((_, i) => i !== index)
-                          .map((r) => String(r.sparepart_id));
+                  <option value="" disabled>Select Batch</option>
+                  {batches.map(batch => (
+                    <option key={batch.id} value={batch.id}>
+                      {batch.batch}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Control.Feedback type="invalid" className="d-block">
+                  {formErrors.batch_id}
+                </Form.Control.Feedback>
+              </div>
+            </div>
 
-                        const availableOptions = invoiceSpareparts.filter(
-                          (sp) =>
-                            String(row.sparepart_id) === String(sp.id) || // keep current selection
-                            !selectedIds.includes(String(sp.id)) // exclude others already selected
-                        );
+            {/* Invoice & Return Date */}
+            <div className="row mb-3">
+              {/* Purchase Invoice */}
+              <div className="col-6">
+                <Form.Group controlId="invoiceNo">
+                  <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
+                    Purchase Invoice No. <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Select
+                    name="invoiceNo"
+                    required
+                    style={{ ...getBlueBorderStyles(formData.invoiceNo, !!formErrors.invoiceNo) }}
+                    value={formData.invoiceNo}
+                    onChange={handleInputChange}
+                    isInvalid={!!formErrors.invoiceNo}
+                  >
+                    <option value="" disabled>Select Invoice</option>
+                    {purchases.map(purchase => (
+                      <option key={purchase.id} value={purchase.invoice_no}>
+                        {purchase.invoice_no}
+                      </option>
+                    ))}
+                  </Form.Select>
+                  <Form.Control.Feedback type="invalid" className="d-block">
+                    {formErrors.invoiceNo}
+                  </Form.Control.Feedback>
+                </Form.Group>
+              </div>
 
+              {/* Return Date */}
+              <div className="col-6">
+                <Form.Group controlId="returnDate" className="position-relative">
+                  <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
+                    Return Date <span className="text-danger">*</span>
+                  </Form.Label>
+
+                  <div
+                    className="d-flex align-items-center justify-content-between border rounded px-2"
+                    style={{
+                      cursor: "pointer",
+                      height: "38px",
+                      backgroundColor: "#fff",
+                      ...getBlueBorderStyles(returnDate, !!formErrors.return_date),
+                    }}
+                    onClick={() => setShowReturnCalendar(true)}
+                  >
+                    <span>{returnDate ? new Date(returnDate + "T00:00:00").toLocaleDateString("en-GB") : "DD/MM/YYYY"}</span>
+                    <img
+                      src="/Calendar.png"
+                      alt="calendar icon"
+                      style={{ width: "20px", height: "20px" }}
+                    />
+                  </div>
+
+                  {formErrors.return_date && (
+                    <div className="invalid-feedback d-block mt-1">
+                      {formErrors.return_date}
+                    </div>
+                  )}
+
+                  {showReturnCalendar && (
+                    <div style={{ position: "absolute", top: "45px", zIndex: 2000 }}>
+                      <MiniCalendar
+                        selectedDate={returnDate ? new Date(returnDate + "T00:00:00") : null}
+                        onDateChange={(date) => {
+                          const formatted = date.toISOString().split("T")[0];
+                          setReturnDate(formatted);
+                          setShowReturnCalendar(false);
+                        }}
+                        onCancel={() => setShowReturnCalendar(false)}
+                      />
+                    </div>
+                  )}
+                </Form.Group>
+              </div>
+            </div>
+
+            {/* Notes */}
+            <div className="mb-3">
+              <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>Notes</Form.Label>
+              <Form.Control
+                as="textarea"
+                name="notes"
+                placeholder="Enter any notes"
+                rows="3"
+                value={formData.notes}
+                onChange={handleInputChange}
+                style={getBlueBorderStyles(formData.notes, false)}
+              />
+            </div>
+
+            {/* Spare Parts Table */}
+            <div className="mb-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="fw-semibold mb-0">Add Spare parts <span className="text-danger">*</span></h6>
+                <button
+                  type="button"
+                  onClick={handleAddRow}
+                  className="add-row-btn"
+                  disabled={sparePartsRows.length >= invoiceSpareparts.length}
+                  style={{
+                    backgroundColor: "#2FA64F",
+                    borderColor: "#2FA64F",
+                    color: "#fff",
+                    padding: "6px 12px",
+                    fontSize: "14px",
+                    borderRadius: "6px",
+                    opacity: sparePartsRows.length >= invoiceSpareparts.length ? 0.6 : 1,
+                    cursor: sparePartsRows.length >= invoiceSpareparts.length ? "not-allowed" : "pointer",
+                    minWidth: "90px",
+                    height: "28px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+
+                >
+                  + Add Row
+                </button>
+              </div>
+
+              <div style={{ border: "1px solid #D3DBD5", borderRadius: "6px", overflow: "hidden" }}>
+                <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                  <table className="custom-table" style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: "left", padding: "12px", backgroundColor: "#2E3A59", borderBottom: "1px solid #D3DBD5", fontWeight: 600, fontSize: "14px" }}>Sparepart Name</th>
+                        <th style={{ textAlign: "left", padding: "12px", backgroundColor: "#2E3A59", borderBottom: "1px solid #D3DBD5", fontWeight: 600, fontSize: "14px" }}>Quantity</th>
+                        <th style={{ width: "40px", padding: "12px", backgroundColor: "#2E3A59", borderBottom: "1px solid #D3DBD5" }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sparePartsRows.length > 0 ? sparePartsRows.map((row, index) => {
+                        const selectedIds = sparePartsRows.filter((_, i) => i !== index).map(r => String(r.sparepart_id));
+                        const availableOptions = invoiceSpareparts.filter(sp => String(row.sparepart_id) === String(sp.id) || !selectedIds.includes(String(sp.id)));
                         return (
                           <tr key={index}>
                             <td style={{ padding: "12px" }}>
@@ -914,32 +840,14 @@ export default function ReturnSparePartsPage() {
                                 onChange={(e) => handleRowChange(index, "sparepart_id", e.target.value)}
                                 isInvalid={!!formErrors[`sparepart-${index}`]}
                                 disabled={!formData.invoiceNo}
-                                className="shadow-none"
-                                style={{
-                                  border: "none",
-                                  backgroundColor: "#fff",
-                                  padding: "5px",
-                                  fontSize: "14px",
-                                  borderRadius: "6px",
-                                  outline: "none",
-                                  boxShadow: "none",
-                                  appearance: "none",
-                                  WebkitAppearance: "none",
-                                  MozAppearance: "none",
-                                }}
+                                style={{ border: "none", backgroundColor: "#fff", padding: "5px", fontSize: "14px", borderRadius: "6px" }}
                               >
-                                <option value="" disabled>
-                                  {formData.invoiceNo ? "Select Spare Part" : "Select Invoice first"}
-                                </option>
-                                {availableOptions.map((sparepart) => (
-                                  <option key={sparepart.id} value={sparepart.id}>
-                                    {sparepart.name}
-                                  </option>
+                                <option value="" disabled>{formData.invoiceNo ? "Select Spare Part" : "Select Invoice first"}</option>
+                                {availableOptions.map(sparepart => (
+                                  <option key={sparepart.id} value={sparepart.id}>{sparepart.name}</option>
                                 ))}
                               </Form.Select>
-                              <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                                {formErrors[`sparepart-${index}`]}
-                              </Form.Control.Feedback>
+                              <Form.Control.Feedback type="invalid" className="d-block mt-0">{formErrors[`sparepart-${index}`]}</Form.Control.Feedback>
                             </td>
                             <td style={{ padding: "12px" }}>
                               <Form.Control
@@ -950,82 +858,47 @@ export default function ReturnSparePartsPage() {
                                 value={row.quantity}
                                 onChange={(e) => handleRowChange(index, "quantity", e.target.value)}
                                 isInvalid={!!formErrors[`quantity-${index}`]}
-                                className="shadow-none"
-                                style={{
-                                  border: "none",
-                                  backgroundColor: "#fff",
-                                  borderRadius: "6px",
-                                  outline: "none",
-                                  boxShadow: "none",
-                                }}
+                                style={{ border: "none", backgroundColor: "#fff", borderRadius: "6px" }}
                               />
-                              <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                                {formErrors[`quantity-${index}`]}
-                              </Form.Control.Feedback>
+                              <Form.Control.Feedback type="invalid" className="d-block mt-0">{formErrors[`quantity-${index}`]}</Form.Control.Feedback>
                             </td>
                             <td className="text-center align-middle" style={{ padding: "5px" }}>
-                              <Button
-                                variant="link"
-                                size="sm"
-                                onClick={() => handleRemoveRow(index)}
-                                className="p-0"
-                                style={{
-                                  backgroundColor: "#FFEBEBC9",
-                                  borderRadius: "50%",
-                                  width: "28px",
-                                  height: "28px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  outline: "none",
-                                  boxShadow: "none",
-                                }}
-                              >
+                              <Button variant="link" size="sm" onClick={() => handleRemoveRow(index)} className="p-0" style={{ backgroundColor: "#FFEBEBC9", borderRadius: "50%", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 <BsDashLg style={{ color: "red", fontSize: "1rem" }} />
                               </Button>
                             </td>
                           </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan="2" className="text-center text-muted py-3">
-                          No spare parts added yet.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                        )
+                      }) : (
+                        <tr>
+                          <td colSpan="2" className="text-center text-muted py-3">No spare parts added yet.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+              {!!formErrors.items && <div className="invalid-feedback d-block mt-1">{formErrors.items}</div>}
             </div>
 
-            {!!formErrors.items && (
-              <div className="invalid-feedback d-block mt-1">
-                {formErrors.items}
-              </div>
-            )}
-          </div>
-          <div className="d-flex justify-content-end mt-4">
-            <Button
-              variant="secondary"
-              onClick={() => {
+            {/* Buttons */}
+            <div className="d-flex justify-content-end mt-4">
+              <Button variant="secondary" onClick={() => {
                 setShowForm(false);
                 setEditingReturn(null);
                 setFormErrors({});
                 setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
                 setReturnDate(new Date().toISOString().split("T")[0]);
                 setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", return_date: "", notes: "" });
-              }}
-              className="me-2"
-            >
-              Cancel
-            </Button>
-            <Button variant="success" type="submit" disabled={loading}>
-              {loading ? <Spinner animation="border" size="sm" /> : editingReturn ? "Update Return" : "Submit Return"}
-            </Button>
-          </div>
-        </Form>
-      </div>
+              }} className="me-2">Cancel</Button>
+              <Button variant="success" type="submit" disabled={loading}>
+                {loading ? <Spinner animation="border" size="sm" /> : editingReturn ? "Update Return" : "Submit Return"}
+              </Button>
+            </div>
+          </Form>
+        </Offcanvas.Body>
+      </Offcanvas>
+
 
       <style>
         {`
