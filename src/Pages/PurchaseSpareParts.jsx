@@ -835,650 +835,254 @@ export default function PurchaseSparepartsPage() {
             </Card>
 
             {/* Purchase Form */}
-    <Offcanvas
-      show={showForm}
-      onHide={() => setShowForm(false)}
-      placement="end"
-      style={{
-        width: "600px",
-       
-        fontFamily: "Product Sans, sans-serif",
-        fontSize: "0.875rem",
-      }} className="custom-offcanvas"
-    >
-      <Offcanvas.Header
-        className="border-bottom px-4 d-flex justify-content-between align-items-center"
-        closeButton={false}
-      >
-        <h5 className="fw-bold mb-0">
-          {editingPurchase
-            ? "Edit Purchase Spare parts"
-            : "Add New Purchase Spare parts"}
-        </h5>
-        <Button
-          variant="outline-secondary"
-          onClick={() => {
-            setShowForm(false);
-            setEditingPurchase(null);
-            setFormErrors({});
-            setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-            setInvoiceDate(new Date().toISOString().split("T")[0]);
-            setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
-          }}
-          className="rounded-circle border-0 d-flex align-items-center justify-content-center"
-          style={{ width: "32px", height: "32px" }}
-        >
-          <i className="bi bi-x-lg fs-6"></i>
-        </Button>
-      </Offcanvas.Header>
-
-      <Offcanvas.Body
-        style={{ maxHeight: "calc(100vh - 150px)", overflowY: "auto" }}
-      >
-        <Form onSubmit={handleFormSubmit} noValidate>
-          {/* Vendor */}
-          <div className="row mb-3">
-            <div className="col-6">
-              <Form.Label
-                className="fw-semibold mb-1"
-                style={{ color: "#393C3AE5" }}
-              >
-                Vendor <span className="text-danger">*</span>
-              </Form.Label>
-              <Form.Select
-                name="vendor_id"
-                required
-                style={{
-                  ...customSelectStyle,
-                  ...getBlueBorderStyles(
-                    formData.vendor_id,
-                    !!formErrors.vendor_id
-                  )
-                }}
-                value={formData.vendor_id}
-                onChange={handleInputChange}
-                isInvalid={!!formErrors.vendor_id}
-              >
-                <option value="" disabled>
-                  Select Vendor
-                </option>
-                {vendors.map((vendor) => (
-                  <option key={vendor.id} value={vendor.id}>
-                    {vendor.first_name} {vendor.last_name}
-                  </option>
-                ))}
-              </Form.Select>
-              <Form.Control.Feedback type="invalid" className="d-block">
-                {formErrors.vendor_id}
-              </Form.Control.Feedback>
-            </div>
-          </div>
-
-          {/* Invoice No & Date */}
-          <div className="row mb-3">
-            <div className="col-6">
-              <Form.Label
-                className="fw-semibold mb-1"
-                style={{ color: "#393C3AE5" }}
-              >
-                Invoice No. <span className="text-danger">*</span>
-              </Form.Label>
-              <Form.Control
-                type="text"
-                name="invoiceNo"
-                placeholder="Enter Invoice No."
-                required
-                value={formData.invoiceNo}
-                onChange={handleInputChange}
-                style={getBlueBorderStyles(
-                  formData.invoiceNo,
-                  !!formErrors.invoiceNo
-                )}
-                isInvalid={!!formErrors.invoiceNo}
-              />
-              <Form.Control.Feedback type="invalid" className="d-block">
-                {formErrors.invoiceNo}
-              </Form.Control.Feedback>
-            </div>
-
-            <div className="col-6 position-relative">
-              <Form.Label
-                className="fw-semibold mb-1"
-                style={{ color: "#393C3AE5" }}
-              >
-                Invoice Date <span className="text-danger">*</span>
-              </Form.Label>
-              <div
-                className="form-control d-flex align-items-center justify-content-between"
-                style={{
-                  position: "relative",
-                  cursor: "pointer",
-                  ...getBlueBorderStyles(
-                    invoiceDate,
-                    !!formErrors.invoice_date
-                  ),
-                  minHeight: "34px"
-                }}
-                onClick={() => setShowCalendar(true)}
-              >
-                <span>
-                  {invoiceDate
-                    ? new Date(invoiceDate + "T00:00:00").toLocaleDateString(
-                        "en-GB"
-                      )
-                    : "DD/MM/YYYY"}
-                </span>
-                <img
-                  src="/Calendar.png"
-                  alt="calendar icon"
-                  style={{
-                    position: "absolute",
-                    right: "10px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: "24px",
-                    height: "24px",
-                    pointerEvents: "none"
-                  }}
-                />
-              </div>
-              {formErrors.invoice_date && (
-                <div className="invalid-feedback d-block">
-                  {formErrors.invoice_date}
-                </div>
-              )}
-              {showCalendar && (
-                <div style={{ position: "absolute", zIndex: 10 }}>
-                  <MiniCalendar
-                    selectedDate={
-                      invoiceDate
-                        ? new Date(invoiceDate + "T00:00:00")
-                        : null
-                    }
-                    onDateChange={(date) => {
-                      const safeDate = new Date(
-                        date.getFullYear(),
-                        date.getMonth(),
-                        date.getDate()
-                      );
-                      const formatted = `${safeDate.getFullYear()}-${String(
-                        safeDate.getMonth() + 1
-                      ).padStart(2, "0")}-${String(safeDate.getDate()).padStart(
-                        2,
-                        "0"
-                      )}`;
-                      setInvoiceDate(formatted);
-                      setShowCalendar(false);
-                    }}
-                    onCancel={() => setShowCalendar(false)}
-                    allowFuture={false}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div className="mb-3">
-            <Form.Label
-              className="fw-semibold mb-1"
-              style={{ color: "#393C3AE5" }}
-            >
-              Notes
-            </Form.Label>
-            <Form.Control
-              as="textarea"
-              name="notes"
-              placeholder="Enter any notes"
-              rows="3"
-              value={formData.notes}
-              onChange={handleInputChange}
-              style={getBlueBorderStyles(formData.notes, false)}
-            ></Form.Control>
-          </div>
-
-          {/* Spare Parts */}
-          <div className="mb-3">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 className="fw-semibold mb-0">
-                Add Spare parts <span className="text-danger">*</span>
-              </h6>
-              <button
-                type="button"
-                onClick={handleAddRow}
-                disabled={
-                  sparePartsRows.length >= availableSpareparts.length
-                }
-                style={{
-                  border: "1px solid #C7E6D1",
-                  backgroundColor: "#F1FCF6",
-                  color: "#1F9254",
-                  padding: "6px 12px",
-                  fontSize: "14px",
-                  borderRadius: "6px",
-                  opacity:
-                    sparePartsRows.length >= availableSpareparts.length
-                      ? 0.6
-                      : 1,
-                  cursor:
-                    sparePartsRows.length >= availableSpareparts.length
-                      ? "not-allowed"
-                      : "pointer"
-                }}
-              >
-                + Add Row
-              </button>
-            </div>
-
-            <div
-              style={{
-                border: "1px solid #D3DBD5",
-                borderRadius: "6px",
-                overflow: "hidden",
-                backgroundColor: "#fff"
-              }}
-            >
-              <table
-                className="table mb-0"
-                style={{ tableLayout: "fixed", marginBottom: 0 }}
-              >
-                <thead style={{ backgroundColor: "#F8F9FA" }}>
-                  <tr>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px",
-                        backgroundColor: "#F3F4F6",
-                        borderBottom: "1px solid #D3DBD5",
-                        fontWeight: 600,
-                        fontSize: "15px"
-                      }}
-                    >
-                      Sparepart Name
-                    </th>
-                    <th
-                      style={{
-                        textAlign: "left",
-                        padding: "12px",
-                        backgroundColor: "#F3F4F6",
-                        borderBottom: "1px solid #D3DBD5",
-                        fontWeight: 600,
-                        fontSize: "15px"
-                      }}
-                    >
-                      Quantity
-                    </th>
-                    <th
-                      style={{
-                        width: "40px",
-                        padding: "12px",
-                        backgroundColor: "#F3F4F6",
-                        borderBottom: "1px solid #D3DBD5"
-                      }}
-                    ></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sparePartsRows.length > 0 ? (
-                    sparePartsRows.map((row, index) => (
-                      <tr key={index}>
-                        <td>
-                          <Form.Select
-                            className="shadow-none"
-                            name={`sparepart-${index}`}
-                            required
-                            value={row.sparepart_id}
-                            onChange={(e) =>
-                              handleRowChange(
-                                index,
-                                "sparepart_id",
-                                e.target.value
-                              )
-                            }
-                            isInvalid={
-                              !!formErrors[`sparepart-${index}`]
-                            }
-                            style={{
-                              fontSize: "14px",
-                              border: "none",
-                              outline: "none",
-                              boxShadow: "none",
-                              backgroundColor: "transparent",
-                              height: "38px"
-                            }}
-                          >
-                            <option value="">Select Spare part</option>
-                            {availableSpareparts
-                              .filter(
-                                (sparepart) =>
-                                  row.sparepart_id ===
-                                    String(sparepart.id) ||
-                                  !sparePartsRows.some(
-                                    (r, i) =>
-                                      i !== index &&
-                                      String(r.sparepart_id) ===
-                                        String(sparepart.id)
-                                  )
-                              )
-                              .map((sparepart) => (
-                                <option
-                                  key={sparepart.id}
-                                  value={sparepart.id}
-                                >
-                                  {sparepart.name}
-                                </option>
-                              ))}
-                          </Form.Select>
-                          <Form.Control.Feedback
-                            type="invalid"
-                            className="d-block mt-0"
-                          >
-                            {formErrors[`sparepart-${index}`]}
-                          </Form.Control.Feedback>
-                        </td>
-                        <td>
-                          <Form.Control
-                            type="number"
-                            name={`quantity-${index}`}
-                            placeholder="Enter Quantity"
-                            required
-                            min="1"
-                            value={row.quantity}
-                            onChange={(e) =>
-                              handleRowChange(
-                                index,
-                                "quantity",
-                                e.target.value
-                              )
-                            }
-                            isInvalid={
-                              !!formErrors[`quantity-${index}`]
-                            }
-                            style={{
-                              fontSize: "14px",
-                              border: "none",
-                              outline: "none",
-                              boxShadow: "none",
-                              backgroundColor: "transparent",
-                              height: "38px"
-                            }}
-                          />
-                          <Form.Control.Feedback
-                            type="invalid"
-                            className="d-block mt-0"
-                          >
-                            {formErrors[`quantity-${index}`]}
-                          </Form.Control.Feedback>
-                        </td>
-                        <td className="text-center align-middle">
-                          <Button
-                            variant="light"
-                            size="sm"
-                            onClick={() => handleRemoveRow(index)}
-                            className="p-1"
-                            style={{
-                              backgroundColor: "#FFEDED",
-                              borderRadius: "50%",
-                              width: "30px",
-                              height: "30px",
-                              padding: 0,
-                              lineHeight: 1
-                            }}
-                          >
-                            <BsDashLg
-                              style={{
-                                color: "red",
-                                fontSize: "1.2rem"
-                              }}
-                            />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan="3"
-                        className="text-center text-muted py-3"
-                      >
-                        No spare parts added yet.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            {!!formErrors.items && (
-              <div className="invalid-feedback d-block mt-1">
-                {formErrors.items}
-              </div>
-            )}
-          </div>
-
-          {/* Save Button */}
-          <div className="d-flex justify-content-end mt-4">
-            <Button
-              variant="success"
-              type="submit"
-              style={{
-                width: "179px",
-                height: "50px",
-                borderRadius: "6px"
-              }}
-            >
-              {editingPurchase ? "Update Purchase" : "Save"}
-            </Button>
-          </div>
-        </Form>
-      </Offcanvas.Body>
-    </Offcanvas>
-
-            {/* Return Form */}
-            <div
-                className={`position-fixed bg-white shadow-lg return-form-slide`}
+            <Offcanvas
+                show={showForm}
+                onHide={() => setShowForm(false)}
+                placement="end"
                 style={{
                     width: "600px",
-                    height: "calc(100vh - 58px)",
-                    top: "58px",
-                    right: showReturnForm ? "0" : "-800px",
-                    transition: "right 0.4s ease-in-out",
-                    overflowY: "auto",
-                    overflowX: "hidden",
-                    opacity: 1,
+
                     fontFamily: "Product Sans, sans-serif",
-                    fontWeight: 400,
-                    zIndex: 1050,
-                    padding: "30px",
-                    borderLeft: "1px solid #dee2e6",
-                }}
+                    fontSize: "0.875rem",
+                }} className="custom-offcanvas"
             >
-                <div className="d-flex justify-content-between align-items-start mb-4">
-                    <h5 className="fw-bold mb-0">{editingReturn ? "Edit Spare part Return" : "Spare part Return"}</h5>
-                    <button
+                <Offcanvas.Header
+                    className="border-bottom px-4 d-flex justify-content-between align-items-center"
+                    closeButton={false}
+                >
+                    <h5 className="fw-bold mb-0">
+                        {editingPurchase
+                            ? "Edit Purchase Spare parts"
+                            : "Add New Purchase Spare parts"}
+                    </h5>
+                    <Button
+                        variant="outline-secondary"
                         onClick={() => {
-                            setShowReturnForm(false);
-                            setEditingReturn(null);
+                            setShowForm(false);
+                            setEditingPurchase(null);
                             setFormErrors({});
                             setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-                            setReturnDate(new Date().toISOString().split("T")[0]);
+                            setInvoiceDate(new Date().toISOString().split("T")[0]);
                             setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
                         }}
-                        style={{
-                            width: "40px",
-                            height: "40px",
-                            backgroundColor: "#DBDBDB73",
-                            border: "none",
-                            borderRadius: "50%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "24px",
-                            fontWeight: "bold",
-                            cursor: "pointer",
-                            lineHeight: "1",
-                            padding: 0,
-                        }}
+                        className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+                        style={{ width: "32px", height: "32px" }}
                     >
-                        &times;
-                    </button>
-                </div>
-                <Form onSubmit={handleReturnFormSubmit} noValidate>
-                    <div className="row mb-3">
-                        <div className="col-6">
-                            <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                                Vendor <span className="text-danger">*</span>
-                            </Form.Label>
-                            <Form.Select
-                                name="vendor_id"
-                                required
-                                style={{ ...getBlueBorderStyles(formData.vendor_id, !!formErrors.vendor_id) }}
-                                value={formData.vendor_id}
-                                onChange={handleInputChange}
-                                isInvalid={!!formErrors.vendor_id}
-                                disabled
-                            >
-                                <option value="" disabled>Select Vendor</option>
-                                {vendors.map(vendor => (
-                                    <option key={vendor.id} value={vendor.id}>
-                                        {vendor.first_name} {vendor.last_name}
-                                    </option>
-                                ))}
-                            </Form.Select>
-                            <Form.Control.Feedback type="invalid" className="d-block">
-                                {formErrors.vendor_id}
-                            </Form.Control.Feedback>
-                        </div>
-                    </div>
-                    <div className="row mb-3">
-                        <div className="col-6">
-                            <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                                Purchase Invoice No. <span className="text-danger">*</span>
-                            </Form.Label>
-                            <Form.Select
-                                name="invoiceNo"
-                                required
-                                style={{ ...getBlueBorderStyles(formData.invoiceNo, !!formErrors.invoiceNo) }}
-                                value={formData.invoiceNo}
-                                onChange={handleInputChange}
-                                isInvalid={!!formErrors.invoiceNo}
-                                disabled
-                            >
-                                <option value="" disabled>Select Invoice</option>
-                                {spareparts.map(purchase => (
-                                    <option key={purchase.id} value={purchase.invoice_no}>
-                                        {purchase.invoice_no}
-                                    </option>
-                                ))}
-                            </Form.Select>
-                            <Form.Control.Feedback type="invalid" className="d-block">
-                                {formErrors.invoiceNo}
-                            </Form.Control.Feedback>
-                        </div>
-                        <div className="col-6 position-relative">
-                            <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                                Return Date <span className="text-danger">*</span>
-                            </Form.Label>
-                            <div
-                                className="form-control d-flex align-items-center justify-content-between"
-                                style={{
-                                    position: "relative",
-                                    cursor: "pointer",
-                                    ...getBlueBorderStyles(returnDate, !!formErrors.return_date),
-                                    minHeight: "34px",
-                                }}
-                                onClick={() => setShowReturnCalendar(true)}
-                            >
-                                <span>
-                                    {returnDate
-                                        ? new Date(returnDate + "T00:00:00").toLocaleDateString("en-GB")
-                                        : "DD/MM/YYYY"}
-                                </span>
-                                <img
-                                    src="/Calendar.png"
-                                    alt="calendar icon"
+                        <i className="bi bi-x-lg fs-6"></i>
+                    </Button>
+                </Offcanvas.Header>
+
+                <Offcanvas.Body
+                    style={{ maxHeight: "calc(100vh - 150px)", overflowY: "auto" }}
+                >
+                    <Form onSubmit={handleFormSubmit} noValidate>
+                        {/* Vendor */}
+                        <div className="row mb-3">
+                            <div className="col-6">
+                                <Form.Label
+                                    className="fw-semibold mb-1"
+                                    style={{ color: "#393C3AE5" }}
+                                >
+                                    Vendor <span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Select
+                                    name="vendor_id"
+                                    required
                                     style={{
-                                        position: "absolute",
-                                        right: "10px",
-                                        top: "50%",
-                                        transform: "translateY(-50%)",
-                                        width: "24px",
-                                        height: "24px",
-                                        pointerEvents: "none",
+                                        ...customSelectStyle,
+                                        ...getBlueBorderStyles(
+                                            formData.vendor_id,
+                                            !!formErrors.vendor_id
+                                        )
                                     }}
-                                />
+                                    value={formData.vendor_id}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!formErrors.vendor_id}
+                                >
+                                    <option value="" disabled>
+                                        Select Vendor
+                                    </option>
+                                    {vendors.map((vendor) => (
+                                        <option key={vendor.id} value={vendor.id}>
+                                            {vendor.first_name} {vendor.last_name}
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                                <Form.Control.Feedback type="invalid" className="d-block">
+                                    {formErrors.vendor_id}
+                                </Form.Control.Feedback>
                             </div>
-                            {formErrors.return_date && (
-                                <div className="invalid-feedback d-block">{formErrors.return_date}</div>
-                            )}
-                            {showReturnCalendar && (
-                                <div style={{ position: "absolute", zIndex: 10 }}>
-                                    <MiniCalendar
-                                        selectedDate={returnDate ? new Date(returnDate + "T00:00:00") : null}
-                                        onDateChange={date => {
-                                            const safeDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-                                            const formatted = `${safeDate.getFullYear()}-${String(safeDate.getMonth() + 1).padStart(2, "0")}-${String(safeDate.getDate()).padStart(2, "0")}`;
-                                            setReturnDate(formatted);
-                                            setShowReturnCalendar(false);
+                        </div>
+
+                        {/* Invoice No & Date */}
+                        <div className="row mb-3">
+                            <div className="col-6">
+                                <Form.Label
+                                    className="fw-semibold mb-1"
+                                    style={{ color: "#393C3AE5" }}
+                                >
+                                    Invoice No. <span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="invoiceNo"
+                                    placeholder="Enter Invoice No."
+                                    required
+                                    value={formData.invoiceNo}
+                                    onChange={handleInputChange}
+                                    style={getBlueBorderStyles(
+                                        formData.invoiceNo,
+                                        !!formErrors.invoiceNo
+                                    )}
+                                    isInvalid={!!formErrors.invoiceNo}
+                                />
+                                <Form.Control.Feedback type="invalid" className="d-block">
+                                    {formErrors.invoiceNo}
+                                </Form.Control.Feedback>
+                            </div>
+
+                            <div className="col-6 position-relative">
+                                <Form.Label
+                                    className="fw-semibold mb-1"
+                                    style={{ color: "#393C3AE5" }}
+                                >
+                                    Invoice Date <span className="text-danger">*</span>
+                                </Form.Label>
+                                <div
+                                    className="form-control d-flex align-items-center justify-content-between"
+                                    style={{
+                                        position: "relative",
+                                        cursor: "pointer",
+                                        ...getBlueBorderStyles(
+                                            invoiceDate,
+                                            !!formErrors.invoice_date
+                                        ),
+                                        minHeight: "34px"
+                                    }}
+                                    onClick={() => setShowCalendar(true)}
+                                >
+                                    <span>
+                                        {invoiceDate
+                                            ? new Date(invoiceDate + "T00:00:00").toLocaleDateString(
+                                                "en-GB"
+                                            )
+                                            : "DD/MM/YYYY"}
+                                    </span>
+                                    <img
+                                        src="/Calendar.png"
+                                        alt="calendar icon"
+                                        style={{
+                                            position: "absolute",
+                                            right: "10px",
+                                            top: "50%",
+                                            transform: "translateY(-50%)",
+                                            width: "24px",
+                                            height: "24px",
+                                            pointerEvents: "none"
                                         }}
-                                        onCancel={() => setShowReturnCalendar(false)}
                                     />
                                 </div>
-                            )}
+                                {formErrors.invoice_date && (
+                                    <div className="invalid-feedback d-block">
+                                        {formErrors.invoice_date}
+                                    </div>
+                                )}
+                                {showCalendar && (
+                                    <div style={{ position: "absolute", zIndex: 10 }}>
+                                        <MiniCalendar
+                                            selectedDate={
+                                                invoiceDate
+                                                    ? new Date(invoiceDate + "T00:00:00")
+                                                    : null
+                                            }
+                                            onDateChange={(date) => {
+                                                const safeDate = new Date(
+                                                    date.getFullYear(),
+                                                    date.getMonth(),
+                                                    date.getDate()
+                                                );
+                                                const formatted = `${safeDate.getFullYear()}-${String(
+                                                    safeDate.getMonth() + 1
+                                                ).padStart(2, "0")}-${String(safeDate.getDate()).padStart(
+                                                    2,
+                                                    "0"
+                                                )}`;
+                                                setInvoiceDate(formatted);
+                                                setShowCalendar(false);
+                                            }}
+                                            onCancel={() => setShowCalendar(false)}
+                                            allowFuture={false}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                    <div className="mb-3">
-                        <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
-                            Notes
-                        </Form.Label>
-                        <Form.Control
-                            as="textarea"
-                            name="notes"
-                            placeholder="Enter any notes"
-                            rows="3"
-                            value={formData.notes}
-                            onChange={handleInputChange}
-                            style={getBlueBorderStyles(formData.notes, false)}
-                        ></Form.Control>
-                    </div>
-                    <div className="mb-3">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <h6 className="fw-semibold mb-0">
-                                Add Spare parts <span className="text-danger">*</span>
-                            </h6>
-                            <button
-                                type="button"
-                                onClick={handleAddRow}
-                                className="add-row-btn"
-                                disabled={sparePartsRows.length >= invoiceSpareparts.length}
+
+                        {/* Notes */}
+                        <div className="mb-3">
+                            <Form.Label
+                                className="fw-semibold mb-1"
+                                style={{ color: "#393C3AE5" }}
+                            >
+                                Notes
+                            </Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                name="notes"
+                                placeholder="Enter any notes"
+                                rows="3"
+                                value={formData.notes}
+                                onChange={handleInputChange}
+                                style={getBlueBorderStyles(formData.notes, false)}
+                            ></Form.Control>
+                        </div>
+
+                        {/* Spare Parts */}
+                        <div className="mb-3">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <h6 className="fw-semibold mb-0">
+                                    Add Spare parts <span className="text-danger">*</span>
+                                </h6>
+                                <button
+                                    type="button"
+                                    onClick={handleAddRow}
+                                    disabled={
+                                        sparePartsRows.length >= availableSpareparts.length
+                                    }
+                                    style={{
+                                        border: "1px solid #C7E6D1",
+                                        backgroundColor: "#F1FCF6",
+                                        color: "#1F9254",
+                                        padding: "6px 12px",
+                                        fontSize: "14px",
+                                        borderRadius: "6px",
+                                        opacity:
+                                            sparePartsRows.length >= availableSpareparts.length
+                                                ? 0.6
+                                                : 1,
+                                        cursor:
+                                            sparePartsRows.length >= availableSpareparts.length
+                                                ? "not-allowed"
+                                                : "pointer"
+                                    }}
+                                >
+                                    + Add Row
+                                </button>
+                            </div>
+
+                            <div
                                 style={{
-                                    border: "1px solid #C7E6D1",
-                                    backgroundColor: "#F1FCF6",
-                                    color: "#1F9254",
-                                    padding: "6px 12px",
-                                    fontSize: "14px",
+                                    border: "1px solid #D3DBD5",
                                     borderRadius: "6px",
-                                    opacity: sparePartsRows.length >= invoiceSpareparts.length ? 0.6 : 1,
-                                    cursor: sparePartsRows.length >= invoiceSpareparts.length ? "not-allowed" : "pointer",
-                                    outline: "none",
-                                    boxShadow: "none",
+                                    overflow: "hidden",
+                                    backgroundColor: "#fff"
                                 }}
                             >
-                                + Add Row
-                            </button>
-                        </div>
-                        <div
-                            style={{
-                                border: "1px solid #D3DBD5",
-                                borderRadius: "8px",
-                                overflow: "hidden",
-                            }}
-                        >
-                            <div style={{ maxHeight: "200px", overflowY: "auto" }}>
                                 <table
-                                    className="custom-table"
-                                    style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}
+                                    className="table mb-0"
+                                    style={{ tableLayout: "fixed", marginBottom: 0 }}
                                 >
-                                    <thead>
+                                    <thead style={{ backgroundColor: "#F8F9FA" }}>
                                         <tr>
                                             <th
                                                 style={{
@@ -1487,7 +1091,7 @@ export default function PurchaseSparepartsPage() {
                                                     backgroundColor: "#F3F4F6",
                                                     borderBottom: "1px solid #D3DBD5",
                                                     fontWeight: 600,
-                                                    fontSize: "14px",
+                                                    fontSize: "15px"
                                                 }}
                                             >
                                                 Sparepart Name
@@ -1499,7 +1103,7 @@ export default function PurchaseSparepartsPage() {
                                                     backgroundColor: "#F3F4F6",
                                                     borderBottom: "1px solid #D3DBD5",
                                                     fontWeight: 600,
-                                                    fontSize: "14px",
+                                                    fontSize: "15px"
                                                 }}
                                             >
                                                 Quantity
@@ -1509,107 +1113,134 @@ export default function PurchaseSparepartsPage() {
                                                     width: "40px",
                                                     padding: "12px",
                                                     backgroundColor: "#F3F4F6",
-                                                    borderBottom: "1px solid #D3DBD5",
+                                                    borderBottom: "1px solid #D3DBD5"
                                                 }}
                                             ></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {sparePartsRows.length > 0 ? (
-                                            sparePartsRows.map((row, index) => {
-                                                const selectedIds = sparePartsRows
-                                                    .filter((_, i) => i !== index)
-                                                    .map(r => String(r.sparepart_id));
-                                                const availableOptions = invoiceSpareparts.filter(
-                                                    sp =>
-                                                        String(row.sparepart_id) === String(sp.id) ||
-                                                        !selectedIds.includes(String(sp.id))
-                                                );
-                                                return (
-                                                    <tr key={index}>
-                                                        <td style={{ padding: "12px" }}>
-                                                            <Form.Select
-                                                                name={`sparepart-${index}`}
-                                                                value={row.sparepart_id}
-                                                                onChange={e => handleRowChange(index, "sparepart_id", e.target.value)}
-                                                                isInvalid={!!formErrors[`sparepart-${index}`]}
-                                                                disabled={!formData.invoiceNo}
-                                                                className="shadow-none"
-                                                                style={{
-                                                                    border: "none",
-                                                                    backgroundColor: "#fff",
-                                                                    padding: "5px",
-                                                                    fontSize: "14px",
-                                                                    borderRadius: "6px",
-                                                                    outline: "none",
-                                                                    boxShadow: "none",
-                                                                    appearance: "none",
-                                                                    WebkitAppearance: "none",
-                                                                    MozAppearance: "none",
-                                                                }}
-                                                            >
-                                                                <option value="" disabled>
-                                                                    {formData.invoiceNo ? "Select Spare Part" : "Select Invoice first"}
-                                                                </option>
-                                                                {availableOptions.map(sparepart => (
-                                                                    <option key={sparepart.id} value={sparepart.id}>
+                                            sparePartsRows.map((row, index) => (
+                                                <tr key={index}>
+                                                    <td>
+                                                        <Form.Select
+                                                            className="shadow-none"
+                                                            name={`sparepart-${index}`}
+                                                            required
+                                                            value={row.sparepart_id}
+                                                            onChange={(e) =>
+                                                                handleRowChange(
+                                                                    index,
+                                                                    "sparepart_id",
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                            isInvalid={
+                                                                !!formErrors[`sparepart-${index}`]
+                                                            }
+                                                            style={{
+                                                                fontSize: "14px",
+                                                                border: "none",
+                                                                outline: "none",
+                                                                boxShadow: "none",
+                                                                backgroundColor: "transparent",
+                                                                height: "38px"
+                                                            }}
+                                                        >
+                                                            <option value="">Select Spare part</option>
+                                                            {availableSpareparts
+                                                                .filter(
+                                                                    (sparepart) =>
+                                                                        row.sparepart_id ===
+                                                                        String(sparepart.id) ||
+                                                                        !sparePartsRows.some(
+                                                                            (r, i) =>
+                                                                                i !== index &&
+                                                                                String(r.sparepart_id) ===
+                                                                                String(sparepart.id)
+                                                                        )
+                                                                )
+                                                                .map((sparepart) => (
+                                                                    <option
+                                                                        key={sparepart.id}
+                                                                        value={sparepart.id}
+                                                                    >
                                                                         {sparepart.name}
                                                                     </option>
                                                                 ))}
-                                                            </Form.Select>
-                                                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                                                                {formErrors[`sparepart-${index}`]}
-                                                            </Form.Control.Feedback>
-                                                        </td>
-                                                        <td style={{ padding: "12px" }}>
-                                                            <Form.Control
-                                                                type="number"
-                                                                name={`quantity-${index}`}
-                                                                placeholder="Enter Quantity"
-                                                                min="1"
-                                                                value={row.quantity}
-                                                                onChange={e => handleRowChange(index, "quantity", e.target.value)}
-                                                                isInvalid={!!formErrors[`quantity-${index}`]}
-                                                                className="shadow-none"
+                                                        </Form.Select>
+                                                        <Form.Control.Feedback
+                                                            type="invalid"
+                                                            className="d-block mt-0"
+                                                        >
+                                                            {formErrors[`sparepart-${index}`]}
+                                                        </Form.Control.Feedback>
+                                                    </td>
+                                                    <td>
+                                                        <Form.Control
+                                                            type="number"
+                                                            name={`quantity-${index}`}
+                                                            placeholder="Enter Quantity"
+                                                            required
+                                                            min="1"
+                                                            value={row.quantity}
+                                                            onChange={(e) =>
+                                                                handleRowChange(
+                                                                    index,
+                                                                    "quantity",
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                            isInvalid={
+                                                                !!formErrors[`quantity-${index}`]
+                                                            }
+                                                            style={{
+                                                                fontSize: "14px",
+                                                                border: "none",
+                                                                outline: "none",
+                                                                boxShadow: "none",
+                                                                backgroundColor: "transparent",
+                                                                height: "38px"
+                                                            }}
+                                                        />
+                                                        <Form.Control.Feedback
+                                                            type="invalid"
+                                                            className="d-block mt-0"
+                                                        >
+                                                            {formErrors[`quantity-${index}`]}
+                                                        </Form.Control.Feedback>
+                                                    </td>
+                                                    <td className="text-center align-middle">
+                                                        <Button
+                                                            variant="light"
+                                                            size="sm"
+                                                            onClick={() => handleRemoveRow(index)}
+                                                            className="p-1"
+                                                            style={{
+                                                                backgroundColor: "#FFEDED",
+                                                                borderRadius: "50%",
+                                                                width: "30px",
+                                                                height: "30px",
+                                                                padding: 0,
+                                                                lineHeight: 1
+                                                            }}
+                                                        >
+                                                            <BsDashLg
                                                                 style={{
-                                                                    border: "none",
-                                                                    backgroundColor: "#fff",
-                                                                    borderRadius: "6px",
-                                                                    outline: "none",
-                                                                    boxShadow: "none",
+                                                                    color: "red",
+                                                                    fontSize: "1.2rem"
                                                                 }}
                                                             />
-                                                            <Form.Control.Feedback type="invalid" className="d-block mt-0">
-                                                                {formErrors[`quantity-${index}`]}
-                                                            </Form.Control.Feedback>
-                                                        </td>
-                                                        <td className="text-center align-middle" style={{ padding: "5px" }}>
-                                                            <Button
-                                                                variant="link"
-                                                                size="sm"
-                                                                onClick={() => handleRemoveRow(index)}
-                                                                className="p-0"
-                                                                style={{
-                                                                    backgroundColor: "#FFEBEBC9",
-                                                                    borderRadius: "50%",
-                                                                    width: "28px",
-                                                                    height: "28px",
-                                                                    display: "flex",
-                                                                    alignItems: "center",
-                                                                    justifyContent: "center",
-                                                                    outline: "none",
-                                                                    boxShadow: "none",
-                                                                }}
-                                                            >
-                                                                <BsDashLg style={{ color: "red", fontSize: "1rem" }} />
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="3" className="text-center text-muted py-3">
+                                                <td
+                                                    colSpan="3"
+                                                    className="text-center text-muted py-3"
+                                                >
                                                     No spare parts added yet.
                                                 </td>
                                             </tr>
@@ -1618,9 +1249,339 @@ export default function PurchaseSparepartsPage() {
                                 </table>
                             </div>
                             {!!formErrors.items && (
-                                <div className="invalid-feedback d-block mt-1">{formErrors.items}</div>
+                                <div className="invalid-feedback d-block mt-1">
+                                    {formErrors.items}
+                                </div>
                             )}
                         </div>
+
+                        {/* Save Button */}
+                        <div className="d-flex justify-content-end mt-4">
+                            <Button
+                                variant="success"
+                                type="submit"
+                                style={{
+                                    width: "179px",
+                                    height: "50px",
+                                    borderRadius: "6px"
+                                }}
+                            >
+                                {editingPurchase ? "Update Purchase" : "Save"}
+                            </Button>
+                        </div>
+                    </Form>
+                </Offcanvas.Body>
+            </Offcanvas>
+
+            {/* Return Form */}
+            <Offcanvas
+                show={showReturnForm}
+                onHide={() => {
+                    setShowReturnForm(false);
+                    setEditingReturn(null);
+                    setFormErrors({});
+                    setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+                    setReturnDate(new Date().toISOString().split("T")[0]);
+                    setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
+                }}
+                placement="end"
+                backdrop="static"
+                className="custom-offcanvas"
+                style={{
+                    width: "600px",
+                    fontFamily: "Product Sans, sans-serif",
+                    fontWeight: 400,
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                    height: "calc(100vh - 58px)",
+                    top: "58px",
+                    zIndex: 1050,
+                }}
+            >
+                <Offcanvas.Header closeButton style={{ padding: "16px 24px" }}>
+                    <Offcanvas.Title
+                        style={{
+                            fontSize: "25px",
+                            fontWeight: 700,
+                            lineHeight: 1,
+                            letterSpacing: 0,
+                        }}
+                    >
+                        {editingReturn ? "Edit Spare part Return" : "Spare part Return"}
+                    </Offcanvas.Title>
+                </Offcanvas.Header>
+
+                <Offcanvas.Body className="px-3 pt-2 pb-2">
+                    <Form onSubmit={handleReturnFormSubmit} noValidate>
+                        {/* Vendor & Invoice */}
+                        <div className="row mb-3">
+                            <div className="col-6">
+                                <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
+                                    Vendor <span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Select
+                                    name="vendor_id"
+                                    required
+                                    style={{ ...getBlueBorderStyles(formData.vendor_id, !!formErrors.vendor_id) }}
+                                    value={formData.vendor_id}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!formErrors.vendor_id}
+                                    disabled
+                                >
+                                    <option value="" disabled>Select Vendor</option>
+                                    {vendors.map(vendor => (
+                                        <option key={vendor.id} value={vendor.id}>
+                                            {vendor.first_name} {vendor.last_name}
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                                <Form.Control.Feedback type="invalid" className="d-block">
+                                    {formErrors.vendor_id}
+                                </Form.Control.Feedback>
+                            </div>
+
+                            <div className="col-6">
+                                <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
+                                    Purchase Invoice No. <span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Select
+                                    name="invoiceNo"
+                                    required
+                                    style={{ ...getBlueBorderStyles(formData.invoiceNo, !!formErrors.invoiceNo) }}
+                                    value={formData.invoiceNo}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!formErrors.invoiceNo}
+                                    disabled
+                                >
+                                    <option value="" disabled>Select Invoice</option>
+                                    {spareparts.map(purchase => (
+                                        <option key={purchase.id} value={purchase.invoice_no}>
+                                            {purchase.invoice_no}
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                                <Form.Control.Feedback type="invalid" className="d-block">
+                                    {formErrors.invoiceNo}
+                                </Form.Control.Feedback>
+                            </div>
+                        </div>
+
+                        {/* Return Date */}
+                        <div className="row mb-3">
+                            <div className="col-6 position-relative">
+                                <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
+                                    Return Date <span className="text-danger">*</span>
+                                </Form.Label>
+                                <div
+                                    className="form-control d-flex align-items-center justify-content-between"
+                                    style={{
+                                        position: "relative",
+                                        cursor: "pointer",
+                                        ...getBlueBorderStyles(returnDate, !!formErrors.return_date),
+                                        minHeight: "34px",
+                                    }}
+                                    onClick={() => setShowReturnCalendar(true)}
+                                >
+                                    <span>
+                                        {returnDate
+                                            ? new Date(returnDate + "T00:00:00").toLocaleDateString("en-GB")
+                                            : "DD/MM/YYYY"}
+                                    </span>
+                                    <img
+                                        src="/Calendar.png"
+                                        alt="calendar icon"
+                                        style={{
+                                            position: "absolute",
+                                            right: "10px",
+                                            top: "50%",
+                                            transform: "translateY(-50%)",
+                                            width: "24px",
+                                            height: "24px",
+                                            pointerEvents: "none",
+                                        }}
+                                    />
+                                </div>
+                                {formErrors.return_date && (
+                                    <div className="invalid-feedback d-block">{formErrors.return_date}</div>
+                                )}
+                                {showReturnCalendar && (
+                                    <div style={{ position: "absolute", zIndex: 10 }}>
+                                        <MiniCalendar
+                                            selectedDate={returnDate ? new Date(returnDate + "T00:00:00") : null}
+                                            onDateChange={date => {
+                                                const safeDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                                                const formatted = `${safeDate.getFullYear()}-${String(safeDate.getMonth() + 1).padStart(2, "0")}-${String(safeDate.getDate()).padStart(2, "0")}`;
+                                                setReturnDate(formatted);
+                                                setShowReturnCalendar(false);
+                                            }}
+                                            onCancel={() => setShowReturnCalendar(false)}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Notes */}
+                        <div className="mb-3">
+                            <Form.Label className="fw-semibold mb-1" style={{ color: "#393C3AE5" }}>
+                                Notes
+                            </Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                name="notes"
+                                placeholder="Enter any notes"
+                                rows="3"
+                                value={formData.notes}
+                                onChange={handleInputChange}
+                                style={getBlueBorderStyles(formData.notes, false)}
+                            ></Form.Control>
+                        </div>
+
+                        {/* Spare Parts Table */}
+                        <div className="mb-3">
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <h6 className="fw-semibold mb-0">
+                                    Add Spare parts <span className="text-danger">*</span>
+                                </h6>
+                                <button
+                                    type="button"
+                                    onClick={handleAddRow}
+                                    className="add-row-btn"
+                                    disabled={sparePartsRows.length >= invoiceSpareparts.length}
+                                    style={{
+                                        border: "1px solid #C7E6D1",
+                                        backgroundColor: "#F1FCF6",
+                                        color: "#1F9254",
+                                        padding: "6px 12px",
+                                        fontSize: "14px",
+                                        borderRadius: "6px",
+                                        opacity: sparePartsRows.length >= invoiceSpareparts.length ? 0.6 : 1,
+                                        cursor: sparePartsRows.length >= invoiceSpareparts.length ? "not-allowed" : "pointer",
+                                        outline: "none",
+                                        boxShadow: "none",
+                                    }}
+                                >
+                                    + Add Row
+                                </button>
+                            </div>
+
+                            <div style={{ border: "1px solid #D3DBD5", borderRadius: "8px", overflow: "hidden" }}>
+                                <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                                    <table className="custom-table" style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
+                                        <thead>
+                                            <tr>
+                                                <th style={{ textAlign: "left", padding: "12px", backgroundColor: "#F3F4F6", borderBottom: "1px solid #D3DBD5", fontWeight: 600, fontSize: "14px" }}>Sparepart Name</th>
+                                                <th style={{ textAlign: "left", padding: "12px", backgroundColor: "#F3F4F6", borderBottom: "1px solid #D3DBD5", fontWeight: 600, fontSize: "14px" }}>Quantity</th>
+                                                <th style={{ width: "40px", padding: "12px", backgroundColor: "#F3F4F6", borderBottom: "1px solid #D3DBD5" }}></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {sparePartsRows.length > 0 ? (
+                                                sparePartsRows.map((row, index) => {
+                                                    const selectedIds = sparePartsRows
+                                                        .filter((_, i) => i !== index)
+                                                        .map(r => String(r.sparepart_id));
+                                                    const availableOptions = invoiceSpareparts.filter(
+                                                        sp => String(row.sparepart_id) === String(sp.id) || !selectedIds.includes(String(sp.id))
+                                                    );
+                                                    return (
+                                                        <tr key={index}>
+                                                            <td style={{ padding: "12px" }}>
+                                                                <Form.Select
+                                                                    name={`sparepart-${index}`}
+                                                                    value={row.sparepart_id}
+                                                                    onChange={e => handleRowChange(index, "sparepart_id", e.target.value)}
+                                                                    isInvalid={!!formErrors[`sparepart-${index}`]}
+                                                                    disabled={!formData.invoiceNo}
+                                                                    className="shadow-none"
+                                                                    style={{
+                                                                        border: "none",
+                                                                        backgroundColor: "#fff",
+                                                                        padding: "5px",
+                                                                        fontSize: "14px",
+                                                                        borderRadius: "6px",
+                                                                        outline: "none",
+                                                                        boxShadow: "none",
+                                                                    }}
+                                                                >
+                                                                    <option value="" disabled>
+                                                                        {formData.invoiceNo ? "Select Spare Part" : "Select Invoice first"}
+                                                                    </option>
+                                                                    {availableOptions.map(sparepart => (
+                                                                        <option key={sparepart.id} value={sparepart.id}>
+                                                                            {sparepart.name}
+                                                                        </option>
+                                                                    ))}
+                                                                </Form.Select>
+                                                                <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                                                                    {formErrors[`sparepart-${index}`]}
+                                                                </Form.Control.Feedback>
+                                                            </td>
+
+                                                            <td style={{ padding: "12px" }}>
+                                                                <Form.Control
+                                                                    type="number"
+                                                                    name={`quantity-${index}`}
+                                                                    placeholder="Enter Quantity"
+                                                                    min="1"
+                                                                    value={row.quantity}
+                                                                    onChange={e => handleRowChange(index, "quantity", e.target.value)}
+                                                                    isInvalid={!!formErrors[`quantity-${index}`]}
+                                                                    className="shadow-none"
+                                                                    style={{
+                                                                        border: "none",
+                                                                        backgroundColor: "#fff",
+                                                                        borderRadius: "6px",
+                                                                        outline: "none",
+                                                                        boxShadow: "none",
+                                                                    }}
+                                                                />
+                                                                <Form.Control.Feedback type="invalid" className="d-block mt-0">
+                                                                    {formErrors[`quantity-${index}`]}
+                                                                </Form.Control.Feedback>
+                                                            </td>
+
+                                                            <td className="text-center align-middle" style={{ padding: "5px" }}>
+                                                                <Button
+                                                                    variant="link"
+                                                                    size="sm"
+                                                                    onClick={() => handleRemoveRow(index)}
+                                                                    className="p-0"
+                                                                    style={{
+                                                                        backgroundColor: "#FFEBEBC9",
+                                                                        borderRadius: "50%",
+                                                                        width: "28px",
+                                                                        height: "28px",
+                                                                        display: "flex",
+                                                                        alignItems: "center",
+                                                                        justifyContent: "center",
+                                                                        outline: "none",
+                                                                        boxShadow: "none",
+                                                                    }}
+                                                                >
+                                                                    <BsDashLg style={{ color: "red", fontSize: "1rem" }} />
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="3" className="text-center text-muted py-3">
+                                                        No spare parts added yet.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {!!formErrors.items && (
+                                    <div className="invalid-feedback d-block mt-1">{formErrors.items}</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Form Actions */}
                         <div className="d-flex justify-content-end mt-4">
                             <Button
                                 variant="secondary"
@@ -1640,9 +1601,9 @@ export default function PurchaseSparepartsPage() {
                                 {loading ? <Spinner animation="border" size="sm" /> : editingReturn ? "Update Return" : "Submit Return"}
                             </Button>
                         </div>
-                    </div>
-                </Form>
-            </div>
+                    </Form>
+                </Offcanvas.Body>
+            </Offcanvas>
 
             <style>
                 {`
