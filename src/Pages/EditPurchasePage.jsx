@@ -5,7 +5,7 @@ import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { API_BASE_URL } from "../api";
-
+import { FixedSizeList as List } from 'react-window'; // ✅ for large data rendering
 
 export default function EditPurchasePage() {
   const { id } = useParams();
@@ -16,7 +16,9 @@ export default function EditPurchasePage() {
   const [serials, setSerials] = useState([]);
   const [newSerialsInput, setNewSerialsInput] = useState('');
   const [error, setError] = useState('');
-  const [dropdowns, setDropdowns] = useState({ vendors: [], batches: [], categories: [] });
+  const [dropdowns, setDropdowns] = useState({ vendors: [], categories: [] });
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('');
+
 
   useEffect(() => {
     fetchDropdownData();
@@ -24,25 +26,41 @@ export default function EditPurchasePage() {
       .then(res => {
         if (res.data.status) {
           setPurchase(res.data.data.purchase);
-          setSerials(res.data.data.serials);
+  
+          // ✅ Convert Laravel response to serials list for UI
+          const allSerials = [];
+          (res.data.data.categories || []).forEach(cat => {
+            cat.serials.forEach(s => {
+              allSerials.push({
+                serial_no: s.serial_no || '',
+                remark: s.remark || '',
+                quality_check: s.quality_check || '',
+                category_id: cat.category_id,
+                category: cat.category
+              });
+            });
+          });
+  
+          setSerials(allSerials);
         } else {
           setError('Purchase not found');
         }
         setLoading(false);
-      }).catch(() => {
+      })
+      .catch(() => {
         setError('Error fetching data');
         setLoading(false);
       });
   }, [id]);
+  
+  
 
   const fetchDropdownData = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/form-dropdowns`);
-      const data = res.data.data;
-
+      const data = res.data.data || {};
       setDropdowns({
         vendors: data.vendors || [],
-        batches: data.batches || [],
         categories: data.categories || [],
       });
     } catch (err) {
@@ -51,92 +69,104 @@ export default function EditPurchasePage() {
   };
 
   const handleInputChange = (index, field, value) => {
-    const updated = [...serials];
-    updated[index][field] = value;
-    setSerials(updated);
+    setSerials(prev => {
+      const updated = [...prev];
+      updated[index][field] = value;
+      return updated;
+    });
   };
 
   const handlePurchaseChange = (e) => {
     const { name, value } = e.target;
-    setPurchase({ ...purchase, [name]: value });
+    setPurchase(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleChange = (e) => {
-  setPurchase(prev => ({
-    ...prev,
-    [e.target.name]: e.target.value
-  }));
-};
-
-
   const handleDeleteSerial = (indexToRemove) => {
-    const updated = serials.filter((_, index) => index !== indexToRemove);
-    setSerials(updated);
+    setSerials(prev => prev.filter((_, index) => index !== indexToRemove));
     toast.success('Serial removed');
   };
 
-const handleAddNewSerials = async () => {
-  const input = newSerialsInput.trim();
-  if (!input) return;
-
-  const rawEntries = input
-    .split(/[\n,]/)
-    .map(sn => sn.trim())
-    .filter(sn => sn !== '');
-
-  // Check duplicates within input itself
-  const inputDuplicates = rawEntries.filter((item, index) => rawEntries.indexOf(item) !== index);
-  if (inputDuplicates.length > 0) {
-    toast.error(`Duplicate serials in input: ${[...new Set(inputDuplicates)].join(', ')}`);
-    return;
-  }
-
-  // Check duplicates against current serials loaded in state
-  const uniqueEntries = rawEntries.filter(sn => !serials.some(s => s.serial_no === sn));
-  if (uniqueEntries.length === 0) {
-    toast.warning('No valid or unique serials entered.');
-    return;
-  }
-
-  try {
-    // Call your backend checkSerials API to find global duplicates
-    const res = await axios.post(`${API_BASE_URL}/check-serials`, { serials: uniqueEntries });
-
-    if (res.data.status && res.data.duplicates && res.data.duplicates.length > 0) {
-      toast.error(`These serials already exist: ${res.data.duplicates.join(', ')}`);
+  const handleAddNewSerials = async () => {
+    if (!selectedCategoryFilter) {
+      toast.error('Please select a category before adding serials');
       return;
     }
-
-    // Add new unique serials to state
-    const newEntries = uniqueEntries.map(sn => ({ serial_no: sn, remark: '', quality_check: '' }));
-    setSerials([...serials, ...newEntries]);
-    setNewSerialsInput('');
-    toast.success(`${newEntries.length} serial(s) added.`);
-  } catch (err) {
-    toast.error('Failed to validate serials. Please try again.');
-  }
-};
-
-
+  
+    const input = newSerialsInput.trim();
+    if (!input) return;
+  
+    const rawEntries = input
+      .split(/[\n,]/)
+      .map(sn => sn.trim())
+      .filter(sn => sn !== '');
+  
+    const inputDuplicates = rawEntries.filter((item, idx) => rawEntries.indexOf(item) !== idx);
+    if (inputDuplicates.length > 0) {
+      toast.error(`Duplicate serials in input: ${[...new Set(inputDuplicates)].join(', ')}`);
+      return;
+    }
+  
+    const uniqueEntries = rawEntries.filter(sn => !serials.some(s => s.serial_no === sn));
+    if (uniqueEntries.length === 0) {
+      toast.warning('No valid or unique serials entered.');
+      return;
+    }
+  
+    try {
+      const res = await axios.post(`${API_BASE_URL}/check-serials`, { serials: uniqueEntries });
+      if (res.data.status && res.data.duplicates?.length > 0) {
+        toast.error(`These serials already exist: ${res.data.duplicates.join(', ')}`);
+        return;
+      }
+  
+      // ✅ Assign category info
+      const categoryObj = dropdowns.categories.find(c => c.id === parseInt(selectedCategoryFilter));
+  
+      const newEntries = uniqueEntries.map(sn => ({
+        serial_no: sn,
+        remark: '',
+        quality_check: '',
+        category_id: categoryObj.id,
+        category: categoryObj.category
+      }));
+  
+      setSerials(prev => [...prev, ...newEntries]);
+      setNewSerialsInput('');
+      toast.success(`${newEntries.length} serial(s) added to category "${categoryObj.category}".`);
+    } catch {
+      toast.error('Failed to validate serials. Please try again.');
+    }
+  };
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-
-const payload = {
-  invoice_no: purchase.invoice_no, // ✅ Add this line
-  invoice_date: purchase.invoice_date,
-  vendor_id: purchase.vendor_id,
-  // batch_id: purchase.batch_id,
-  category_id: purchase.category_id,
-  remark_quality: serials.map(item => ({
-    serial_no: item.serial_no,
-    remark: item.remark,
-    quality_check: item.quality_check
-  }))
-};
-
-
+    if (!purchase) return;
+  
+    // ✅ Group serials by category
+    const grouped = {};
+    serials.forEach(s => {
+      if (!grouped[s.category_id]) grouped[s.category_id] = [];
+      grouped[s.category_id].push(s.serial_no);
+    });
+  
+    // ✅ Build from_serial / to_serial per category
+    const categoriesPayload = Object.keys(grouped).map(catId => {
+      const sorted = grouped[catId].sort();
+      return {
+        category_id: parseInt(catId),
+        from_serial: sorted[0],
+        to_serial: sorted[sorted.length - 1]
+      };
+    });
+  
+    const payload = {
+      vendor_id: purchase.vendor_id,
+      invoice_no: purchase.invoice_no,
+      invoice_date: purchase.invoice_date,
+      categories: categoriesPayload
+    };
+  
     axios.put(`${API_BASE_URL}/purchase/${id}`, payload)
       .then(res => {
         if (res.data.status) {
@@ -148,18 +178,62 @@ const payload = {
       })
       .catch(err => {
         const errorData = err.response?.data || {};
-        const errorMessage = errorData.message || 'Something went wrong';
-
-        if (errorData.available && errorData.required) {
-          toast.error(`Only ${errorData.available} items available, but ${errorData.required} requested.`);
-        }
-
-        toast.error(errorMessage);
+        toast.error(errorData.message || 'Something went wrong');
       });
   };
+  
 
-  // if (loading) return <div className="p-4"><Spinner animation="border" /></div>;
-  if (!purchase) return <div className="p-4 text-danger">{error}</div>;
+  if (loading) {
+    return (
+      <div className="p-4 text-center">
+        <Spinner animation="border" />
+      </div>
+    );
+  }
+
+  if (!purchase) {
+    return <div className="p-4 text-danger">{error || 'No purchase data found'}</div>;
+  }
+
+  // Virtualized row for performance
+  const RowItem = ({ index, style }) => {
+    const item = serials[index];
+    return (
+      <Row className="mb-2" style={style}>
+        <Col md={3}>
+          <Form.Control value={item.serial_no} readOnly />
+        </Col>
+        <Col md={3}>
+          <Form.Control
+            size="sm"
+            placeholder="Remark"
+            value={item.remark || ''}
+            onChange={(e) => handleInputChange(index, 'remark', e.target.value)}
+          />
+        </Col>
+        <Col md={3}>
+          <Form.Select
+            size="sm"
+            value={item.quality_check || ''}
+            onChange={(e) => handleInputChange(index, 'quality_check', e.target.value)}
+          >
+            <option value="">-- Select --</option>
+            <option value="ok">OK</option>
+            <option value="Issue">Issue</option>
+          </Form.Select>
+        </Col>
+        <Col md={3}>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={() => handleDeleteSerial(index)}
+          >
+            <i className="bi bi-trash"></i>
+          </Button>
+        </Col>
+      </Row>
+    );
+  };
 
   return (
     <div className="w-100 py-4 px-4 bg-white" style={{ minHeight: '100vh' }}>
@@ -191,14 +265,12 @@ const payload = {
           <Col md={6}>
             <Form.Group>
               <Form.Label className="text-muted mb-1">Invoice No</Form.Label>
-            <Form.Control
-  size="sm"
-  name="invoice_no"  // ✅ This is the fix
-  value={purchase.invoice_no}
-  onChange={handleChange}
-/>
-
-
+              <Form.Control
+                size="sm"
+                name="invoice_no"
+                value={purchase.invoice_no || ''}
+                onChange={handlePurchaseChange}
+              />
             </Form.Group>
           </Col>
         </Row>
@@ -214,40 +286,28 @@ const payload = {
               onChange={handlePurchaseChange}
             />
           </Col>
-          <Col md={6}>
-            {/* <Form.Group>
-              <Form.Label className="text-muted mb-1">Batch</Form.Label>
-              <Form.Select
-                name="batch_id"
-                size="sm"
-                value={purchase.batch_id || ''}
-                onChange={handlePurchaseChange}
-              >
-                <option value="">-- Select Batch --</option>
-                {dropdowns.batches.map(b => (
-                  <option key={b.id} value={b.id}>{b.name || `Batch ${b.id}`}</option>
-                ))}
-              </Form.Select>
-            </Form.Group> */}
-          </Col>
+          <Col md={6}></Col>
         </Row>
 
         <Row className="mb-3">
           <Col md={6}>
-            <Form.Group>
-              <Form.Label className="text-muted mb-1">Category</Form.Label>
-              <Form.Select
-                name="category_id"
-                size="sm"
-                value={purchase.category_id || ''}
-                onChange={handlePurchaseChange}
-              >
-                <option value="">-- Select Category --</option>
-                {dropdowns.categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.category}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
+          <Form.Group>
+            <Form.Label className="text-muted mb-1">Category</Form.Label>
+            <Form.Select
+              name="category_id"
+              size="sm"
+              value={selectedCategoryFilter}
+              onChange={(e) => setSelectedCategoryFilter(e.target.value)}
+            >
+              <option value="">-- All Categories --</option>
+              {dropdowns.categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.category}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
           </Col>
           <Col md={6}>
             <Form.Group>
@@ -272,65 +332,21 @@ const payload = {
             value={newSerialsInput}
             onChange={(e) => setNewSerialsInput(e.target.value)}
           />
-          <Button
-            size="sm"
-            className="mt-2"
-            variant="success"
-            onClick={handleAddNewSerials}
-          >
+          <Button size="sm" className="mt-2" variant="success" onClick={handleAddNewSerials}>
             Add Serials
           </Button>
         </Form.Group>
 
-        {/* <Form.Group className="mb-3 col-md-6">
-          <Form.Label className="text-muted mb-1">All Serial Numbers</Form.Label>
-          <Form.Control
-            as="textarea"
-            size="sm"
-            rows={2}
-            value={serials.map(s => s.serial_no).join('\n')}
-            readOnly
-          />
-        </Form.Group> */}
-
         <div className="mb-3">
           <Form.Label className="fw-bold">Serial Details</Form.Label>
-          {serials.map((item, index) => (
-            <Row className="mb-2" key={index}>
-              <Col md={3}>
-                <Form.Control value={item.serial_no} readOnly />
-              </Col>
-              <Col md={3}>
-                <Form.Control
-                  size="sm"
-                  placeholder="Remark"
-                  value={item.remark || ''}
-                  onChange={(e) => handleInputChange(index, 'remark', e.target.value)}
-                />
-              </Col>
-              <Col md={3}>
-                <Form.Select
-                  size="sm"
-                  value={item.quality_check || ''}
-                  onChange={(e) => handleInputChange(index, 'quality_check', e.target.value)}
-                >
-                  <option value="">-- Select --</option>
-                  <option value="ok">OK</option>
-                  <option value="Issue">Issue</option>
-                </Form.Select>
-              </Col>
-              <Col md={3}>
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => handleDeleteSerial(index)}
-                >
-                  <i className="bi bi-trash"></i>
-                </Button>
-              </Col>
-            </Row>
-          ))}
-
+          <List
+            height={400}
+            itemCount={serials.length}
+            itemSize={50}
+            width="100%"
+          >
+            {RowItem}
+          </List>
         </div>
 
         <ToastContainer position="top-right" autoClose={3000} />
@@ -345,4 +361,3 @@ const payload = {
     </div>
   );
 }
-
