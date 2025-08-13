@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Spinner, Modal, Form, Card } from "react-bootstrap";
+import { Button, Spinner, Modal, Form, Card , Offcanvas  } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -388,70 +388,99 @@ export default function DistrictPage() {
         <Pagination page={page} setPage={setPage} perPage={perPage} totalEntries={filtered.length} />
       </Card>
 
-      <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
-        <Modal.Body className="p-4">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-semibold mb-0">{editId ? "Edit District" : "Add New District"}</h5>
-            <Button
-              variant="outline-secondary"
-              onClick={handleModalClose}
-              className="rounded-circle border-0 d-flex align-items-center justify-content-center"
-              style={{ width: "32px", height: "32px" }}
-            >
-              <i className="bi bi-x-lg fs-6"></i>
-            </Button>
-          </div>
+     <Offcanvas
+  show={showModal}
+  onHide={handleModalClose}
+  placement="end"
+  backdrop="static"
+  className="custom-offcanvas"
+  style={{ fontSize: "0.85rem", width: "420px" }}
+>
+  <Offcanvas.Header className="border-bottom">
+    <Offcanvas.Title className="fw-semibold">
+      {editId ? "Edit District" : "Add New District"}
+    </Offcanvas.Title>
+    <div className="ms-auto">
+      <Button
+        variant="outline-secondary"
+        onClick={handleModalClose}
+        className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+        style={{ width: "32px", height: "32px" }}
+      >
+        <i className="bi bi-x-lg fs-6"></i>
+      </Button>
+    </div>
+  </Offcanvas.Header>
 
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-medium">Country</Form.Label>
-            <Form.Select
-              value={modalCountryId}
-              onChange={(e) => {
-                const id = e.target.value;
-                setModalCountryId(id);
-                fetchStatesByCountry(id);
-                setModalStateId("");
-              }}
-            >
-              <option value="">Select Country</option>
-              {countries.map((c) => (
-                <option key={c.id} value={c.id}>{c.country}</option>
-              ))}
-            </Form.Select>
-          </Form.Group>
+  <Offcanvas.Body>
+    <Form className="row g-3">
+      <Form.Group className="col-12">
+        <Form.Label>Country</Form.Label>
+        <Form.Select
+          value={modalCountryId}
+          onChange={(e) => {
+            const id = e.target.value;
+            setModalCountryId(id);
+            fetchStatesByCountry(id);
+            setModalStateId("");
+          }}
+          size="sm"
+        >
+          <option value="">Select Country</option>
+          {countries.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.country}
+            </option>
+          ))}
+        </Form.Select>
+      </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-medium">State</Form.Label>
-            <Form.Select
-              value={modalStateId}
-              onChange={(e) => setModalStateId(e.target.value)}
-              disabled={!modalCountryId}
-            >
-              <option value="">Select State</option>
-              {modalStates.map((s) => (
-                <option key={s.id} value={s.id}>{s.state}</option>
-              ))}
-            </Form.Select>
-          </Form.Group>
+      <Form.Group className="col-12">
+        <Form.Label>State</Form.Label>
+        <Form.Select
+          value={modalStateId}
+          onChange={(e) => setModalStateId(e.target.value)}
+          disabled={!modalCountryId}
+          size="sm"
+        >
+          <option value="">Select State</option>
+          {modalStates.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.state}
+            </option>
+          ))}
+        </Form.Select>
+      </Form.Group>
 
-          <Form.Group>
-            <Form.Label className="fw-medium">District Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter District Name"
-              value={newDistrictName}
-              onChange={(e) => setNewDistrictName(e.target.value)}
-            />
-          </Form.Group>
+      <Form.Group className="col-12">
+        <Form.Label>District Name</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter District Name"
+          value={newDistrictName}
+          onChange={(e) => setNewDistrictName(e.target.value)}
+          size="sm"
+        />
+      </Form.Group>
+    </Form>
 
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <Button variant="light" onClick={handleModalClose}>Cancel</Button>
-            <Button variant="success" onClick={handleSave} disabled={!modalCountryId || !modalStateId || !newDistrictName.trim()}>
-              {editId ? "Update" : "Save"}
-            </Button>
-          </div>
-        </Modal.Body>
-      </Modal>
+    <div className="d-flex justify-content-end gap-2 mt-4">
+      <Button variant="light" onClick={handleModalClose} size="sm">
+        Cancel
+      </Button>
+      <Button
+        variant="success"
+        onClick={handleSave}
+        disabled={!modalCountryId || !modalStateId || !newDistrictName.trim()}
+        size="sm"
+        style={{ minWidth: "120px" }}
+      >
+        {editId ? "Update" : "Save"}
+      </Button>
+    </div>
+  </Offcanvas.Body>
+</Offcanvas>
+
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import "datatables.net-dt/css/dataTables.dataTables.css";
+import { Offcanvas } from "react-bootstrap";
 
 import { API_BASE_URL } from "../api";
 import Breadcrumb from "./Components/Breadcrumb";
@@ -299,22 +300,31 @@ export default function CountryPage() {
         />
       </Card>
 
-      <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
-        <Modal.Body className="p-4">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-semibold mb-0">
-              {editingCountryId ? "Edit Country" : "Add New Country"}
-            </h5>
-            <Button
-              variant="outline-secondary"
-              onClick={handleModalClose}
-              className="rounded-circle border-0 d-flex align-items-center justify-content-center"
-              style={{ width: "32px", height: "32px" }}
-            >
-              <i className="bi bi-x-lg fs-6"></i>
-            </Button>
+      <Offcanvas
+        show={showModal}
+        onHide={handleModalClose}
+        placement="end"
+        backdrop="static"
+        style={{ width: "400px" }}
+         className="custom-offcanvas"
+      >
+        <Offcanvas.Header className="border-bottom">
+          <Offcanvas.Title className="fw-semibold">
+            {editingCountryId ? "Edit Country" : "Add New Country"}
+          </Offcanvas.Title>
+          <div className="ms-auto">
+          <Button
+            variant="outline-secondary"
+            onClick={handleModalClose}
+            className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+            style={{ width: "32px", height: "32px" }}
+          >
+            <i className="bi bi-x-lg fs-6"></i>
+          </Button>
           </div>
+        </Offcanvas.Header>
 
+        <Offcanvas.Body className="p-4">
           <Form.Group className="mb-3">
             <Form.Label className="fw-medium">Country Name</Form.Label>
             <Form.Control
@@ -337,8 +347,8 @@ export default function CountryPage() {
               {editingCountryId ? "Update" : "Save"}
             </Button>
           </div>
-        </Modal.Body>
-      </Modal>
+        </Offcanvas.Body>
+      </Offcanvas>
     </div>
   );
 }

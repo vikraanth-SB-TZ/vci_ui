@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Spinner, Modal, Form, Card } from "react-bootstrap";
+import { Button, Spinner, Modal, Form, Card ,  Offcanvas } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -346,61 +346,67 @@ export default function StatePage() {
         </div>
       </Card>
 
-      <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
-        <Modal.Body className="p-4">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="fw-semibold mb-0">
-              {editingStateId ? "Edit State" : "Add New State"}
-            </h5>
-            <Button
-              variant="outline-secondary"
-              onClick={handleModalClose}
-              className="rounded-circle border-0 d-flex align-items-center justify-content-center"
-              style={{ width: "32px", height: "32px" }}
-            >
-              <i className="bi bi-x-lg fs-6"></i>
-            </Button>
-          </div>
+      <Offcanvas
+  show={showModal}
+  onHide={handleModalClose}
+  placement="end"
+  backdrop="static"
+  className="custom-offcanvas"
+  style={{ fontSize: "0.85rem", width: "420px" }}
+>
+  <Offcanvas.Header closeButton>
+    <Offcanvas.Title className="fw-semibold">
+      {editingStateId ? "Edit State" : "Add New State"}
+    </Offcanvas.Title>
+  </Offcanvas.Header>
 
-          <Form.Group>
-            <Form.Label className="fw-medium">Select Country</Form.Label>
-            <Form.Select
-              value={countryId}
-              onChange={(e) => setCountryId(e.target.value)}
-            >
-              <option value="">Select Country</option>
-              {countries.map((country) => (
-                <option key={country.id} value={country.id}>
-                  {country.country}
-                </option>
-              ))}
-            </Form.Select>
-          </Form.Group>
+  <Offcanvas.Body>
+    <Form className="row g-3">
+      <Form.Group className="col-12">
+        <Form.Label>Select Country</Form.Label>
+        <Form.Select
+          value={countryId}
+          onChange={(e) => setCountryId(e.target.value)}
+          size="sm"
+        >
+          <option value="">Select Country</option>
+          {countries.map((country) => (
+            <option key={country.id} value={country.id}>
+              {country.country}
+            </option>
+          ))}
+        </Form.Select>
+      </Form.Group>
 
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-medium">State Name</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder="Enter State Name"
-              value={newStateName}
-              onChange={(e) => setNewStateName(e.target.value)}
-            />
-          </Form.Group>
+      <Form.Group className="col-12">
+        <Form.Label>State Name</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter State Name"
+          value={newStateName}
+          onChange={(e) => setNewStateName(e.target.value)}
+          size="sm"
+        />
+      </Form.Group>
+    </Form>
 
-          <div className="d-flex justify-content-end gap-2 mt-3">
-            <Button variant="light" onClick={handleModalClose}>
-              Cancel
-            </Button>
-            <Button
-              variant="success"
-              onClick={handleSave}
-              disabled={!newStateName.trim() || !countryId}
-            >
-              {editingStateId ? "Update" : "Save"}
-            </Button>
-          </div>
-        </Modal.Body>
-      </Modal>
+    <div className="d-flex justify-content-end gap-2 mt-4">
+      <Button variant="light" onClick={handleModalClose} size="sm">
+        Cancel
+      </Button>
+      <Button
+        variant="success"
+        onClick={handleSave}
+        disabled={!newStateName.trim() || !countryId}
+        size="sm"
+        style={{ minWidth: "120px" }}
+      >
+        {editingStateId ? "Update" : "Save"}
+      </Button>
+    </div>
+  </Offcanvas.Body>
+</Offcanvas>
+
     </div>
   );
 }
