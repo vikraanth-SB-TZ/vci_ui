@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Button, Spinner, Modal, Form, Card } from "react-bootstrap";
+import { Button, Spinner, Modal, Form, Card, Offcanvas } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -341,9 +341,16 @@ export default function CategoryPage() {
         />
       </Card>
 
-      <Modal show={showModal} onHide={handleModalClose} centered backdrop="static">
-        <Modal.Body className="p-4">
-          <div className="d-flex justify-content-between align-items-center mb-3">
+      <Offcanvas
+        show={showModal}
+        onHide={handleModalClose}
+        placement="end"
+        backdrop="static"
+        
+        className="custom-offcanvas"// Adjust width as needed
+      >
+        <Offcanvas.Header>
+          <div className="d-flex justify-content-between align-items-center w-100">
             <h5 className="fw-semibold mb-0">
               {editingCategoryId ? "Edit Category" : "Add New Category"}
             </h5>
@@ -356,7 +363,9 @@ export default function CategoryPage() {
               <i className="bi bi-x-lg fs-6"></i>
             </Button>
           </div>
+        </Offcanvas.Header>
 
+        <Offcanvas.Body className="p-4">
           <Form.Group className="mb-3">
             <Form.Label className="fw-medium">VCI Series</Form.Label>
             <Form.Control
@@ -375,8 +384,9 @@ export default function CategoryPage() {
               {editingCategoryId ? "Update" : "Save"}
             </Button>
           </div>
-        </Modal.Body>
-      </Modal>
+        </Offcanvas.Body>
+      </Offcanvas>
+
     </div>
   );
 }

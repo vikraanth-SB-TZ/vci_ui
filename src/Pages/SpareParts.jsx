@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Button, Spinner, Form, Card } from "react-bootstrap";
+import { Button, Spinner, Form, Card, Offcanvas, } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { ToastContainer, toast } from 'react-toastify';
@@ -581,128 +581,112 @@ export default function App() {
       </Card>
 
       {showForm && (
-        <div className={drawerClass} style={{
+        <Offcanvas
+          show={showForm}
+          onHide={closeForm}
+          placement="end"
+          backdrop="static"
+          scroll={true}
+          className="custom-offcanvas"
+        >
+          <Offcanvas.Header className="border-bottom px-3 py-2 d-flex align-items-center">
+            <h6 className="fw-bold mb-0">
+              {editingPart ? "Edit Spare Part" : "Add New Spare Part"}
+            </h6>
 
-          position: "fixed",
-          top: "63px",
-          right: showForm ? "0" : "-600px", // triggers slide
-          opacity: showForm ? 1 : 0,         // fade in/out
-          visibility: showForm ? "visible" : "hidden", // optional: prevent tabbing
-          pointerEvents: showForm ? "auto" : "none",   // prevent clicks when hidden
-          width: "600px",
-          height: "100vh",
-          backgroundColor: "#fff",
-          boxShadow: "-2px 0 10px rgba(0,0,0,0.1)",
-          zIndex: 2000,
-          padding: "30px",
-          overflowY: "auto",
-          borderLeft: "1px solid #dee2e6",
-          transition: "right 3s ease-in-out, opacity 2s ease-in-out", // smooth slow
-        }}>
-          <div className="d-flex justify-content-between align-items-start mb-4">
-            <h5 className="fw-bold mb-0">{editingPart ? "Edit Spare Part" : "Add New Spare Part"}</h5>
             <Button
-              variant="light"
+              variant="outline-secondary"
               onClick={closeForm}
-              style={{
-                width: "40px",
-                height: "40px",
-                backgroundColor: "#DBDBDB73",
-                border: "none",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "24px",
-                fontWeight: "bold",
-                cursor: "pointer",
-                lineHeight: "1",
-                padding: 0
-              }}
-              tabIndex={0}
+              className="rounded-circle border-0 d-flex align-items-center justify-content-center ms-auto p-0"
+              style={{ width: "28px", height: "28px" }}
             >
-              &times;
+              <i className="bi bi-x-lg" style={{ fontSize: "14px" }}></i>
             </Button>
-          </div>
-          <form onSubmit={handleFormSubmit}>
-            <div className="row">
-              <div className="mb-3 col-6">
-                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Spare Part Name</Form.Label>
-                <span style={{ color: "red", marginLeft: "5px" }}>*</span>
+          </Offcanvas.Header>
 
-                <Form.Control
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="custom-placeholder"
-                  placeholder="Enter Name"
-                  isInvalid={!!errors.name}
-                  style={getInputStyle("name")}
-                />
-                <Form.Control.Feedback type="invalid" style={errorStyle}>
-                  {errors.name}
-                </Form.Control.Feedback>
-              </div>
-              <div className="mb-3 col-6">
-                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Quantity per VCI</Form.Label>
-                <Form.Control
-                  type="number"
-                  name="quantity_per_vci"
-                  value={formData.quantity_per_vci}
-                  onChange={handleChange}
-                  className="custom-placeholder"
-                  placeholder="Enter quantity per VCI"
-                  isInvalid={!!errors.quantity_per_vci}
-                  style={getInputStyle("quantity_per_vci")}
-                />
-                <Form.Control.Feedback type="invalid" style={errorStyle}>
-                  {errors.quantity_per_vci}
-                </Form.Control.Feedback>
-              </div>
-              <div className="mb-3 col-12">
-                <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>Notes</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleChange}
-                  className="custom-placeholder"
-                  rows="4"
-                  placeholder="Enter any notes"
-                  isInvalid={!!errors.notes}
-                  style={getTextAreaStyle("notes")}
-                />
-                <Form.Control.Feedback type="invalid" style={errorStyle}>
-                  {errors.notes}
-                </Form.Control.Feedback>
-              </div>
-              <div className="row">
-                <div className="mb-3 col-6">
+          <Offcanvas.Body className="px-3 py-2" style={{ fontSize: "14px" }}>
+            <form onSubmit={handleFormSubmit}>
+              <div className="row g-2">
+                <div className="mb-2 col-6">
+                  <Form.Label className="mb-1" style={{ fontSize: "13px", fontWeight: 500 }}>
+                    Spare Part Name <span style={{ color: "red" }}>*</span>
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="custom-placeholder"
+                    placeholder="Enter Name"
+                    isInvalid={!!errors.name}
+                    style={{ height: "34px", fontSize: "13px" }}
+                  />
+                  <Form.Control.Feedback type="invalid" style={errorStyle}>
+                    {errors.name}
+                  </Form.Control.Feedback>
+                </div>
+
+                <div className="mb-2 col-6">
+                  <Form.Label className="mb-1" style={{ fontSize: "13px", fontWeight: 500 }}>
+                    Quantity per VCI
+                  </Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="quantity_per_vci"
+                    value={formData.quantity_per_vci}
+                    onChange={handleChange}
+                    className="custom-placeholder"
+                    placeholder="Enter quantity per VCI"
+                    isInvalid={!!errors.quantity_per_vci}
+                    style={{ height: "34px", fontSize: "13px" }}
+                  />
+                  <Form.Control.Feedback type="invalid" style={errorStyle}>
+                    {errors.quantity_per_vci}
+                  </Form.Control.Feedback>
+                </div>
+
+                <div className="mb-2 col-12">
+                  <Form.Label className="mb-1" style={{ fontSize: "13px", fontWeight: 500 }}>
+                    Notes
+                  </Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    className="custom-placeholder"
+                    rows="3"
+                    placeholder="Enter any notes"
+                    isInvalid={!!errors.notes}
+                    style={{ fontSize: "13px" }}
+                  />
+                  <Form.Control.Feedback type="invalid" style={errorStyle}>
+                    {errors.notes}
+                  </Form.Control.Feedback>
+                </div>
+
+                <div className="mb-2 col-6">
                   {editingPart ? (
                     <>
-                      <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                        <span style={{ color: "red", marginLeft: "5px" }}>*</span>
-
-                        Current Stock
+                      <Form.Label className="mb-1" style={{ fontSize: "13px", fontWeight: 500 }}>
+                        Current Stock <span style={{ color: "red" }}>*</span>
                       </Form.Label>
                       <Form.Control
                         type="text"
                         value={editingPart.quantity}
                         readOnly
                         style={{
-                          ...getInputStyle("quantity"),
+                          height: "34px",
+                          fontSize: "13px",
                           backgroundColor: "#e9ecef",
-                          cursor: "not-allowed"
+                          cursor: "not-allowed",
                         }}
                       />
                     </>
                   ) : (
                     <>
-                      <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                        Opening Stock<span style={{ color: "red", marginLeft: "5px" }}>*</span>
-
-
+                      <Form.Label className="mb-1" style={{ fontSize: "13px", fontWeight: 500 }}>
+                        Opening Stock <span style={{ color: "red" }}>*</span>
                       </Form.Label>
                       <Form.Control
                         type="number"
@@ -712,7 +696,7 @@ export default function App() {
                         className="custom-placeholder"
                         placeholder="Enter Opening Quantity"
                         isInvalid={!!errors.quantity}
-                        style={getInputStyle("quantity")}
+                        style={{ height: "34px", fontSize: "13px" }}
                       />
                       <Form.Control.Feedback type="invalid" style={errorStyle}>
                         {errors.quantity}
@@ -721,9 +705,9 @@ export default function App() {
                   )}
                 </div>
 
-                <div className="mb-3 col-6">
-                  <Form.Label className="mb-1" style={{ color: "#393C3AE5", fontFamily: "Product Sans, sans-serif", fontWeight: 400 }}>
-                    Status<span style={{ color: "red", marginLeft: "5px" }}>*</span>
+                <div className="mb-2 col-6">
+                  <Form.Label className="mb-1" style={{ fontSize: "13px", fontWeight: 500 }}>
+                    Status <span style={{ color: "red" }}>*</span>
                   </Form.Label>
                   <CustomDropdown
                     name="is_active"
@@ -732,35 +716,39 @@ export default function App() {
                     options={statusOptions}
                     isInvalid={!!errors.is_active}
                     error={errors.is_active}
+                      style={{ height: "32px", fontSize: "13px" }} 
                   />
                 </div>
               </div>
-            </div>
-            <div
-              className="save-button-footer d-flex justify-content-end"
-              style={{
-                position: "sticky",
-                bottom: "0",
-                backgroundColor: "#fff",
-                padding: "20px 30px",
-                borderTop: "1px solid #F2F2F2",
-              }}
-            >
-              <Button
-                type="submit"
-                variant="success"
+
+              <div
+                className="save-button-footer d-flex justify-content-end"
                 style={{
-                  width: "auto",
-                  height: "50px",
-                  borderRadius: "6px",
-                  minWidth: "120px",
+                  position: "sticky",
+                  bottom: "0",
+                  backgroundColor: "#fff",
+                  padding: "10px 0",
+                  borderTop: "1px solid #F2F2F2",
                 }}
               >
-                {editingPart ? "Update" : "Save"}
-              </Button>
-            </div>
-          </form>
-        </div>
+                <Button
+                  type="submit"
+                  variant="success"
+                  style={{
+                    height: "36px",
+                    borderRadius: "6px",
+                    minWidth: "90px",
+                    fontSize: "13px",
+                  }}
+                >
+                  {editingPart ? "Update" : "Save"}
+                </Button>
+              </div>
+            </form>
+          </Offcanvas.Body>
+        </Offcanvas>
+
+
       )}
       <style>{`
           .slide-in {

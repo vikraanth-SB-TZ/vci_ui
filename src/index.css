@@ -186,3 +186,66 @@ body,
   height: 40px;
   vertical-align: middle;
 }
+.custom-compact {
+  padding: 15px !important;
+  font-size: 0.9rem !important;
+}
+
+.custom-compact .swal2-title {
+  font-size: 1rem !important;
+}
+
+.custom-compact .swal2-html-container {
+  font-size: 0.85rem !important;
+}
+/* Common reduced-size styles for Offcanvas form */
+.custom-offcanvas {
+  font-family: "Product Sans", sans-serif;
+  font-weight: 400;
+  width: 600px;
+}
+
+.custom-offcanvas .form-label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #393C3AE5;
+}
+
+.custom-offcanvas .form-control,
+.custom-offcanvas .form-select {
+  font-size: 13px;
+  padding: 4px 8px;
+  height: 32px;
+}
+
+.custom-offcanvas textarea.form-control {
+  min-height: 60px;
+}
+
+.custom-offcanvas table th {
+  font-size: 13px;
+  padding: 8px;
+}
+
+.custom-offcanvas table td {
+  padding: 6px;
+}
+
+.custom-offcanvas .btn {
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.custom-offcanvas .btn-circle {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
