@@ -33,6 +33,8 @@ export default function ProductPage() {
     id: null,
     category_id: "",
     serial_no: "",
+    fromserial_no: "",
+    toserial_no: "",
     manufacture_no: "",
     firmware_version: "",
     hsn_code: "",
@@ -89,6 +91,8 @@ export default function ProductPage() {
       category_id: "",
       serial_no: "",
       manufacture_no: "",
+      fromserial_no: "",
+      toserial_no: "",
       firmware_version: "",
       hsn_code: "",
       test: "",
@@ -179,6 +183,32 @@ export default function ProductPage() {
 
   const handleSave = async () => {
     if (!validateForm()) return;
+
+    if (!isEditing) {
+      const serial = (productData.serial_no || "").trim();
+      const fromS = (productData.fromserial_no || "").trim();
+      const toS = (productData.toserial_no || "").trim();
+
+      const singleFilled = !!serial;
+      const anyRangeFilled = !!fromS || !!toS;
+      const fullRangeFilled = !!fromS && !!toS;
+
+      if (singleFilled && anyRangeFilled) {
+        toast.error("Please provide either Single Serial No OR From & To Serial, not both.");
+        return;
+      }
+
+      if (!singleFilled && !fullRangeFilled) {
+        toast.error("Please provide Single Serial No OR both From & To Serial.");
+        return;
+      }
+
+      if (!singleFilled && anyRangeFilled && !fullRangeFilled) {
+        toast.error("Please select both From Serial and To Serial.");
+        return;
+      }
+    }
+
     try {
       if (isEditing) {
         await axios.put(`${API_BASE_URL}/products/${productData.id}`, productData);
@@ -493,32 +523,23 @@ export default function ProductPage() {
             </Form.Group>
             {!isEditing &&
               <>
-                {/* <Form.Group className="col-md-6">
+                <Form.Group className="col-md-6">
                   <Form.Label>From Serial Number</Form.Label>
                   <Select
                     options={pcbSerialOptions}
-                    value={
-                      pcbSerialOptions.find(opt => opt.value === productData.from_serial) || null
-                    }
+                    value={pcbSerialOptions.find(opt => opt.value === productData.fromserial_no) || null}
                     onChange={(selected) => {
-                      setProductData({
-                        ...productData,
-                        from_serial: selected ? selected.value : ""
-                      });
+                      setProductData(prev => ({
+                        ...prev,
+                        fromserial_no: selected ? selected.value : ""
+                      }));
                     }}
                     isClearable
                     isSearchable
                     placeholder="Select From Serial"
                     styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: "31px",
-                        fontSize: "0.8rem"
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        fontSize: "0.8rem"
-                      })
+                      control: (base) => ({ ...base, minHeight: "31px", fontSize: "0.8rem" }),
+                      menu: (base) => ({ ...base, fontSize: "0.8rem" }),
                     }}
                   />
                 </Form.Group>
@@ -527,39 +548,30 @@ export default function ProductPage() {
                   <Form.Label>To Serial Number</Form.Label>
                   <Select
                     options={pcbSerialOptions}
-                    value={
-                      pcbSerialOptions.find(opt => opt.value === productData.to_serial) || null
-                    }
+                    value={pcbSerialOptions.find(opt => opt.value === productData.toserial_no) || null}
                     onChange={(selected) => {
-                      setProductData({
-                        ...productData,
-                        to_serial: selected ? selected.value : ""
-                      });
+                      setProductData(prev => ({
+                        ...prev,
+                        toserial_no: selected ? selected.value : ""
+                      }));
                     }}
                     isClearable
                     isSearchable
                     placeholder="Select To Serial"
                     styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: "31px",
-                        fontSize: "0.8rem"
-                      }),
-                      menu: (base) => ({
-                        ...base,
-                        fontSize: "0.8rem"
-                      })
+                      control: (base) => ({ ...base, minHeight: "31px", fontSize: "0.8rem" }),
+                      menu: (base) => ({ ...base, fontSize: "0.8rem" }),
                     }}
                   />
-                </Form.Group> */}
+                </Form.Group>
+                {/* <Form.Group className="col-md-6">
+                  <Form.Label>From Serial Number</Form.Label>
+                  <Form.Control size="sm" name="fromserial_no" value={productData.fromserial_no} onChange={handleChange} placeholder="Enter From Serial No." />
+                </Form.Group>
                 <Form.Group className="col-md-6">
-              <Form.Label>From Serial Number</Form.Label>
-              <Form.Control size="sm" name="fromserial_no" value={productData.fromserial_no} onChange={handleChange} placeholder="Enter From Serial No." />
-            </Form.Group>
-            <Form.Group className="col-md-6">
-              <Form.Label>To Serial Number</Form.Label>
-              <Form.Control size="sm" name="toserial_no" value={productData.toserial_no} onChange={handleChange} placeholder="Enter To Serial No." />
-            </Form.Group>
+                  <Form.Label>To Serial Number</Form.Label>
+                  <Form.Control size="sm" name="toserial_no" value={productData.toserial_no} onChange={handleChange} placeholder="Enter To Serial No." />
+                </Form.Group> */}
               </>
             }
             <Form.Group className="col-md-6">
