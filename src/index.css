@@ -187,17 +187,31 @@ body,
   vertical-align: middle;
 }
 .custom-compact {
-  padding: 15px !important;
-  font-size: 0.9rem !important;
+  max-width: 380px !important;           /* Limit popup width */
+  padding: 8px 16px 14px 16px !important; /* Top 8px, right 16px, bottom 14px, left 16px */
+  font-size: 0.85rem !important;         /* Smaller base font size */
 }
 
 .custom-compact .swal2-title {
-  font-size: 1rem !important;
+  font-size: 0.95rem !important;         /* Slightly smaller title */
+  margin: 6px 0 !important;              /* Tight vertical space around title */
 }
 
 .custom-compact .swal2-html-container {
-  font-size: 0.85rem !important;
+  font-size: 0.8rem !important;          /* Smaller body text */
+  margin: 0 0 6px 0 !important;          /* Remove top margin, small bottom space */
 }
+
+.custom-compact .swal2-actions {
+  margin-top: 8px !important;            /* Balanced gap before buttons */
+}
+
+.custom-compact .swal2-confirm,
+.custom-compact .swal2-cancel {
+  padding: 4px 12px !important;          /* Slightly wider buttons */
+  font-size: 0.8rem !important;          /* Smaller button text */
+}
+
 /* Common reduced-size styles for Offcanvas form */
 .custom-offcanvas {
   font-family: "Product Sans", sans-serif;

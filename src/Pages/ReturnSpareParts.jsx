@@ -326,9 +326,12 @@ export default function ReturnSparePartsPage() {
       text: "Do you really want to delete this return?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
+       confirmButtonColor: "#d33",
+      cancelButtonColor: "#2FA64F",
       confirmButtonText: "Yes, delete it!",
+        customClass: {
+        popup: "custom-compact"
+      }
     });
 
     if (!result.isConfirmed) return;
