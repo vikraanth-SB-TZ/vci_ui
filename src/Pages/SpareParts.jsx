@@ -715,21 +715,18 @@ export default function App() {
                   >
                     Status <span style={{ color: "red" }}>*</span>
                   </Form.Label>
-                  <CustomDropdown className="small-dropdown"
+                  <CustomDropdown
+                    className="form-select"
                     name="is_active"
                     value={formData.is_active}
                     onChange={handleChange}
                     options={statusOptions}
                     isInvalid={!!errors.is_active}
                     error={errors.is_active}
-                    style={{
-                      height: "2px",        // reduced height
-                      fontSize: "13px",      // smaller text
-                      padding: "2px",    // less padding inside
-                      lineHeight: "24px"     // align text vertically
-                    }}
                   />
                 </div>
+
+
 
 
 
@@ -773,6 +770,29 @@ export default function App() {
             transition: right 0.4s ease-in-out;
             z-index: 2000;
           }
+            .custom-offcanvas .form-select {
+  font-size: 16px;
+  padding: 4px 22px 5px 10px; /* slightly more padding */
+  height: 34px; /* lightly bigger height */
+  line-height: 1.3;
+}
+
+.custom-offcanvas .form-control {
+  font-size: 14px;
+  height: 34px;
+  padding: 4px 10px;
+  line-height: 1.3;
+}
+
+.custom-offcanvas .custom-dropdown-container {
+  height: 32px;
+}
+
+.custom-offcanvas .custom-dropdown-toggle {
+  font-size: 14px;
+  padding: 4px 10px;
+}
+
 
           .custom-table th, .custom-table td {
             font-weight: 400;

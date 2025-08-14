@@ -530,12 +530,12 @@ export default function PurchaseSparepartsPage() {
             text: "Do you really want to delete this purchase?",
             icon: "warning",
             showCancelButton: true,
-             confirmButtonColor: "#d33",
-      cancelButtonColor: "#2FA64F",
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#2FA64F",
             confirmButtonText: "Yes, delete it!",
-             customClass: {
-        popup: "custom-compact"
-      }
+            customClass: {
+                popup: "custom-compact"
+            }
         });
 
         if (!result.isConfirmed) return;
@@ -915,35 +915,6 @@ export default function PurchaseSparepartsPage() {
                                     {formErrors.vendor_id}
                                 </Form.Control.Feedback>
                             </div>
-                        </div>
-
-                        {/* Invoice No & Date */}
-                        <div className="row mb-3">
-                            <div className="col-6">
-                                <Form.Label
-                                    className="fw-semibold mb-1"
-                                    style={{ color: "#393C3AE5" }}
-                                >
-                                    Invoice No. <span className="text-danger">*</span>
-                                </Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    name="invoiceNo"
-                                    placeholder="Enter Invoice No."
-                                    required
-                                    value={formData.invoiceNo}
-                                    onChange={handleInputChange}
-                                    style={getBlueBorderStyles(
-                                        formData.invoiceNo,
-                                        !!formErrors.invoiceNo
-                                    )}
-                                    isInvalid={!!formErrors.invoiceNo}
-                                />
-                                <Form.Control.Feedback type="invalid" className="d-block">
-                                    {formErrors.invoiceNo}
-                                </Form.Control.Feedback>
-                            </div>
-
                             <div className="col-6 position-relative">
                                 <Form.Label
                                     className="fw-semibold mb-1"
@@ -1019,6 +990,37 @@ export default function PurchaseSparepartsPage() {
                                     </div>
                                 )}
                             </div>
+
+                        </div>
+
+                        {/* Invoice No & Date */}
+                        <div className="row mb-3">
+                            <div className="col-6">
+                                <Form.Label
+                                    className="fw-semibold mb-1"
+                                    style={{ color: "#393C3AE5" }}
+                                >
+                                    Invoice No. <span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="invoiceNo"
+                                    placeholder="Enter Invoice No."
+                                    required
+                                    value={formData.invoiceNo}
+                                    onChange={handleInputChange}
+                                    style={getBlueBorderStyles(
+                                        formData.invoiceNo,
+                                        !!formErrors.invoiceNo
+                                    )}
+                                    isInvalid={!!formErrors.invoiceNo}
+                                />
+                                <Form.Control.Feedback type="invalid" className="d-block">
+                                    {formErrors.invoiceNo}
+                                </Form.Control.Feedback>
+                            </div>
+
+
                         </div>
 
                         {/* Notes */}
@@ -1260,9 +1262,9 @@ export default function PurchaseSparepartsPage() {
 
                         {/* Save Button */}
                         <div className="d-flex justify-content-end gap-2 mt-3">
-                               <Button  className="btn-common btn-cancel" variant="light" onClick={() => setShowForm(false)}> 
-                                          Cancel
-                                        </Button>
+                            <Button className="btn-common btn-cancel" variant="light" onClick={() => setShowForm(false)}>
+                                Cancel
+                            </Button>
                             <Button
                                 variant="success"
                                 type="submit"
