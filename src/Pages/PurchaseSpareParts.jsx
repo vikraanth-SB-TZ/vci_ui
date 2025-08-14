@@ -1302,17 +1302,29 @@ export default function PurchaseSparepartsPage() {
                     zIndex: 1050,
                 }}
             >
-                <Offcanvas.Header closeButton style={{ padding: "16px 24px" }}>
-                    <Offcanvas.Title
-                        style={{
-                            fontSize: "25px",
-                            fontWeight: 700,
-                            lineHeight: 1,
-                            letterSpacing: 0,
-                        }}
-                    >
-                        {editingReturn ? "Edit Spare part Return" : "Spare part Return"}
+                <Offcanvas.Header className="border-bottom">
+                    <Offcanvas.Title className="fw-semibold">
+                        {editingPurchase
+                            ? "Edit Spare Parts Returns"
+                            : "Spare Parts Returns"}
                     </Offcanvas.Title>
+                    <div className="ms-auto">
+                        <Button
+                            variant="outline-secondary"
+                                onClick={() => {
+                                    setShowReturnForm(false);
+                                    setEditingReturn(null);
+                                    setFormErrors({});
+                                    // setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+                                    // setReturnDate(new Date().toISOString().split("T")[0]);
+                                    // setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
+                                }}
+                            className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+                            style={{ width: "32px", height: "32px" }}
+                        >
+                            <i className="bi bi-x-lg fs-6"></i>
+                        </Button>
+                    </div>
                 </Offcanvas.Header>
 
                 <Offcanvas.Body className="px-3 pt-2 pb-2">
