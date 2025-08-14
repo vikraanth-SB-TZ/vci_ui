@@ -73,13 +73,26 @@ export default function ActionButtons({ onPdf, onEdit, onDelete ,onReturn }) {
 
 
          {onReturn && (
-        <button
-          className="btn btn-sm btn-outline-info"
-          title="Return Purchase"
+
+        <Button
+          variant="outline-primary"
+          size="sm"
           onClick={onReturn}
+          title="Return Purchase"
+          style={{
+            borderColor: "#2E3A59",
+            color: "#2E3A59",
+            backgroundColor: "transparent",
+            width: "32px",
+            height: "32px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "4px",
+          }}
         >
           <i className="bi bi-arrow-return-left"></i>
-        </button>
+        </Button>
       )}
     </>
   );
