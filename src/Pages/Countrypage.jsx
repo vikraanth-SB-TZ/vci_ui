@@ -346,7 +346,7 @@ export default function CountryPage() {
               className="btn-common btn-save"
               variant="success"
               onClick={handleSave}
-              disabled={!countryName.trim()}
+              // disabled={!countryName.trim()}
             >
               {editingCountryId ? "Update" : "Save"}
             </Button>

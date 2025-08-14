@@ -474,7 +474,7 @@ export default function DistrictPage() {
       <Button
         className="btn-common btn-save"
         onClick={handleSave}
-        disabled={!modalCountryId || !modalStateId || !newDistrictName.trim()}
+        // disabled={!modalCountryId || !modalStateId || !newDistrictName.trim()}
         size="sm"
         
       >

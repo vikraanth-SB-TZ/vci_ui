@@ -383,7 +383,7 @@ export default function CategoryPage() {
             <Button  className="btn-common btn-cancel" variant="light" onClick={handleModalClose}>
               Cancel
             </Button>
-            <Button variant="success"  className="btn-common btn-save"  onClick={handleSave} disabled={!categoryName.trim()}>
+            <Button variant="success"  className="btn-common btn-save"  onClick={handleSave}>
               {editingCategoryId ? "Update" : "Save"}
             </Button>
           </div>

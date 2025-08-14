@@ -411,7 +411,7 @@ export default function StatePage() {
               className="btn-common btn-save"
               variant="success"
               onClick={handleSave}
-              disabled={!newStateName.trim() || !countryId}
+              // disabled={!newStateName.trim() || !countryId}
               size="sm"
 
             >
