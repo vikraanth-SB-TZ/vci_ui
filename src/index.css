@@ -275,7 +275,7 @@ body,
   padding: 6px 16px;        /* Slightly taller and wider */
   min-width: 80px;     
   min-height: 32px;    /* Slightly narrower minimum width */
-  border: none;
+  border: none !important ;
   border-radius: 4px;
   line-height: 1.4;         /* Better vertical alignment for text */
 }

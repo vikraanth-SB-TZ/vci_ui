@@ -1423,11 +1423,11 @@ export default function vendor() {
       </div>
 
       <div className="d-flex justify-content-end py-3 px-2">
-        <Button variant="secondary" className="me-2" onClick={closeForm}>
+        <Button variant="secondary" className="me-2 btn-common btn-cancel" onClick={closeForm}>
           Cancel
         </Button>
-        <Button type="submit" variant="success">
-          {isEditing ? "Update Vendor" : "Add Vendor"}
+        <Button  className="btn-common btn-save" type="submit" variant="success">
+          {isEditing ? "Update " : "Save"}
         </Button>
       </div>
     </Form>

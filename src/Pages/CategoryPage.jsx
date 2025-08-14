@@ -380,10 +380,10 @@ export default function CategoryPage() {
           </Form.Group>
 
           <div className="d-flex justify-content-end gap-2 mt-3">
-            <Button variant="light" onClick={handleModalClose}>
+            <Button  className="btn-common btn-cancel" variant="light" onClick={handleModalClose}>
               Cancel
             </Button>
-            <Button variant="success" onClick={handleSave} disabled={!categoryName.trim()}>
+            <Button variant="success"  className="btn-common btn-save"  onClick={handleSave} disabled={!categoryName.trim()}>
               {editingCategoryId ? "Update" : "Save"}
             </Button>
           </div>

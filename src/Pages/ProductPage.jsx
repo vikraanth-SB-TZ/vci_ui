@@ -603,8 +603,11 @@ export default function ProductPage() {
               </Form.Select>
             </Form.Group>
           </Form>
-          <div className="d-flex justify-content-end mt-4">
-            <Button variant="success" onClick={handleSave} size="sm" style={{ minWidth: "120px" }}>
+       <div className="d-flex justify-content-end gap-2 mt-3">
+                   <Button  className="btn-common btn-cancel" variant="light"   onClick={() => setShowModal(false)}>
+                     Cancel
+                   </Button>
+            <Button variant="success" className="btn-common btn-save" onClick={handleSave} size="sm">
               {isEditing ? "Update" : "Save"}
             </Button>
           </div>

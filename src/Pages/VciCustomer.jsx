@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Form, Spinner, Card , Offcanvas } from "react-bootstrap";
+import { Button, Form, Spinner, Card, Offcanvas } from "react-bootstrap";
 import axios from "axios";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Select from 'react-select';
@@ -682,36 +682,36 @@ export default function VciCustomer() {
     const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
     return (
- <div className="px-4" style={{ fontSize: "0.75rem" }}>
+        <div className="px-4" style={{ fontSize: "0.75rem" }}>
             <Breadcrumb title="Customers" />
 
             <Card className="border-0 shadow-sm rounded-3 p-2 px-4 mt-2 bg-white">
-                           <div className="row mb-2">
-                               <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
-                                   <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
-                                   <Form.Select
-                                       size="sm"
-                                       style={{ width: "100px" }}
-                                       value={perPage}
-                                       onChange={(e) => {
-                                           setPerPage(Number(e.target.value));
-                                           setPage(1);
-                                       }}
-                                   >
-                                       {[5, 10, 25, 50].map((n) => (
-                                           <option key={n} value={n}>
-                                               {n}
-                                           </option>
-                                       ))}
-                                   </Form.Select>
-                               </div>
-                               <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
-                                   <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
+                <div className="row mb-2">
+                    <div className="col-md-6 d-flex align-items-center mb-2 mb-md-0">
+                        <label className="me-2 fw-semibold mb-0">Records Per Page:</label>
+                        <Form.Select
+                            size="sm"
+                            style={{ width: "100px" }}
+                            value={perPage}
+                            onChange={(e) => {
+                                setPerPage(Number(e.target.value));
+                                setPage(1);
+                            }}
+                        >
+                            {[5, 10, 25, 50].map((n) => (
+                                <option key={n} value={n}>
+                                    {n}
+                                </option>
+                            ))}
+                        </Form.Select>
+                    </div>
+                    <div className="col-md-6 text-md-end" style={{ fontSize: '0.8rem' }}>
+                        <div className="mt-2 d-inline-block mb-2" style={{ fontSize: '0.8rem' }}>
                             <Button
                                 variant="outline-secondary"
                                 size="sm"
                                 className="me-2"
-                                
+
                                 onClick={loadInitialData}
                             >
                                 <i className="bi bi-arrow-clockwise"></i>
@@ -719,8 +719,8 @@ export default function VciCustomer() {
                             <Button
                                 variant="outline-primary"
                                 size="sm"
-                                 style={{
-                                   
+                                style={{
+
                                     padding: '0.25rem 0.5rem',
                                     fontSize: '0.8rem',
                                     minWidth: '90px',
@@ -735,7 +735,7 @@ export default function VciCustomer() {
 
                             <Button
                                 size="sm"
-                               style={{
+                                style={{
                                     backgroundColor: '#2FA64F',
                                     borderColor: '#2FA64F',
                                     color: '#fff',
@@ -760,7 +760,7 @@ export default function VciCustomer() {
                 </div>
 
                 <div className="table-responsive">
-                    <table className="table custom-table align-middle table-sm  mb-0"  style={{ fontSize: "0.8rem" }}>
+                    <table className="table custom-table align-middle table-sm  mb-0" style={{ fontSize: "0.8rem" }}>
                         <thead style={{ backgroundColor: "#2E3A59", color: "white" }}>
                             <tr>
                                 <th
@@ -878,291 +878,291 @@ export default function VciCustomer() {
                 />
             </Card>
 
-         <Offcanvas
-  show={showForm}
-  onHide={closeForm}
-  placement="end"
-  backdrop="static"
-  className="custom-offcanvas"
-  style={{ fontSize: "0.85rem", width: "600px" }}
->
-  <Offcanvas.Header closeButton>
-    <Offcanvas.Title className="fw-semibold">
-      {isEditing ? "Edit Customer" : "Add New Customer"}
-    </Offcanvas.Title>
-  </Offcanvas.Header>
+            <Offcanvas
+                show={showForm}
+                onHide={closeForm}
+                placement="end"
+                backdrop="static"
+                className="custom-offcanvas"
+                style={{ fontSize: "0.85rem", width: "600px" }}
+            >
+                <Offcanvas.Header closeButton>
+                    <Offcanvas.Title className="fw-semibold">
+                        {isEditing ? "Edit Customer" : "Add New Customer"}
+                    </Offcanvas.Title>
+                </Offcanvas.Header>
 
-  <Offcanvas.Body>
-    <Form onSubmit={handleSubmit} className="row g-3">
+                <Offcanvas.Body>
+                    <Form onSubmit={handleSubmit} className="row g-3">
 
-      {/* Personal Info */}
-      <div className="col-12">
-        <h6 className="fw-bold">Personal Information</h6>
-        <hr className="mt-1 mb-2" />
-      </div>
+                        {/* Personal Info */}
+                        <div className="col-12">
+                            <h6 className="fw-bold">Personal Information</h6>
+                            <hr className="mt-1 mb-2" />
+                        </div>
 
-      <Form.Group className="col-6">
-        <Form.Label>First Name</Form.Label>
-        <Form.Control
-          name="first_name"
-          value={formData.first_name}
-          onChange={handleChange}
-          placeholder="Enter First Name"
-          size="sm"
-          isInvalid={!!errors.first_name}
-        />
-        <Form.Control.Feedback type="invalid">{errors.first_name}</Form.Control.Feedback>
-      </Form.Group>
+                        <Form.Group className="col-6">
+                            <Form.Label>First Name</Form.Label>
+                            <Form.Control
+                                name="first_name"
+                                value={formData.first_name}
+                                onChange={handleChange}
+                                placeholder="Enter First Name"
+                                size="sm"
+                                isInvalid={!!errors.first_name}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.first_name}</Form.Control.Feedback>
+                        </Form.Group>
 
-      <Form.Group className="col-6">
-        <Form.Label>Last Name</Form.Label>
-        <Form.Control
-          name="last_name"
-          value={formData.last_name}
-          onChange={handleChange}
-          placeholder="Enter Last Name"
-          size="sm"
-          isInvalid={!!errors.last_name}
-        />
-        <Form.Control.Feedback type="invalid">{errors.last_name}</Form.Control.Feedback>
-      </Form.Group>
+                        <Form.Group className="col-6">
+                            <Form.Label>Last Name</Form.Label>
+                            <Form.Control
+                                name="last_name"
+                                value={formData.last_name}
+                                onChange={handleChange}
+                                placeholder="Enter Last Name"
+                                size="sm"
+                                isInvalid={!!errors.last_name}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.last_name}</Form.Control.Feedback>
+                        </Form.Group>
 
-  <Form.Group className="col-6" style={{ fontSize: "13px" }}>
-  <Form.Label className="mb-1" style={{ fontSize: "12px", fontWeight: 500 }}>
-    Gender
-  </Form.Label>
-  <Select
-    name="gender"
-    value={genderOptions.find(option => option.value === formData.gender) || null}
-    onChange={(selectedOption) => handleChange(selectedOption, "gender")}
-    onBlur={() => handleSelectBlur("gender")}
-    options={genderOptions}
-    placeholder="Select Gender"
-    isClearable
-    styles={{
-      ...customSelectStyles,
-      control: (provided, state) => ({
-        ...provided,
-        minHeight: "32px",       // reduce height
-        height: "32px",
-        fontSize: "12px",        // smaller font
-      }),
-      valueContainer: (provided) => ({
-        ...provided,
-        padding: "0 6px",
-      }),
-      dropdownIndicator: (provided) => ({
-        ...provided,
-        padding: "0 4px",
-      }),
-      clearIndicator: (provided) => ({
-        ...provided,
-        padding: "0 4px",
-      }),
-    }}
-    components={{ Option: SimpleOption }}
-  />
-  {errors.gender && (
-    <div className="text-danger small" style={{ fontSize: "11px" }}>
-      {errors.gender}
-    </div>
-  )}
-</Form.Group>
+                        <Form.Group className="col-6" style={{ fontSize: "13px" }}>
+                            <Form.Label className="mb-1" style={{ fontSize: "12px", fontWeight: 500 }}>
+                                Gender
+                            </Form.Label>
+                            <Select
+                                name="gender"
+                                value={genderOptions.find(option => option.value === formData.gender) || null}
+                                onChange={(selectedOption) => handleChange(selectedOption, "gender")}
+                                onBlur={() => handleSelectBlur("gender")}
+                                options={genderOptions}
+                                placeholder="Select Gender"
+                                isClearable
+                                styles={{
+                                    ...customSelectStyles,
+                                    control: (provided, state) => ({
+                                        ...provided,
+                                        minHeight: "32px",       // reduce height
+                                        height: "32px",
+                                        fontSize: "12px",        // smaller font
+                                    }),
+                                    valueContainer: (provided) => ({
+                                        ...provided,
+                                        padding: "0 6px",
+                                    }),
+                                    dropdownIndicator: (provided) => ({
+                                        ...provided,
+                                        padding: "0 4px",
+                                    }),
+                                    clearIndicator: (provided) => ({
+                                        ...provided,
+                                        padding: "0 4px",
+                                    }),
+                                }}
+                                components={{ Option: SimpleOption }}
+                            />
+                            {errors.gender && (
+                                <div className="text-danger small" style={{ fontSize: "11px" }}>
+                                    {errors.gender}
+                                </div>
+                            )}
+                        </Form.Group>
 
-      <Form.Group className="col-6">
-        <Form.Label>Date of Birth</Form.Label>
-        <div style={{ position: "relative" }}>
-          <Form.Control
-            type="text"
-            readOnly
-            value={formData.dob ? new Date(formData.dob + "T00:00:00").toLocaleDateString("en-GB") : ""}
-            placeholder="Select Date of Birth"
-            onClick={() => setShowCalendar((prev) => !prev)}
-            size="sm"
-            isInvalid={!!errors.dob}
-          />
-          {errors.dob && <div className="text-danger small">{errors.dob}</div>}
-          {showCalendar && (
-            <div style={{
-              position: "absolute",
-              zIndex: 2000,
-              top: "100%",
-              left: 0,
-              background: "white",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-              marginTop: "4px",
-              borderRadius: "6px",
-            }}>
-              <MiniCalendar
-                selectedDate={formData.dob ? new Date(formData.dob) : null}
-                onDateChange={(date) => {
-                  if (!date) return;
-                  const today = new Date();
-                  if (date > today) {
-                    toast.error("Date of Birth cannot be in the future.", { autoClose: 1500 });
-                    return;
-                  }
-                  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-                  setFormData(prev => ({ ...prev, dob: localDate.toISOString().split("T")[0] }));
-                  setErrors(prev => ({ ...prev, dob: "" }));
-                  setShowCalendar(false);
-                }}
-                onCancel={() => setShowCalendar(false)}
-                allowFuture={false}
-                maxDate={new Date()}
-              />
-            </div>
-          )}
-        </div>
-      </Form.Group>
+                        <Form.Group className="col-6">
+                            <Form.Label>Date of Birth</Form.Label>
+                            <div style={{ position: "relative" }}>
+                                <Form.Control
+                                    type="text"
+                                    readOnly
+                                    value={formData.dob ? new Date(formData.dob + "T00:00:00").toLocaleDateString("en-GB") : ""}
+                                    placeholder="Select Date of Birth"
+                                    onClick={() => setShowCalendar((prev) => !prev)}
+                                    size="sm"
+                                    isInvalid={!!errors.dob}
+                                />
+                                {errors.dob && <div className="text-danger small">{errors.dob}</div>}
+                                {showCalendar && (
+                                    <div style={{
+                                        position: "absolute",
+                                        zIndex: 2000,
+                                        top: "100%",
+                                        left: 0,
+                                        background: "white",
+                                        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                                        marginTop: "4px",
+                                        borderRadius: "6px",
+                                    }}>
+                                        <MiniCalendar
+                                            selectedDate={formData.dob ? new Date(formData.dob) : null}
+                                            onDateChange={(date) => {
+                                                if (!date) return;
+                                                const today = new Date();
+                                                if (date > today) {
+                                                    toast.error("Date of Birth cannot be in the future.", { autoClose: 1500 });
+                                                    return;
+                                                }
+                                                const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                                                setFormData(prev => ({ ...prev, dob: localDate.toISOString().split("T")[0] }));
+                                                setErrors(prev => ({ ...prev, dob: "" }));
+                                                setShowCalendar(false);
+                                            }}
+                                            onCancel={() => setShowCalendar(false)}
+                                            allowFuture={false}
+                                            maxDate={new Date()}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </Form.Group>
 
-      {/* Contact */}
-      <Form.Group className="col-6">
-        <Form.Label>Mobile No.</Form.Label>
-        <Form.Control
-          name="mobile"
-          value={formData.mobile}
-          onChange={handleChange}
-          placeholder="Enter Mobile No."
-          size="sm"
-          isInvalid={!!errors.mobile}
-        />
-        <Form.Control.Feedback type="invalid">{errors.mobile}</Form.Control.Feedback>
-      </Form.Group>
+                        {/* Contact */}
+                        <Form.Group className="col-6">
+                            <Form.Label>Mobile No.</Form.Label>
+                            <Form.Control
+                                name="mobile"
+                                value={formData.mobile}
+                                onChange={handleChange}
+                                placeholder="Enter Mobile No."
+                                size="sm"
+                                isInvalid={!!errors.mobile}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.mobile}</Form.Control.Feedback>
+                        </Form.Group>
 
-      <Form.Group className="col-6">
-        <Form.Label>Alternative Mobile</Form.Label>
-        <Form.Control
-          name="altMobile"
-          value={formData.altMobile}
-          onChange={handleChange}
-          placeholder="Enter Alternative No."
-          size="sm"
-          isInvalid={!!errors.altMobile}
-        />
-        <Form.Control.Feedback type="invalid">{errors.altMobile}</Form.Control.Feedback>
-      </Form.Group>
+                        <Form.Group className="col-6">
+                            <Form.Label>Alternative Mobile</Form.Label>
+                            <Form.Control
+                                name="altMobile"
+                                value={formData.altMobile}
+                                onChange={handleChange}
+                                placeholder="Enter Alternative No."
+                                size="sm"
+                                isInvalid={!!errors.altMobile}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.altMobile}</Form.Control.Feedback>
+                        </Form.Group>
 
-      {/* Email & GST */}
-      <Form.Group className="col-6">
-        <Form.Label>Email</Form.Label>
-        <Form.Control
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          placeholder="Enter Email"
-          size="sm"
-          isInvalid={!!errors.email}
-        />
-        <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
-      </Form.Group>
+                        {/* Email & GST */}
+                        <Form.Group className="col-6">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                placeholder="Enter Email"
+                                size="sm"
+                                isInvalid={!!errors.email}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+                        </Form.Group>
 
-      <Form.Group className="col-6">
-        <Form.Label>GST No.</Form.Label>
-        <Form.Control
-          name="gst_no"
-          value={formData.gst_no}
-          onChange={handleChange}
-          placeholder="Enter GST No."
-          size="sm"
-          isInvalid={!!errors.gst_no}
-        />
-        <Form.Control.Feedback type="invalid">{errors.gst_no}</Form.Control.Feedback>
-      </Form.Group>
+                        <Form.Group className="col-6">
+                            <Form.Label>GST No.</Form.Label>
+                            <Form.Control
+                                name="gst_no"
+                                value={formData.gst_no}
+                                onChange={handleChange}
+                                placeholder="Enter GST No."
+                                size="sm"
+                                isInvalid={!!errors.gst_no}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.gst_no}</Form.Control.Feedback>
+                        </Form.Group>
 
-      {/* Company Address */}
-      <div className="col-12 mt-3">
-        <h6 className="fw-bold">Company Address</h6>
-        <hr className="mt-1 mb-2" />
-      </div>
+                        {/* Company Address */}
+                        <div className="col-12 mt-3">
+                            <h6 className="fw-bold">Company Address</h6>
+                            <hr className="mt-1 mb-2" />
+                        </div>
 
-      <Form.Group className="col-6">
-        <Form.Label>Company Name</Form.Label>
-        <Form.Control
-          name="company_name"
-          value={formData.company_name}
-          onChange={handleChange}
-          placeholder="Enter Company Name"
-          size="sm"
-          isInvalid={!!errors.company_name}
-        />
-        <Form.Control.Feedback type="invalid">{errors.company_name}</Form.Control.Feedback>
-      </Form.Group>
+                        <Form.Group className="col-6">
+                            <Form.Label>Company Name</Form.Label>
+                            <Form.Control
+                                name="company_name"
+                                value={formData.company_name}
+                                onChange={handleChange}
+                                placeholder="Enter Company Name"
+                                size="sm"
+                                isInvalid={!!errors.company_name}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.company_name}</Form.Control.Feedback>
+                        </Form.Group>
 
-      <Form.Group className="col-6">
-        <Form.Label>Address</Form.Label>
-        <Form.Control
-          name="address"
-          value={formData.address}
-          onChange={handleChange}
-          placeholder="Enter Address"
-          size="sm"
-          isInvalid={!!errors.address}
-        />
-        <Form.Control.Feedback type="invalid">{errors.address}</Form.Control.Feedback>
-      </Form.Group>
+                        <Form.Group className="col-6">
+                            <Form.Label>Address</Form.Label>
+                            <Form.Control
+                                name="address"
+                                value={formData.address}
+                                onChange={handleChange}
+                                placeholder="Enter Address"
+                                size="sm"
+                                isInvalid={!!errors.address}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.address}</Form.Control.Feedback>
+                        </Form.Group>
 
-      <Form.Group className="col-6">
-        <Form.Label>City / Town</Form.Label>
-        <Form.Control
-          name="city"
-          onChange={handleChange}
-          size="sm"
-          isInvalid={!!errors.city}
-          placeholder="Enter City or Town"
-        />
-        {errors.city && <div className="text-danger small">{errors.city}</div>}
-      </Form.Group>
+                        <Form.Group className="col-6">
+                            <Form.Label>City / Town</Form.Label>
+                            <Form.Control
+                                name="city"
+                                onChange={handleChange}
+                                size="sm"
+                                isInvalid={!!errors.city}
+                                placeholder="Enter City or Town"
+                            />
+                            {errors.city && <div className="text-danger small">{errors.city}</div>}
+                        </Form.Group>
 
-      <Form.Group className="col-6">
-        <Form.Label>Pincode</Form.Label>
-        <Form.Control
-          name="pincode"
-          value={formData.pincode}
-          onChange={handleChange}
-          placeholder="Enter Pincode"
-          size="sm"
-          isInvalid={!!errors.pincode}
-        />
-        <Form.Control.Feedback type="invalid">{errors.pincode}</Form.Control.Feedback>
-      </Form.Group>
+                        <Form.Group className="col-6">
+                            <Form.Label>Pincode</Form.Label>
+                            <Form.Control
+                                name="pincode"
+                                value={formData.pincode}
+                                onChange={handleChange}
+                                placeholder="Enter Pincode"
+                                size="sm"
+                                isInvalid={!!errors.pincode}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.pincode}</Form.Control.Feedback>
+                        </Form.Group>
 
-      {formData.pincode && formData.pincode.length === 6 && !errors.pincode && (
-        <>
-          <Form.Group className="col-6">
-            <Form.Label>State</Form.Label>
-            <Form.Control
-              type="text"
-              name="state"
-              value={formData.state}
-              readOnly
-              size="sm"
-            />
-          </Form.Group>
+                        {formData.pincode && formData.pincode.length === 6 && !errors.pincode && (
+                            <>
+                                <Form.Group className="col-6">
+                                    <Form.Label>State</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="state"
+                                        value={formData.state}
+                                        readOnly
+                                        size="sm"
+                                    />
+                                </Form.Group>
 
-          <Form.Group className="col-6">
-            <Form.Label>District</Form.Label>
-            <Form.Control
-              type="text"
-              name="district"
-              value={formData.district}
-              readOnly
-              size="sm"
-            />
-          </Form.Group>
-        </>
-      )}
+                                <Form.Group className="col-6">
+                                    <Form.Label>District</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="district"
+                                        value={formData.district}
+                                        readOnly
+                                        size="sm"
+                                    />
+                                </Form.Group>
+                            </>
+                        )}
 
-      <div className="col-12 d-flex justify-content-end gap-2 mt-4">
-        <Button variant="light" onClick={closeForm} size="sm">Cancel</Button>
-        <Button type="submit" variant="success" size="sm" style={{ minWidth: "120px" }}>
-          {isEditing ? "Update" : "Save"}
-        </Button>
-      </div>
+                        <div className="col-12 d-flex justify-content-end gap-2 mt-4">
+                            <Button className="btn-common btn-cancel"  variant="light" onClick={closeForm} size="sm">Cancel</Button>
+                            <Button className="btn-common btn-save" type="submit" variant="success" size="sm">
+                                {isEditing ? "Update" : "Save"}
+                            </Button>
+                        </div>
 
-    </Form>
-  </Offcanvas.Body>
-</Offcanvas>
+                    </Form>
+                </Offcanvas.Body>
+            </Offcanvas>
 
         </div>
     );
