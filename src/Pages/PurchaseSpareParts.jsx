@@ -1465,13 +1465,13 @@ export default function PurchaseSparepartsPage() {
                                     className="add-row-btn"
                                     disabled={sparePartsRows.length >= invoiceSpareparts.length}
                                     style={{
-                                        border: "1px solid #C7E6D1",
-                                        backgroundColor: "#F1FCF6",
-                                        color: "#1F9254",
+                                        border: "1px solid #2FA64F",
+                                        backgroundColor: "#2FA64F",
+                                        color: "#fff",
                                         padding: "6px 12px",
                                         fontSize: "14px",
                                         borderRadius: "6px",
-                                        opacity: sparePartsRows.length >= invoiceSpareparts.length ? 0.6 : 1,
+                                        // opacity: sparePartsRows.length >= invoiceSpareparts.length ? 0.6 : 1,
                                         cursor: sparePartsRows.length >= invoiceSpareparts.length ? "not-allowed" : "pointer",
                                         outline: "none",
                                         boxShadow: "none",
@@ -1486,9 +1486,9 @@ export default function PurchaseSparepartsPage() {
                                     <table className="custom-table" style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
                                         <thead>
                                             <tr>
-                                                <th style={{ textAlign: "left", padding: "12px", backgroundColor: "#F3F4F6", borderBottom: "1px solid #D3DBD5", fontWeight: 600, fontSize: "14px" }}>Sparepart Name</th>
-                                                <th style={{ textAlign: "left", padding: "12px", backgroundColor: "#F3F4F6", borderBottom: "1px solid #D3DBD5", fontWeight: 600, fontSize: "14px" }}>Quantity</th>
-                                                <th style={{ width: "40px", padding: "12px", backgroundColor: "#F3F4F6", borderBottom: "1px solid #D3DBD5" }}></th>
+                                                <th style={{ textAlign: "left", padding: "12px", backgroundColor: "#2E3A59", borderBottom: "1px solid #D3DBD5", fontWeight: 600, fontSize: "14px" }}>Sparepart Name</th>
+                                                <th style={{ textAlign: "left", padding: "12px", backgroundColor: "#2E3A59", borderBottom: "1px solid #D3DBD5", fontWeight: 600, fontSize: "14px" }}>Quantity</th>
+                                                <th style={{ width: "40px", padding: "12px", backgroundColor: "#2E3A59", borderBottom: "1px solid #D3DBD5" }}></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1600,7 +1600,7 @@ export default function PurchaseSparepartsPage() {
                         {/* Form Actions */}
                         <div className="d-flex justify-content-end mt-4">
                             <Button
-                                variant="secondary"
+                                variant=""
                                 onClick={() => {
                                     setShowReturnForm(false);
                                     setEditingReturn(null);
@@ -1609,12 +1609,12 @@ export default function PurchaseSparepartsPage() {
                                     setReturnDate(new Date().toISOString().split("T")[0]);
                                     setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
                                 }}
-                                className="me-2"
+                                className="me-2 btn-common btn-cancel"
                             >
                                 Cancel
                             </Button>
-                            <Button variant="success" type="submit" disabled={loading}>
-                                {loading ? <Spinner animation="border" size="sm" /> : editingReturn ? "Update Return" : "Submit Return"}
+                            <Button variant="" type="submit"  className="btn-common btn-save">
+                                {editingReturn ? "Update" : "Save"}
                             </Button>
                         </div>
                     </Form>

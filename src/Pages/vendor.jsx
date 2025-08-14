@@ -1062,24 +1062,21 @@ export default function vendor() {
                     zIndex: 1050,
                 }}
             >
-                <Offcanvas.Header
-                    closeButton
-                    style={{
-                        padding: "16px 24px",
-                        borderBottom: "1px solid #dee2e6",
-                    }}
-                    closeVariant="black"
-                >
-                    <Offcanvas.Title
-                        style={{
-                            fontWeight: 600,
-                            fontSize: "16px",
-                        }}
-                    >
-                        {isEditing ? "Edit Vendor" : "Add New Vendor"}
+                <Offcanvas.Header className="border-bottom">
+                    <Offcanvas.Title className="fw-semibold">
+                    {isEditing ? "Edit Vendor" : "Add New Vendor"}
                     </Offcanvas.Title>
+                        <div className="ms-auto">
+                            <Button
+                                variant="outline-secondary"
+                                onClick={closeForm}
+                                className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+                                style={{ width: "32px", height: "32px" }}
+                            >
+                                <i className="bi bi-x-lg fs-6"></i>
+                            </Button>
+                        </div>
                 </Offcanvas.Header>
-
                 <Offcanvas.Body
                     style={{
                         padding: "16px 20px",
