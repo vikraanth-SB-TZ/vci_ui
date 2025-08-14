@@ -107,8 +107,11 @@ export default function CountryPage() {
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
+      cancelButtonColor: "#2FA64F",
         confirmButtonText: "Yes, delete it!",
+        customClass: {
+      popup: "custom-compact" 
+    }
       });
 
       if (confirmed.isConfirmed) {
