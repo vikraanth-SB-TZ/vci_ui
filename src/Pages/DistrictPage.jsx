@@ -468,15 +468,15 @@ export default function DistrictPage() {
     </Form>
 
     <div className="d-flex justify-content-end gap-2 mt-4">
-      <Button variant="light" onClick={handleModalClose} size="sm">
+      <Button className="btn-common btn-cancel" variant="light" onClick={handleModalClose} size="sm">
         Cancel
       </Button>
       <Button
-        variant="success"
+        className="btn-common btn-save"
         onClick={handleSave}
         disabled={!modalCountryId || !modalStateId || !newDistrictName.trim()}
         size="sm"
-        style={{ minWidth: "120px" }}
+        
       >
         {editId ? "Update" : "Save"}
       </Button>

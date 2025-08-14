@@ -269,7 +269,7 @@ export default function App() {
       text: "Do you really want to delete this spare part?",
       icon: "warning",
       showCancelButton: true,
-     confirmButtonColor: "#d33",
+      confirmButtonColor: "#d33",
       cancelButtonColor: "#2FA64F",
       confirmButtonText: "Yes, delete it!",
       customClass: {
@@ -735,25 +735,14 @@ export default function App() {
 
               </div>
 
-              <div
-                className="save-button-footer d-flex justify-content-end"
-                style={{
-                  position: "sticky",
-                  bottom: "0",
-                  backgroundColor: "#fff",
-                  padding: "10px 0",
-                  borderTop: "1px solid #F2F2F2",
-                }}
-              >
+              <div className="d-flex justify-content-end gap-2 mt-3">
+                <Button className="btn-common btn-cancel" variant="light" onClick={() => setShowForm(false)}>
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
                   variant="success"
-                  style={{
-                    height: "36px",
-                    borderRadius: "6px",
-                    minWidth: "90px",
-                    fontSize: "13px",
-                  }}
+                  className="btn-common btn-save"
                 >
                   {editingPart ? "Update" : "Save"}
                 </Button>

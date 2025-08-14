@@ -394,15 +394,16 @@ export default function StatePage() {
           </Form>
 
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button variant="light" onClick={handleModalClose} size="sm">
+            <Button className="btn-common btn-cancel" variant="light" onClick={handleModalClose} size="sm">
               Cancel
             </Button>
             <Button
+              className="btn-common btn-save"
               variant="success"
               onClick={handleSave}
               disabled={!newStateName.trim() || !countryId}
               size="sm"
-              style={{ minWidth: "120px" }}
+              
             >
               {editingStateId ? "Update" : "Save"}
             </Button>
