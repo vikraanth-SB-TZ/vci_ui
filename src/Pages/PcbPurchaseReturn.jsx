@@ -52,12 +52,15 @@ export default function PcbPurchaseReturn() {
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      text: "Do you want to delete this return?",
+      text: "Do you really want to delete thisreturn?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+     confirmButtonColor: "#d33",
+      cancelButtonColor: "#2FA64F",
       confirmButtonText: "Yes, delete it!",
+      customClass: {
+        popup: "custom-compact"
+      }
     });
 
     if (!result.isConfirmed) return;
