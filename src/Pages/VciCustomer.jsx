@@ -886,10 +886,10 @@ export default function VciCustomer() {
                 className="custom-offcanvas"
                 style={{ fontSize: "0.85rem", width: "600px" }}
             >
-            <Offcanvas.Header className="border-bottom">
-                <Offcanvas.Title className="fw-semibold">
-                {isEditing ? "Edit Customer" : "Add New Customer"}
-                </Offcanvas.Title>
+                <Offcanvas.Header className="border-bottom">
+                    <Offcanvas.Title className="fw-semibold">
+                        {isEditing ? "Edit Customer" : "Add New Customer"}
+                    </Offcanvas.Title>
                     <div className="ms-auto">
                         <Button
                             variant="outline-secondary"
@@ -900,18 +900,19 @@ export default function VciCustomer() {
                             <i className="bi bi-x-lg fs-6"></i>
                         </Button>
                     </div>
-            </Offcanvas.Header>
+                </Offcanvas.Header>
 
-                <Offcanvas.Body>
+                <Offcanvas.Body className="px-3 pt-2 pb-2">
                     <Form onSubmit={handleSubmit} className="row g-3">
 
                         {/* Personal Info */}
-                        <div className="col-12">
-                            <h6 className="fw-bold">Personal Information</h6>
-                            <hr className="mt-1 mb-2" />
-                        </div>
+                        {/* Personal Information Section */}
+                        <h6 className="fw-semibold mt-3">
+                            Personal Information
+                        </h6 >
+                        <hr className="mt-0 mb-0" />
 
-                        <Form.Group className="col-6">
+                        <Form.Group className="col-6 ">
                             <Form.Label>First Name</Form.Label>
                             <Form.Control
                                 name="first_name"
@@ -991,6 +992,19 @@ export default function VciCustomer() {
                                     size="sm"
                                     isInvalid={!!errors.dob}
                                 />
+                                 <img
+              src="/Calendar.png"
+              alt="calendar icon"
+              style={{
+                position: "absolute",
+                right: "8px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "24px",
+                height: "24px",
+                pointerEvents: "none",
+              }}
+            />
                                 {errors.dob && <div className="text-danger small">{errors.dob}</div>}
                                 {showCalendar && (
                                     <div style={{
@@ -1081,10 +1095,11 @@ export default function VciCustomer() {
                         </Form.Group>
 
                         {/* Company Address */}
-                        <div className="col-12 mt-3">
-                            <h6 className="fw-bold">Company Address</h6>
-                            <hr className="mt-1 mb-2" />
-                        </div>
+                        {/* Company Address Section */}
+                        <h6 className=" fw-semibold" >
+                            Company Address
+                        </h6>
+                        <hr className="mt-0 mb-0" />
 
                         <Form.Group className="col-6">
                             <Form.Label>Company Name</Form.Label>
@@ -1164,7 +1179,7 @@ export default function VciCustomer() {
                         )}
 
                         <div className="col-12 d-flex justify-content-end gap-2 mt-4">
-                            <Button className="btn-common btn-cancel"  variant="light" onClick={closeForm} size="sm">Cancel</Button>
+                            <Button className="btn-common btn-cancel" variant="light" onClick={closeForm} size="sm">Cancel</Button>
                             <Button className="btn-common btn-save" type="submit" variant="success" size="sm">
                                 {isEditing ? "Update" : "Save"}
                             </Button>
