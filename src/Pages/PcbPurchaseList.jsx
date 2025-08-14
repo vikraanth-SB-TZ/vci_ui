@@ -57,12 +57,15 @@ export default function PurchaseListPage() {
   const handleDelete = (purchaseId) => {
     Swal.fire({
       title: "Are you sure?",
-      text: "This action cannot be undone.",
+      text: "Do you really want to delete this Purchase Order",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
+      cancelButtonColor: "#2FA64F",
       confirmButtonText: "Yes, delete it!",
+      customClass: {
+      popup: "custom-compact" 
+    }
     }).then((result) => {
       if (result.isConfirmed) {
         axios
