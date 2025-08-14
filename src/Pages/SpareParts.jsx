@@ -592,20 +592,22 @@ export default function App() {
           scroll={true}
           className="custom-offcanvas"
         >
-          <Offcanvas.Header className="border-bottom px-3 py-2 d-flex align-items-center">
-            <h6 className="fw-bold mb-0">
+          <Offcanvas.Header className="border-bottom">
+            <Offcanvas.Title className="fw-semibold">
               {editingPart ? "Edit Spare Part" : "Add New Spare Part"}
-            </h6>
-
-            <Button
-              variant="outline-secondary"
-              onClick={closeForm}
-              className="rounded-circle border-0 d-flex align-items-center justify-content-center ms-auto p-0"
-              style={{ width: "28px", height: "28px" }}
-            >
-              <i className="bi bi-x-lg" style={{ fontSize: "14px" }}></i>
-            </Button>
+            </Offcanvas.Title>
+            <div className="ms-auto">
+              <Button
+                variant="outline-secondary"
+                onClick={closeForm}
+                className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+                style={{ width: "32px", height: "32px" }}
+              >
+                <i className="bi bi-x-lg fs-6"></i>
+              </Button>
+            </div>
           </Offcanvas.Header>
+
 
           <Offcanvas.Body className="px-3 py-2" style={{ fontSize: "14px" }}>
             <form onSubmit={handleFormSubmit}>

@@ -849,31 +849,31 @@ export default function PurchaseSparepartsPage() {
                     fontSize: "0.875rem",
                 }} className="custom-offcanvas"
             >
-                <Offcanvas.Header
-                    className="border-bottom px-4 d-flex justify-content-between align-items-center"
-                    closeButton={false}
-                >
-                    <h5 className="fw-bold mb-0">
+                <Offcanvas.Header className="border-bottom">
+                    <Offcanvas.Title className="fw-semibold">
                         {editingPurchase
-                            ? "Edit Purchase Spare parts"
-                            : "Add New Purchase Spare parts"}
-                    </h5>
-                    <Button
-                        variant="outline-secondary"
-                        onClick={() => {
-                            setShowForm(false);
-                            setEditingPurchase(null);
-                            setFormErrors({});
-                            setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-                            setInvoiceDate(new Date().toISOString().split("T")[0]);
-                            setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
-                        }}
-                        className="rounded-circle border-0 d-flex align-items-center justify-content-center"
-                        style={{ width: "32px", height: "32px" }}
-                    >
-                        <i className="bi bi-x-lg fs-6"></i>
-                    </Button>
+                            ? "Edit Purchase Spare Parts"
+                            : "Add New Purchase Spare Parts"}
+                    </Offcanvas.Title>
+                    <div className="ms-auto">
+                        <Button
+                            variant="outline-secondary"
+                            onClick={() => {
+                                setShowForm(false);
+                                setEditingPurchase(null);
+                                setFormErrors({});
+                                setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+                                setInvoiceDate(new Date().toISOString().split("T")[0]);
+                                setFormData({ vendor_id: "", invoiceNo: "", notes: "" });
+                            }}
+                            className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+                            style={{ width: "32px", height: "32px" }}
+                        >
+                            <i className="bi bi-x-lg fs-6"></i>
+                        </Button>
+                    </div>
                 </Offcanvas.Header>
+
 
                 <Offcanvas.Body
                     style={{ maxHeight: "calc(100vh - 150px)", overflowY: "auto" }}
