@@ -1259,17 +1259,16 @@ export default function PurchaseSparepartsPage() {
                         </div>
 
                         {/* Save Button */}
-                        <div className="d-flex justify-content-end mt-4">
+                        <div className="d-flex justify-content-end gap-2 mt-3">
+                               <Button  className="btn-common btn-cancel" variant="light" onClick={() => setShowForm(false)}> 
+                                          Cancel
+                                        </Button>
                             <Button
                                 variant="success"
                                 type="submit"
-                                style={{
-                                    width: "179px",
-                                    height: "50px",
-                                    borderRadius: "6px"
-                                }}
+                                className="btn-common btn-save"
                             >
-                                {editingPurchase ? "Update Purchase" : "Save"}
+                                {editingPurchase ? "Update" : "Save"}
                             </Button>
                         </div>
                     </Form>

@@ -339,10 +339,11 @@ export default function CountryPage() {
           </Form.Group>
 
           <div className="d-flex justify-content-end gap-2 mt-3">
-            <Button variant="light" onClick={handleModalClose}>
+            <Button  className="btn-common btn-cancel" variant="light" onClick={handleModalClose}>
               Cancel
             </Button>
             <Button
+              className="btn-common btn-save"
               variant="success"
               onClick={handleSave}
               disabled={!countryName.trim()}

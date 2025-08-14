@@ -270,3 +270,27 @@ body,
   height: 28px; /* slightly smaller than inputs */
   line-height: 1.2; 
 }
+.btn-common {
+  font-size: 0.85rem;
+  padding: 6px 16px;        /* Slightly taller and wider */
+  min-width: 80px;     
+  min-height: 32px;    /* Slightly narrower minimum width */
+  border: none;
+  border-radius: 4px;
+  line-height: 1.4;         /* Better vertical alignment for text */
+}
+
+.btn-cancel {
+  background-color: #d33 !important;
+  color: white !important;
+}
+
+.btn-save {
+  background-color: #2FA64F !important;
+  color: white !important;
+}
+
+.btn-common:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
