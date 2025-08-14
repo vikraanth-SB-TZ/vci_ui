@@ -5,50 +5,7 @@ import { FaChevronUp, FaChevronDown } from "react-icons/fa";
 import "../../assets/css/TotalProduct.css";
 import { API_BASE_URL } from "../../api";
 
-const SkeletonRow = () => (
-  <div className="mb-4">
-    <div className="d-flex align-items-center ms-5">
-      <div
-        style={{
-          minWidth: "100px",
-          height: "14px",
-          backgroundColor: "#e9ecef",
-          borderRadius: "4px",
-        }}
-      ></div>
-      <div className="flex-grow-1 mx-3">
-        <div
-          style={{
-            height: "6px",
-            backgroundColor: "#e9ecef",
-            borderRadius: "4px",
-            width: "100%",
-          }}
-        ></div>
-      </div>
-      <div
-        style={{
-          width: "40px",
-          height: "14px",
-          backgroundColor: "#e9ecef",
-          borderRadius: "4px",
-        }}
-      ></div>
-    </div>
-    <div
-      className="ms-5"
-      style={{
-        width: "60px",
-        height: "10px",
-        backgroundColor: "#e9ecef",
-        borderRadius: "4px",
-        marginTop: "4px",
-      }}
-    ></div>
-  </div>
-);
-
-export default function TotalProductPage() {
+function TotalProductPage() {
   const [stockData, setStockData] = useState([]);
   const [totalProducts, setTotalProducts] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -85,6 +42,48 @@ export default function TotalProductPage() {
 
   const displayData = stockData.length > 0 ? stockData : fallbackData;
 
+  const SkeletonRow = () => (
+    <div className="mb-4">
+      <div className="d-flex align-items-center ms-5">
+        <div
+          style={{
+            minWidth: "100px",
+            height: "14px",
+            backgroundColor: "#e9ecef",
+            borderRadius: "4px",
+          }}
+        ></div>
+        <div className="flex-grow-1 mx-3">
+          <div
+            style={{
+              height: "6px",
+              backgroundColor: "#e9ecef",
+              borderRadius: "4px",
+              width: "100%",
+            }}
+          ></div>
+        </div>
+        <div
+          style={{
+            width: "40px",
+            height: "14px",
+            backgroundColor: "#e9ecef",
+            borderRadius: "4px",
+          }}
+        ></div>
+      </div>
+      <div
+        className="ms-5"
+        style={{
+          width: "60px",
+          height: "10px",
+          backgroundColor: "#e9ecef",
+          borderRadius: "4px",
+          marginTop: "4px",
+        }}
+      ></div>
+    </div>
+  );
   return (
     <div>
       <Card className="border-0 shadow-sm h-100">
@@ -104,13 +103,7 @@ export default function TotalProductPage() {
               ))}
             </div>
           ) : (
-            <div
-              style={{
-                height: "278px",        // fixed height to keep container consistent
-                overflowY: "auto",     // always allow vertical scroll if needed
-                paddingRight: "5px",
-              }}
-            >
+            <div className="total-product-scroll">
               {displayData.map((item, idx) => {
                 const isUp = item.change >= 0;
                 const barWidth = Math.min(Math.abs(item.change) / 5, 100);
@@ -127,25 +120,25 @@ export default function TotalProductPage() {
                           style={{ height: "6px", backgroundColor: "#e9ecef" }}
                         >
                           <div
-                            className={`progress-bar ${
-                              isUp ? "bg-success" : "bg-danger"
-                            }`}
+                            className={`progress-bar ${isUp ? "" : "bg-danger"}`}
                             style={{
                               width: `${barWidth}%`,
                               transition: "width 0.6s ease",
+                              backgroundColor: isUp ? "#28a745" : undefined
                             }}
                           ></div>
                         </div>
                       </div>
                       <div
                         className={`d-flex align-items-center gap-1 me-5 ${
-                          isUp ? "text-success" : "text-danger"
+                          isUp ? "" : "text-danger"
                         }`}
                         style={{
                           fontSize: "14px",
                           fontWeight: 600,
                           minWidth: "60px",
                           justifyContent: "flex-end",
+                          color: isUp ? "#28a745" : undefined
                         }}
                       >
                         {isUp ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
@@ -173,3 +166,4 @@ export default function TotalProductPage() {
     </div>
   );
 }
+export default TotalProductPage;

@@ -38,3 +38,11 @@
     transition: width 0.6s ease !important;
   }
 }
+.total-product-scroll {
+  height: 278px;              
+  overflow-y: auto;           
+  overflow-x: hidden;         
+  padding-right: 5px;         
+  scrollbar-width: thin;      
+  scrollbar-color: #c0cbd9 #f5f7f9; 
+}

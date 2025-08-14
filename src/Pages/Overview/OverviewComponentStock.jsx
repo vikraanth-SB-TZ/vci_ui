@@ -66,13 +66,13 @@ const ComponentStock = () => {
               className="d-flex align-items-center"
               style={{ maxWidth: "350px", textAlign: "right" }}
             >
-              <FaBell className={`me-2 ${isAvailable ? "text-success" : "text-success"}`} />
-              <small
-                className={`fw-semibold ${isAvailable ? "text-success" : "text-success"}`}
-                style={{ lineHeight: "1.2" }}
-              >
-                {message}
-              </small>
+          <FaBell className="me-2" style={{ color: "#28a745" }}/>
+          <small
+            className="fw-semibold"
+            style={{ lineHeight: "1.2", color: "#28a745" }}
+          >
+            {message}
+          </small>
             </div>
           )}
       </div>
@@ -107,9 +107,8 @@ const ComponentStock = () => {
                         : "Unavailable"}
                     </small>
                     <small
-                      className={
-                        item.boards_possible > 0 ? "text-success" : "text-danger"
-                      }
+                      className={item.boards_possible > 0 ? "#28a745" : "text-danger"}
+                      style={item.boards_possible > 0 ? { color: "#28a745" } : {}}
                     >
                       {item.boards_possible > 0 ? (
                         <FaArrowUp style={{ fontSize: "10px" }} />
