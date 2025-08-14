@@ -326,10 +326,10 @@ export default function ReturnSparePartsPage() {
       text: "Do you really want to delete this return?",
       icon: "warning",
       showCancelButton: true,
-       confirmButtonColor: "#d33",
+      confirmButtonColor: "#d33",
       cancelButtonColor: "#2FA64F",
       confirmButtonText: "Yes, delete it!",
-        customClass: {
+      customClass: {
         popup: "custom-compact"
       }
     });
@@ -806,7 +806,7 @@ export default function ReturnSparePartsPage() {
                     padding: "6px 12px",
                     fontSize: "14px",
                     borderRadius: "6px",
-                    opacity: sparePartsRows.length >= invoiceSpareparts.length ? 0.6 : 1,
+                    // opacity: sparePartsRows.length >= invoiceSpareparts.length ? 0.6 : 1,
                     cursor: sparePartsRows.length >= invoiceSpareparts.length ? "not-allowed" : "pointer",
                     minWidth: "90px",
                     height: "28px",
@@ -885,19 +885,35 @@ export default function ReturnSparePartsPage() {
             </div>
 
             {/* Buttons */}
-            <div className="d-flex justify-content-end mt-4">
-              <Button variant="secondary" onClick={() => {
-                setShowForm(false);
-                setEditingReturn(null);
-                setFormErrors({});
-                setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
-                setReturnDate(new Date().toISOString().split("T")[0]);
-                setFormData({ vendor_id: "", invoiceNo: "", batch_id: "", return_date: "", notes: "" });
-              }} className="me-2">Cancel</Button>
-              <Button variant="success" type="submit" disabled={loading}>
-                {loading ? <Spinner animation="border" size="sm" /> : editingReturn ? "Update Return" : "Submit Return"}
+            <div className="d-flex justify-content-end gap-2 mt-3">
+              <Button
+                className="btn-common btn-cancel"
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingReturn(null);
+                  setFormErrors({});
+                  setSparePartsRows([{ sparepart_id: "", quantity: "" }]);
+                  setReturnDate(new Date().toISOString().split("T")[0]);
+                  setFormData({
+                    vendor_id: "",
+                    invoiceNo: "",
+                    batch_id: "",
+                    return_date: "",
+                    notes: ""
+                  });
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                className="btn-common btn-save"
+                type="submit"
+              >
+                {editingReturn ? "Update" : "Save"}
               </Button>
             </div>
+
           </Form>
         </Offcanvas.Body>
       </Offcanvas>
