@@ -886,11 +886,21 @@ export default function VciCustomer() {
                 className="custom-offcanvas"
                 style={{ fontSize: "0.85rem", width: "600px" }}
             >
-                <Offcanvas.Header closeButton>
-                    <Offcanvas.Title className="fw-semibold">
-                        {isEditing ? "Edit Customer" : "Add New Customer"}
-                    </Offcanvas.Title>
-                </Offcanvas.Header>
+            <Offcanvas.Header className="border-bottom">
+                <Offcanvas.Title className="fw-semibold">
+                {isEditing ? "Edit Customer" : "Add New Customer"}
+                </Offcanvas.Title>
+                    <div className="ms-auto">
+                        <Button
+                            variant="outline-secondary"
+                            onClick={closeForm}
+                            className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+                            style={{ width: "32px", height: "32px" }}
+                        >
+                            <i className="bi bi-x-lg fs-6"></i>
+                        </Button>
+                    </div>
+            </Offcanvas.Header>
 
                 <Offcanvas.Body>
                     <Form onSubmit={handleSubmit} className="row g-3">

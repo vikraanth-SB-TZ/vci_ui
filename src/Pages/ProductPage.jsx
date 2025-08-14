@@ -454,10 +454,20 @@ export default function ProductPage() {
         className="custom-offcanvas "
         style={{ fontSize: "0.85rem" }}
       >
-        <Offcanvas.Header closeButton>
-          <Offcanvas.Title className="fw-semibold">
-            {isEditing ? "Edit Product" : "Add New Product"}
-          </Offcanvas.Title>
+        <Offcanvas.Header className="border-bottom">
+            <Offcanvas.Title className="fw-semibold">
+            {isEditing ? "Edit Product" : "Add Product"}
+            </Offcanvas.Title>
+                <div className="ms-auto">
+                    <Button
+                        variant="outline-secondary"
+                        onClick={() => setShowModal(false)}
+                        className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+                        style={{ width: "32px", height: "32px" }}
+                    >
+                        <i className="bi bi-x-lg fs-6"></i>
+                    </Button>
+                </div>
         </Offcanvas.Header>
         <Offcanvas.Body>
           <Form className="row g-3">

@@ -460,7 +460,12 @@ export default function ReturnSparePartsPage() {
     page * perPage
   );
 
-
+    const closeForm = () => {
+      setFormData(initialForm());
+      setEditingReturn(false);
+      setShowForm(false);
+      setErrors({});
+    };
 
   return (
     <div className="px-4 " style={{ fontSize: "0.75rem" }}>
@@ -644,10 +649,21 @@ export default function ReturnSparePartsPage() {
 
         }}
       >
-        <Offcanvas.Header closeButton style={{ padding: "16px 24px" }}>
-          <Offcanvas.Title style={{ fontSize: "25px", fontWeight: 700 }}>
+        <Offcanvas.Header className="border-bottom">
+            <Offcanvas.Title className="fw-semibold">
             {editingReturn ? "Edit Spare Part Return" : "Spare Part Return"}
-          </Offcanvas.Title>
+            </Offcanvas.Title>
+                <div className="ms-auto">
+                    <Button
+                        variant="outline-secondary"
+                        onClick={() => {
+                          setShowForm(false);}}
+                        className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+                        style={{ width: "32px", height: "32px" }}
+                    >
+                        <i className="bi bi-x-lg fs-6"></i>
+                    </Button>
+                </div>
         </Offcanvas.Header>
 
         <Offcanvas.Body className="px-3 pt-2 pb-2">

@@ -677,6 +677,12 @@ export default function vendor() {
     // Paginate results
     const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
+    const handleModalClose = () => {
+        setShowModal(false);
+        setNewStateName("");
+        setCountryId("");
+        setEditingStateId(null);
+    };
     return (
         <div className="px-4" style={{ fontSize: "0.75rem" }}>
             <Breadcrumb title="Vendors" />
@@ -1056,17 +1062,20 @@ export default function vendor() {
     zIndex: 1050,
   }}
 >
-  <Offcanvas.Header closeButton style={{ padding: "16px 24px" }}>
-    <Offcanvas.Title
-      style={{
-        fontSize: "25px",
-        fontWeight: 700,
-        lineHeight: 1,
-        letterSpacing: 0,
-      }}
-    >
-      {isEditing ? "Edit Vendor" : "Add New Vendor"}
+  <Offcanvas.Header className="border-bottom">
+    <Offcanvas.Title className="fw-semibold">
+     {isEditing ? "Edit Vendor" : "Add New Vendor"}
     </Offcanvas.Title>
+        <div className="ms-auto">
+            <Button
+                variant="outline-secondary"
+                onClick={closeForm}
+                className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+                style={{ width: "32px", height: "32px" }}
+            >
+                <i className="bi bi-x-lg fs-6"></i>
+            </Button>
+        </div>
   </Offcanvas.Header>
 
   <Offcanvas.Body className="px-3 pt-2 pb-2">
