@@ -352,23 +352,23 @@ export default function CategoryPage() {
         
         className="custom-offcanvas"// Adjust width as needed
       >
-        <Offcanvas.Header>
-          <div className="d-flex justify-content-between align-items-center w-100">
-            <h5 className="fw-semibold mb-0">
-              {editingCategoryId ? "Edit Category" : "Add New Category"}
-            </h5>
-            <Button
-              variant="outline-secondary"
-              onClick={handleModalClose}
-              className="rounded-circle border-0 d-flex align-items-center justify-content-center"
-              style={{ width: "32px", height: "32px" }}
-            >
-              <i className="bi bi-x-lg fs-6"></i>
-            </Button>
-          </div>
-        </Offcanvas.Header>
+       <Offcanvas.Header className="border-bottom">
+  <Offcanvas.Title className="fw-semibold">
+    {editingCategoryId ? "Edit Category" : "Add New Category"}
+  </Offcanvas.Title>
+  <div className="ms-auto">
+    <Button
+      variant="outline-secondary"
+      onClick={handleModalClose}
+      className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+      style={{ width: "32px", height: "32px" }}
+    >
+      <i className="bi bi-x-lg fs-6"></i>
+    </Button>
+  </div>
+</Offcanvas.Header>
 
-        <Offcanvas.Body className="p-4">
+        <Offcanvas.Body className="">
           <Form.Group className="mb-3">
             <Form.Label className="fw-medium">VCI Series</Form.Label>
             <Form.Control
