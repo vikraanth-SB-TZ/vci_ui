@@ -327,7 +327,7 @@ export default function CountryPage() {
           </div>
         </Offcanvas.Header>
 
-        <Offcanvas.Body className="p-4">
+        <Offcanvas.Body className="">
           <Form.Group className="mb-3">
             <Form.Label className="fw-medium">Country Name</Form.Label>
             <Form.Control
