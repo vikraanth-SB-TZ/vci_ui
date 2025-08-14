@@ -100,11 +100,29 @@ export default function ProductPage() {
     setShowModal(true);
   };
 
-  const handleEdit = (product) => {
-    setIsEditing(true);
-    setProductData({ ...product });
-    setShowModal(true);
-  };
+const handleEdit = (product) => {
+  setIsEditing(true);
+
+  const cleanSerial = product.serial_no ? product.serial_no.trim() : "";
+
+  // Add the current serial to the options if missing
+  if (cleanSerial && !pcbSerialOptions.some(opt => opt.value === cleanSerial)) {
+    setPcbSerialOptions(prev => [
+      ...prev,
+      { value: cleanSerial, label: cleanSerial }
+    ]);
+  }
+
+  setProductData({
+    ...product,
+    serial_no: cleanSerial,
+    fromserial_no: product.fromserial_no ? product.fromserial_no.trim() : "",
+    toserial_no: product.toserial_no ? product.toserial_no.trim() : "",
+  });
+
+  setShowModal(true);
+};
+
 
   const handleDelete = async (id) => {
   const result = await MySwal.fire({
