@@ -140,11 +140,11 @@ export default function StatePage() {
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
-      cancelButtonColor: "#2FA64F",
+        cancelButtonColor: "#2FA64F",
         confirmButtonText: "Yes, delete it!",
-         customClass: {
-      popup: "custom-compact" 
-    }
+        customClass: {
+          popup: "custom-compact"
+        }
       });
 
       if (confirmed.isConfirmed) {
@@ -357,10 +357,20 @@ export default function StatePage() {
         className="custom-offcanvas"
         style={{ fontSize: "0.85rem", width: "420px" }}
       >
-        <Offcanvas.Header closeButton>
+        <Offcanvas.Header className="border-bottom">
           <Offcanvas.Title className="fw-semibold">
             {editingStateId ? "Edit State" : "Add New State"}
           </Offcanvas.Title>
+          <div className="ms-auto">
+            <Button
+              variant="outline-secondary"
+              onClick={handleModalClose}
+              className="rounded-circle border-0 d-flex align-items-center justify-content-center"
+              style={{ width: "32px", height: "32px" }}
+            >
+              <i className="bi bi-x-lg fs-6"></i>
+            </Button>
+          </div>
         </Offcanvas.Header>
 
         <Offcanvas.Body>
@@ -403,7 +413,7 @@ export default function StatePage() {
               onClick={handleSave}
               disabled={!newStateName.trim() || !countryId}
               size="sm"
-              
+
             >
               {editingStateId ? "Update" : "Save"}
             </Button>

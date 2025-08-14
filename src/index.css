@@ -261,13 +261,24 @@ body,
   align-items: center;
   justify-content: center;
 }
+.custom-offcanvas .offcanvas-header {
+  padding: 12px 16px; /* balanced padding for top/bottom/side */
+}
+
+.custom-offcanvas .offcanvas-title {
+  font-size: 16px;       /* slightly bigger than form text */
+  font-weight: 600;      /* matches fw-semibold */
+  color: #333;           /* dark, clean text */
+  margin: 0;             /* remove default extra space */
+}
+
 
 
 /* Make dropdowns smaller inside custom-offcanvas */
 .custom-offcanvas .form-select {
   font-size: 13px;
   padding: 2px 20px 2px 8px; /* top/right/bottom/left — leave space for arrow */
-  height: 28px; /* slightly smaller than inputs */
+  height: 28px; /* slightly smaller than inputs */     
   line-height: 1.2; 
 }
 .btn-common {
