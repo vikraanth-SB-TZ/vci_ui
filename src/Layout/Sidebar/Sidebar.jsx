@@ -628,7 +628,7 @@ export default function Sidebar({ collapsed }) {
 
   {!collapsed && productOpen && (
     <div className="ms-2">
-      <a
+      {/* <a
         href="#"
         onClick={(e) => {
           e.preventDefault();
@@ -638,7 +638,7 @@ export default function Sidebar({ collapsed }) {
         className={subLinkClass("batch")}
       >
         - Batch
-      </a>
+      </a> */}
       <a
         href="#"
         onClick={(e) => {
