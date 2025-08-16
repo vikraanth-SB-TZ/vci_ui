@@ -216,7 +216,8 @@ body,
 .custom-offcanvas {
   font-family: "Product Sans", sans-serif;
   font-weight: 400;
-  width: 600px;
+  width: 600px; 
+  border-radius: 6px;
 }
 
 .custom-offcanvas .form-label {
