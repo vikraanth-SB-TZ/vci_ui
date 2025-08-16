@@ -220,11 +220,7 @@ const SerialStockCheckPage = () => {
       </Container>
 
       {/* Footer */}
-      <div className="copyright__part">
-        <a href="https://bmhhmartin.vercel.app/" target="_blank" rel="noreferrer">
-          &copy; Md H H Martin
-        </a>
-      </div>
+      
     </>
   );
 };
