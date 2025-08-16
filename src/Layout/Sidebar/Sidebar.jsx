@@ -662,6 +662,18 @@ export default function Sidebar({ collapsed }) {
         - Product Test
       </a>
       <a
+  href="#"
+  onClick={(e) => {
+    e.preventDefault();
+    setProductOpen(true);
+    handleLinkClick("serialStock");
+  }}
+  className={subLinkClass("serialStock")}
+>
+  - Serial Stock
+</a>
+
+      <a
         href="#"
         onClick={(e) => {
           e.preventDefault();
