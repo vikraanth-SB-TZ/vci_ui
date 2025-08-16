@@ -14,6 +14,8 @@ import DistrictPage from './Pages/DistrictPage';
 import CountryPage from './Pages/Countrypage';
 import CategoryPage from './pages/CategoryPage';
 import ProductPage from './Pages/ProductPage';
+import SerialStockCheckPage from './pages/SerialStockCheckPage';
+
 
 import SoldPage from './pages/SoldPage';
 import SalesList from './Pages/SalesList';
@@ -100,6 +102,7 @@ export default function App() {
           <Route path="countries" element={<CountryPage />} />
           <Route path="category" element={<CategoryPage />} />
           <Route path="productTest" element={<ProductPage />} />
+          <Route path="serialStock" element={<SerialStockCheckPage />} />
           <Route path="sold" element={<SoldPage />} />
 
           {/* Sales Routes */}
